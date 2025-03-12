@@ -1,6 +1,8 @@
 package cz.cuni.mff.hanaf;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch._types.query_dsl.Query;
+import co.elastic.clients.elasticsearch._types.query_dsl.RangeQuery;
 import co.elastic.clients.elasticsearch.core.IndexResponse;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
@@ -11,6 +13,7 @@ import org.apache.http.HttpHost;
 import org.elasticsearch.client.RestClient;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -23,11 +26,17 @@ public class Main {
         ElasticsearchTransport transport = new RestClientTransport(restClient, new JacksonJsonpMapper());
         ElasticsearchClient client = new ElasticsearchClient(transport);
 
-        Person person = new Person(20, "John Doe", new Date(1471466076564L));
-        IndexResponse response = client.index(i -> i
-                .index("person")
-                .id(person.getFullName())
-                .document(person));
+        List<Person> people = new ArrayList<>();
+        people.add(new Person(20, "John Doe"));
+        people.add(new Person(60, "John Smith"));
+        people.add(new Person(50, "Jane Surname"));
+        people.add(new Person(15, "Jim Beam"));
+        for (Person person : people) {
+            IndexResponse response = client.index(i -> i
+                    .index("person")
+                    .id(person.getFullName())
+                    .document(person));
+        }
 
         // alternatively this
         /*String jsonString = "{\"age\":10,\"dateOfBirth\":1471466076564,\"fullName\":\"John Doe\"}";
@@ -46,8 +55,30 @@ public class Main {
                                 .query(searchText))), Person.class);
 
         List<Hit<Person>> hits = searchResponse.hits().hits();
+        System.out.println("This many people are named John:");
         System.out.println(hits.size());
-        System.out.println(hits.get(0).source().getFullName());
+        for (Hit<Person> hit : hits) {
+            System.out.println(hit.source().getFullName());
+        }
+
+        double minAge = 40; // can't get this next part to work with the same structure as the previous search
+
+        Query rangeQuery = RangeQuery.of(r -> r
+                .number(n -> n
+                        .field("age")
+                        .gte(minAge))
+        )._toQuery();
+
+        SearchResponse<Person> ageSearchResponse = client.search(s -> s
+                .index("person")
+                .query(rangeQuery), Person.class);
+
+        List<Hit<Person>> ageHits = ageSearchResponse.hits().hits();
+        System.out.println("This many people are older than 40:");
+        System.out.println(ageHits.size());
+        for (Hit<Person> hit : ageHits) {
+            System.out.println(hit.source().getFullName());
+        }
     }
 }
 
