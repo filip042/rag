@@ -3,6 +3,8 @@ package cz.cuni.mff.hanaf;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import co.elastic.clients.elasticsearch._types.query_dsl.RangeQuery;
+import co.elastic.clients.elasticsearch.core.BulkRequest;
+import co.elastic.clients.elasticsearch.core.BulkResponse;
 import co.elastic.clients.elasticsearch.core.IndexResponse;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
@@ -13,6 +15,7 @@ import org.apache.http.HttpHost;
 import org.elasticsearch.client.RestClient;
 
 import java.io.IOException;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -31,20 +34,34 @@ public class Main {
         people.add(new Person(60, "John Smith"));
         people.add(new Person(50, "Jane Surname"));
         people.add(new Person(15, "Jim Beam"));
+//        for (Person person : people) {
+//            IndexResponse response = client.index(i -> i
+//                    .index("person")
+//                    .id(person.getFullName())
+//                    .document(person));
+//        }
+
+        BulkRequest.Builder br = new BulkRequest.Builder();
+
         for (Person person : people) {
-            IndexResponse response = client.index(i -> i
-                    .index("person")
-                    .id(person.getFullName())
-                    .document(person));
+            br.operations(op -> op
+                    .index(idx -> idx
+                            .index("products")
+                            .id(person.getFullName())
+                            .document(person)
+                    )
+            );
         }
 
-        // alternatively this
-        /*String jsonString = "{\"age\":10,\"dateOfBirth\":1471466076564,\"fullName\":\"John Doe\"}";
+        BulkResponse result = client.bulk(br.build());
+
+        // alternatively this, can also be done in bulk
+        String jsonString = "{\"age\":10,\"fullName\":\"John Blow\"}";
         StringReader stringReader = new StringReader(jsonString);
         IndexResponse response = client.index(i -> i
                 .index("person")
-                .id("John Doe")
-                .withJson(stringReader));*/
+                .id("John Blow")
+                .withJson(stringReader));
 
         String searchText = "John";
         SearchResponse<Person> searchResponse = client.search(s -> s
