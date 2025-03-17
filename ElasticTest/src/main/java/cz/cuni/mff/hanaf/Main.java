@@ -1,6 +1,8 @@
 package cz.cuni.mff.hanaf;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch._types.aggregations.HistogramBucket;
+import co.elastic.clients.elasticsearch._types.query_dsl.MatchQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import co.elastic.clients.elasticsearch._types.query_dsl.RangeQuery;
 import co.elastic.clients.elasticsearch.core.BulkRequest;
@@ -34,6 +36,7 @@ public class Main {
         people.add(new Person(60, "John Smith"));
         people.add(new Person(50, "Jane Surname"));
         people.add(new Person(15, "Jim Beam"));
+
 //        for (Person person : people) {
 //            IndexResponse response = client.index(i -> i
 //                    .index("person")
@@ -64,12 +67,24 @@ public class Main {
                 .withJson(stringReader));
 
         String searchText = "John";
+
+        Query query = MatchQuery.of(m -> m
+                .field("fullName")
+                .query(searchText)
+        )._toQuery();
+
         SearchResponse<Person> searchResponse = client.search(s -> s
                 .index("person")
-                .query(q -> q
-                        .match(t -> t
-                                .field("fullName")
-                                .query(searchText))), Person.class);
+                // .size(1) // limits to the first person
+                .query(query), Person.class);
+
+        // alternatively
+//        SearchResponse<Person> searchResponse = client.search(s -> s
+//                .index("person")
+//                .query(q -> q
+//                        .match(t -> t
+//                                .field("fullName")
+//                                .query(searchText))), Person.class);
 
         List<Hit<Person>> hits = searchResponse.hits().hits();
         System.out.println("This many people are named John:");
@@ -77,8 +92,9 @@ public class Main {
         for (Hit<Person> hit : hits) {
             System.out.println(hit.source().getFullName());
         }
+        System.out.println();
 
-        double minAge = 40; // can't get this next part to work with the same structure as the previous search
+        double minAge = 40;
 
         Query rangeQuery = RangeQuery.of(r -> r
                 .number(n -> n
@@ -95,6 +111,29 @@ public class Main {
         System.out.println(ageHits.size());
         for (Hit<Person> hit : ageHits) {
             System.out.println(hit.source().getFullName());
+        }
+        System.out.println();
+
+        // aggregation
+        SearchResponse<Void> aggrResponse = client.search(b -> b
+                        .index("person")
+                        .aggregations("age-histogram", a -> a
+                                .histogram(h -> h
+                                        .field("age")
+                                        .interval(20.0)
+                                )
+                        ),
+                Void.class
+        );
+
+        List<HistogramBucket> buckets = aggrResponse.aggregations()
+                .get("age-histogram")
+                .histogram()
+                .buckets().array();
+
+        for (HistogramBucket bucket: buckets) {
+            System.out.println("There are " + bucket.docCount() +
+                    " people aged between " + (int) bucket.key() + " and " + (int) (bucket.key() + 19));
         }
     }
 }
