@@ -1,10 +1,9 @@
 package cz.cuni.mff.hanaf;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch._helpers.esql.objects.ObjectsEsqlAdapter;
 import co.elastic.clients.elasticsearch._types.aggregations.HistogramBucket;
-import co.elastic.clients.elasticsearch._types.query_dsl.MatchQuery;
-import co.elastic.clients.elasticsearch._types.query_dsl.Query;
-import co.elastic.clients.elasticsearch._types.query_dsl.RangeQuery;
+import co.elastic.clients.elasticsearch._types.query_dsl.*;
 import co.elastic.clients.elasticsearch.core.BulkRequest;
 import co.elastic.clients.elasticsearch.core.BulkResponse;
 import co.elastic.clients.elasticsearch.core.IndexResponse;
@@ -49,7 +48,7 @@ public class Main {
         for (Person person : people) {
             br.operations(op -> op
                     .index(idx -> idx
-                            .index("products")
+                            .index("person")
                             .id(person.getFullName())
                             .document(person)
                     )
@@ -73,10 +72,20 @@ public class Main {
                 .query(searchText)
         )._toQuery();
 
+        // doesn't work
+//        Query query = PrefixQuery.of(m -> m
+//                .field("fullName")
+//                .value(searchText)
+//        )._toQuery();
+
         SearchResponse<Person> searchResponse = client.search(s -> s
                 .index("person")
                 // .size(1) // limits to the first person
-                .query(query), Person.class);
+                .query(q -> q
+                    .bool(b -> b
+                        .must(query)
+                    )
+                ), Person.class);
 
         // alternatively
 //        SearchResponse<Person> searchResponse = client.search(s -> s
@@ -134,6 +143,20 @@ public class Main {
         for (HistogramBucket bucket: buckets) {
             System.out.println("There are " + bucket.docCount() +
                     " people aged between " + (int) bucket.key() + " and " + (int) (bucket.key() + 19));
+        }
+        System.out.println();
+
+        String personQuery =
+                """
+                    from person
+                    | sort age desc
+                    | limit 5
+                """;
+
+        List<Person> queryRes = (List<Person>) client.esql().query(ObjectsEsqlAdapter.of(Person.class), personQuery);
+
+        for (Person person: queryRes) {
+            System.out.println(person.getFullName() + " is " + person.getAge() + " years old");
         }
     }
 }

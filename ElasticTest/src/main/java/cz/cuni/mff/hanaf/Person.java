@@ -1,5 +1,8 @@
 package cz.cuni.mff.hanaf;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Person {
     private int age;
     private String fullName;
