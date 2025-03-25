@@ -31,7 +31,7 @@ Uživatel pak může do chatbota zadat dotaz v přirozeném jazyce, na který mu
 - Spring AI (+ možná Spring Boot)
   - Možné alternativy:
     - Langchain4j
-      - Langchain4j 
+      - Spring AI by mělo být jednodušší propojit se zbytkem Spring Frameworku
 - LLM
 
 ## 1.3 Odkazy (Reference)
@@ -69,12 +69,13 @@ Například, při hledání "programové rozhraní" by mělo najít i dokumenty 
 ## 2.3 Motivační příklad užití
 
 Uživatel si do aplikace načte například sbírku zákonů, smlouvy, nebo dokumentaci.
-Software mu umožní získat z těchto dokumentů potřebné informace, aniž by musel znát specifickou terminologii, nebo vědět, v jakých dokumentech se o dané věci píše.
+Software mu umožní získat z těchto dokumentů potřebné informace, aniž by musel znát specifickou terminologii, nebo vědět,
+v jakých dokumentech se o dané věci píše.
 
 ## 2.4 Prostředí aplikace
 
 Program bude odladěn na Windows, měl by ale fungovat i v jiných prostředích.
-(možná ještě trochu na Linuxu)
+(možná ještě budu testovat na Linuxu)
 	
 ## 2.5 Omezení díla
 
@@ -91,10 +92,10 @@ Z praktických důvodů bude využito 3rd-party LLM přes API (napr. OpenAI). Li
 
 ### 3.1.1 Indexovací část
 
-Bude mít formu jednoducheho CLI (command line interface), 
+Bude mít formu jednoduchého CLI (command line interface), 
 kde uživatel zadá soubor nebo adresář se soubory, které se mají zaindexovat.
 
-Soubory mohou být v jednom z následujicich formátů: txt, pdf, md.
+Soubory mohou být v jednom z následujicich formátů: txt, pdf, md. (možná ještě Tex/Latex, Html)
 
 ### 3.1.2 Dotazovaci cast
 
@@ -102,12 +103,16 @@ Aplikace bude mít velmi jednoduché GUI.
 Uživatel zadá dotaz v plaintextu, program vrátí plaintextovou odpověď spolu s referencemi na původní dokumenty.
 
 ## 3.2 Rozhraní se software
-<Popište interakci díla s ostatními částmi logiky aplikace včetně jejich verze. Tato část může
-obsahovat popis interakce s databází, operačním systémem, knihovnami nebo jinými částmi
-software. Popište, jaká data se budou předávat a jejich význam. Uveďte, která data budou sdílena
-jednotlivými částmi, popřípadě jakým způsobem bude sdílení implementováno.>
-    - viz obrazek
-Indexační část aplikace bude přijímat jako vstup cestu v plaintextu
+
+- viz nákres
+
+Indexační část aplikace bude přijímat jako vstup cestu k souboru v plaintextu. Načte kompatibilní soubory a rozdělí je na menší bloky.
+Tyto bloky pošle do LLM přes Http, které je poupraví tak, aby každý blok dával sám o sobě smysl. Tyto poupravené bloky pak pošle po Http zpátky.
+Aplikace pak jednotlivé bloky embedduje, a původní blok spolu s embeddingem zaindexuje do databáze. 
+
+Dotazovací část aplikace bude přijímat dotaz v plaintextu. Ten se převede na vektor,
+a aplikace pak použije původní text aby v Elastic databázi hledala s pomocí klíčových slov, a vektor aby hledala vektorově.
+ElasticSearch vrátí nějaký počet bloků pravděpodobně obsahující relevantní informace k dotazu, ze kterých pak LLM vytvoří smysluplnou odpověď.  
 
 
 ## 3.4 Komunikační rozhraní
@@ -140,9 +145,9 @@ Možné chyby:
 
 ## 4.2 Dotazování
 
-Uživatel položí chatbotu dotaz přes GUI.
+Uživatel položí chatbotu dotaz přes textbox v GUI.
 Systém najde relevantní části dokumentu pomocí vektorového hledání a BM25.
-Na jejich základě vytvoří odpověď.
+Na jejich základě vytvoří odpověď, kterou spolu s referencemi na původní dokumenty vypíše uživateli.
 
 Podobně jako v indexační části, aplikační server vrátí http status kód.
 Případné chyby zaznamenává server do logu a GUI vypíše uživateli.
@@ -150,12 +155,12 @@ Případné chyby zaznamenává server do logu a GUI vypíše uživateli.
 Možné chyby:
 - Na straně serveru:
   - Nedostupné LLM
-  - Chybějící dokumenty
+  - Chybějící dokumenty (asi není chyba, spíše speciální případ)
 
 # 5. Obrazovky
 
 ## 5.1 Obrazovka 1
-()
+(Něco ve stylu UIMockup.svg)
 GUI bude vypadat podobně jako to u dalších chatbotů, například těch od OpenAI, případně jako GUI v aplikacích pro zasílání textových zpráv.
 
 # 6. Ostatní (mimofunkční) požadavky  
