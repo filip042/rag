@@ -17,7 +17,7 @@ Tabulka revizí
 ## 1.1 Popis a zaměření softwarového díla 
 
 Software si načte do databáze dokumenty ze souboru.
-Uživatel pak může do chatbota zadat dotaz v přirozeném jazyce, na který mu chatbot odpoví spolu se zdroji, odkud informace získal.
+Uživatel pak může do chatbotu zadat dotaz v přirozeném jazyce, na který mu chatbot odpoví spolu se zdroji, odkud informace získal.
 
 ## 1.2 Použité technologie
 
@@ -28,7 +28,7 @@ Uživatel pak může do chatbota zadat dotaz v přirozeném jazyce, na který mu
 - Elasticsearch
   - Možné alternativy:
     - Opensearch
-- Spring AI (+ možná Spring Boot)
+- Spring AI (pravděpodobně i Spring Boot)
   - Možné alternativy:
     - Langchain4j
       - Spring AI by mělo být jednodušší propojit se zbytkem Spring Frameworku
@@ -80,16 +80,17 @@ Například, při hledání "programové rozhraní" by mělo najít i dokumenty 
   - Při vytváření workspacu má uživatel možnost si vybrat jestli:
     - Bude workspace soukromý/sdílený jen některým uživatelům/veřejný
       - Guest uživateli je přístupná jen poslední možnost
-      - Možná možnost že workspace bude existovat jen na danou session
+      - Možnost vytvoření single-session workspace?
     - Bude adresář workspacu automaticky kontrolován pro změny/jestli bude kontrolován jen po požádání uživatelem
-      - Uživatel je notifikován, pokud byl obsah adresáře změněn (možná)
+      - Uživatel je notifikován (nějakou malou ikonou), pokud byl obsah adresáře změněn (možná)
 - Smazání workspacu
   - Workspacy které uživatel vytvořil, nebo ke kterým má admin přístup, může mazat
   - Workspacy, ke kterým nemá uživatel admin přístup, si může odebrat z knihovny nabízených workspaců
 - Dotazování
-  - Po výběru zdrojového adresáře se může uživatel ptát na libovolné otázky o daných dokumentech. Chatbot si pamatuje historii dotazů z dané session
-    - Mohl by si pamatovat často kladené dotazy spojené s daným workspacem a ty uživateli nabídnout na začátku session
-  - Uživatel může dokumenty, ve kterých vyhledává, filtrovat (podle autora, tématu, datumu etc.), případně prohledávané dokumenty vybrat ručně
+  - Po výběru zdrojového adresáře se může uživatel ptát na libovolné otázky o daných dokumentech
+  - Chatbot si pamatuje historii dotazů z dané session
+    - Může nabídnout uživateli na začátku session často kladené dotazy
+  - filtrování (podle autora, tématu, datumu etc.), případně manuální vybrání prohledávaných dokumenty
 	
 ## 2.3 Motivační příklad užití
 
@@ -115,7 +116,7 @@ Z praktických důvodů bude využito 3rd-party LLM přes API (napr. OpenAI). Li
 
 ## 3.1 Uživatelské rozhraní, vstupy a výstupy
 
-Aplikace bude využívat grafické uživatelské rozhraní, které je podrobněji popsáno v následujících sekcích.  
+Aplikace bude využívat grafické uživatelské rozhraní, které je podrobněji popsáno v sekci 5.  
 Uživatel bude mít možnost si vybrat účet, což ovlivní, ke kterým workspacům bude mít přístup.
 
 ### 3.1.1 Indexovací část
@@ -127,7 +128,7 @@ Uživateli zadá informace o workspacu do formuláře, který obsahuje následuj
 
 Soubory mohou být v jednom z následujicich formátů: txt, pdf, md, Tex/Latex, Html
 
-### 3.1.2 Dotazovaci cast
+### 3.1.2 Dotazovaci část
 
 Uživatel zadá dotaz v plaintextu, program vrátí plaintextovou odpověď spolu s referencemi na původní dokumenty.
 
@@ -191,13 +192,13 @@ Možné chyby:
 (Něco ve stylu UIMockup.svg)
 GUI bude vypadat podobně jako to u dalších chatbotů, například těch od OpenAI, případně jako GUI v aplikacích pro zasílání textových zpráv.
 
-## 5.2 Výběr uživatele/workspacu
+## 5.2 Výběr účtu/workspacu
 
-//
+Uživatel si buď vybere účet/workspace z dropdown menu, nebo stiskne tlačítko "vytvořit"
 
-## 5.3 Vytvoření uživatele workspacu
+## 5.3 Vytvoření účtu/workspacu
 
-//
+formulář - viz. sekce 3.1.1
 
 # 6. Ostatní (mimofunkční) požadavky  
 
@@ -214,7 +215,7 @@ Aplikace nebude obsahovat žádnou formu zabezpečení.
 ## 6.4 Požadavky na rozšiřitelnost a začlenitelnost
 
 Tím, že je aplikace ve formě aplikačního serveru, bude možné vyměnit jak indexační, tak vyhledávací uživatelské rozhraní.  
-Zároveň bude možnost přidat podporu načítání více druhů dokumentů 
+Zároveň bude možnost přidat podporu načítání více druhů dokumentů ve formě pluginů 
 
 # 9. Time-line & Milestones  
 
@@ -223,7 +224,7 @@ Zároveň bude možnost přidat podporu načítání více druhů dokumentů
 
 
 Dodatek A: Vymezení pojmů
-- RAG - Retrieval Augmented Generation je způsob 
+- RAG - Retrieval Augmented Generation je způsob // todo
 
 Dodatek B: To Be Determined List
 <Uveďte seznam částí specifikace, které nebylo možno rozhodnout a popsat do doby dokončení
