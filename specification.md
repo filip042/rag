@@ -2,7 +2,7 @@ Anotace
 	
 
 Obsah
-<todo>
+<tbd>
 
 Tabulka revizí
 
@@ -51,7 +51,8 @@ Důvodem vzniku je poskytnout uživateli jednoduchý způsob jak vyhledávat v d
 Dílo bude navrženo jako samostatný produkt, který je tvořen ze dvou hlavních částí:
 
 - Indexační část
-  - Uživatel do příkazové řádky zadá cestu k souboru s dokumenty, které software načte do databáze.
+  - Uživatel vybere adresář s dokumenty, které software načte do databáze.
+    - Bude si moci vybrat jestli se při změně v adresáři indexované dokumenty budou aktualizovat, nebo jestli bude o aktualizace uživatel žádat manuálně 
 - Dotazovací část
   - Uživatel přes GUI zadá dotaz, který software zpracuje a využije na vyhledání relevantních informací v databázi, které pak čitelným způsobem vypíše.
 - obr. 
@@ -64,7 +65,31 @@ Vyhledávací algoritmus bude kombinovat klasické vyhledávání pomocí klíč
 sémantickým vyhledáváním pomocí dokumentových embeddingů (vektorů zachycující obsah textu).
 	
 Sémantické vyhledávání umožňuje hledat i bez znalostí konkrétních slov a termínů. 
-Například, při hledání "programové rozhraní" by mělo najít i dokumenty zminujici jen API.
+Například, při hledání "programové rozhraní" by mělo najít i dokumenty zmiňujici jen API.
+
+### Usecases:
+- Přihlášení
+  - Při spuštění aplikace je uživatel požádán, aby si vybral účet 
+    - Defaultní je guest user, u který má přístup k, a může vytvářet jen, veřejné workspacy
+- Otevření workspacu
+  - Pokud nějaký existuje, může si uživatel vybrat z existujících workspaců
+  - Pokud ne, musí si nějaký vytvořit
+- Vytvoření workspacu
+  - Uživatel vybere adresář, ze kterého se budou indexovat dokumenty
+    - Možná dát možnost vybrat několik adresářů
+  - Při vytváření workspacu má uživatel možnost si vybrat jestli:
+    - Bude workspace soukromý/sdílený jen některým uživatelům/veřejný
+      - Guest uživateli je přístupná jen poslední možnost
+      - Možná možnost že workspace bude existovat jen na danou session
+    - Bude adresář workspacu automaticky kontrolován pro změny/jestli bude kontrolován jen po požádání uživatelem
+      - Uživatel je notifikován, pokud byl obsah adresáře změněn (možná)
+- Smazání workspacu
+  - Workspacy které uživatel vytvořil, nebo ke kterým má admin přístup, může mazat
+  - Workspacy, ke kterým nemá uživatel admin přístup, si může odebrat z knihovny nabízených workspaců
+- Dotazování
+  - Po výběru zdrojového adresáře se může uživatel ptát na libovolné otázky o daných dokumentech. Chatbot si pamatuje historii dotazů z dané session
+    - Mohl by si pamatovat často kladené dotazy spojené s daným workspacem a ty uživateli nabídnout na začátku session
+  - Uživatel může dokumenty, ve kterých vyhledává, filtrovat (podle autora, tématu, datumu etc.), případně prohledávané dokumenty vybrat ručně
 	
 ## 2.3 Motivační příklad užití
 
@@ -75,7 +100,7 @@ v jakých dokumentech se o dané věci píše.
 ## 2.4 Prostředí aplikace
 
 Program bude odladěn na Windows, měl by ale fungovat i v jiných prostředích.
-(možná ještě budu testovat na Linuxu)
+S největší pravděpodobností bude testován i na Linuxu.
 	
 ## 2.5 Omezení díla
 
@@ -90,23 +115,27 @@ Z praktických důvodů bude využito 3rd-party LLM přes API (napr. OpenAI). Li
 
 ## 3.1 Uživatelské rozhraní, vstupy a výstupy
 
+Aplikace bude využívat grafické uživatelské rozhraní, které je podrobněji popsáno v následujících sekcích.  
+Uživatel bude mít možnost si vybrat účet, což ovlivní, ke kterým workspacům bude mít přístup.
+
 ### 3.1.1 Indexovací část
 
-Bude mít formu jednoduchého CLI (command line interface), 
-kde uživatel zadá soubor nebo adresář se soubory, které se mají zaindexovat.
+Uživateli zadá informace o workspacu do formuláře, který obsahuje následující vstupní pole:
+- Adresář ze kterého se dokumenty zaindexují (uživateli se asi zobrazí nějaký souborový prohlížeč)
+- Kdo z uživatelů bude mít k workspacu přístup
+- Jestli bude databáze updatována automaticky po změně adresáře
 
-Soubory mohou být v jednom z následujicich formátů: txt, pdf, md. (možná ještě Tex/Latex, Html)
+Soubory mohou být v jednom z následujicich formátů: txt, pdf, md, Tex/Latex, Html
 
 ### 3.1.2 Dotazovaci cast
 
-Aplikace bude mít velmi jednoduché GUI.  
 Uživatel zadá dotaz v plaintextu, program vrátí plaintextovou odpověď spolu s referencemi na původní dokumenty.
 
 ## 3.2 Rozhraní se software
 
 - viz nákres
 
-Indexační část aplikace bude přijímat jako vstup cestu k souboru v plaintextu. Načte kompatibilní soubory a rozdělí je na menší bloky.
+Indexační část aplikace bude přijímat jako vstup cestu k souboru v plaintextu, předanou formulářem. Načte kompatibilní soubory a rozdělí je na menší bloky.
 Tyto bloky pošle do LLM přes Http, které je poupraví tak, aby každý blok dával sám o sobě smysl. Tyto poupravené bloky pak pošle po Http zpátky.
 Aplikace pak jednotlivé bloky embedduje, a původní blok spolu s embeddingem zaindexuje do databáze. 
 
@@ -129,19 +158,17 @@ Index bude založen na ElasticSeach.
 
 ## 4.1 Indexace
 
-Uživatel do příkazové řádky zadá cestu k adresáři obsahující dokumenty v podporovaných formátech (txt, pdf, md).
+Uživatel vybere adresář, ze kterého se budou indexovat dokumenty v podporovaných formátech (txt, pdf, md, Tex/Latex, HTML).
 Tyto dokumenty budou rozděleny na menší části, které pak budou přepsány LLM tak, aby samostatně dávaly smysl (např. správná zájmena)
 Tyto bloky pak budou zaindexovány do databáze.
 
 Aplikační server vrátí http status kód podle zvyklostí RestApi a chyby zaznamená do logu.
-CLI všechny chyby, ať už na své straně nebo na straně serveru, zobrazí v čitelné podobě uživateli.
+Aplikace všechny chyby, ať už na své straně nebo na straně serveru, zobrazí v čitelné podobě uživateli.
 
 Možné chyby:
 - Na straně serveru:
   - Špatný formát dokumentu
   - Nedostupné LLM
-- Na straně příkazové řádky:
-  - Neplatná cesta
 
 ## 4.2 Dotazování
 
@@ -159,9 +186,18 @@ Možné chyby:
 
 # 5. Obrazovky
 
-## 5.1 Obrazovka 1
+## 5.1 Chatbot
+
 (Něco ve stylu UIMockup.svg)
 GUI bude vypadat podobně jako to u dalších chatbotů, například těch od OpenAI, případně jako GUI v aplikacích pro zasílání textových zpráv.
+
+## 5.2 Výběr uživatele/workspacu
+
+//
+
+## 5.3 Vytvoření uživatele workspacu
+
+//
 
 # 6. Ostatní (mimofunkční) požadavky  
 
@@ -177,11 +213,8 @@ Aplikace nebude obsahovat žádnou formu zabezpečení.
 
 ## 6.4 Požadavky na rozšiřitelnost a začlenitelnost
 
-Tím, že je aplikace ve formě aplikačního serveru, bude možné vyměnit jak indexační, tak vyhledávací uživatelské rozhraní.
-
-# 8. Negativní vymezení
-
-Software nebude uchovávat historii dotazů. Nebude na ni proto možno odkazovat.
+Tím, že je aplikace ve formě aplikačního serveru, bude možné vyměnit jak indexační, tak vyhledávací uživatelské rozhraní.  
+Zároveň bude možnost přidat podporu načítání více druhů dokumentů 
 
 # 9. Time-line & Milestones  
 
