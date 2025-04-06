@@ -9,17 +9,22 @@ import co.elastic.clients.elasticsearch.core.BulkResponse;
 import co.elastic.clients.elasticsearch.core.IndexResponse;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
+import co.elastic.clients.elasticsearch.esql.query.EsqlFormat;
 import co.elastic.clients.json.jackson.JacksonJsonpMapper;
 import co.elastic.clients.transport.ElasticsearchTransport;
+import co.elastic.clients.transport.endpoints.BinaryResponse;
 import co.elastic.clients.transport.rest_client.RestClientTransport;
 import org.apache.http.HttpHost;
 import org.elasticsearch.client.RestClient;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class Main {
 
@@ -153,11 +158,21 @@ public class Main {
                     | limit 5
                 """;
 
-        List<Person> queryRes = (List<Person>) client.esql().query(ObjectsEsqlAdapter.of(Person.class), personQuery);
+//        List<Person> queryRes = (List<Person>) client.esql().query(ObjectsEsqlAdapter.of(Person.class), personQuery);
+//
+//        for (Person person: queryRes) {
+//            System.out.println(person.getFullName() + " is " + person.getAge() + " years old");
+//        }
 
-        for (Person person: queryRes) {
-            System.out.println(person.getFullName() + " is " + person.getAge() + " years old");
-        }
+        // test
+        BinaryResponse binResponse = client.esql().query(q -> q
+                .format(EsqlFormat.Csv)
+                .delimiter(",")
+                .query(personQuery));
+
+        String binResult = new BufferedReader(new InputStreamReader(binResponse.content()))
+                .lines().collect(Collectors.joining("\n"));
+        System.out.println(binResult);
     }
 }
 
