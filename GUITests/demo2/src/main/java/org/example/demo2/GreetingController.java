@@ -2,7 +2,6 @@ package org.example.demo2;
 
 // import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -21,7 +20,7 @@ public class GreetingController {
         return new Greeting(counter.incrementAndGet(), String.format(template, name));
     }
 
-    // String
+    // html
     @GetMapping("/hello")
     public String sayHello(@RequestParam(value = "name", defaultValue = "World") String name) {
         return String.format("Hello %s!", name);
