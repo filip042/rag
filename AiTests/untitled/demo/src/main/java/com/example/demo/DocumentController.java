@@ -1,6 +1,7 @@
 package com.example.demo;
 
 import org.springframework.ai.document.Document;
+import org.springframework.ai.ollama.OllamaChatModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,6 +14,9 @@ public class DocumentController {
     @Autowired
     private DocumentService documentService;
 
+    @Autowired
+    private OllamaChatModel chatModel;
+
     @GetMapping("/add")
     public void addDocuments() {
         documentService.addDocuments();
@@ -23,9 +27,14 @@ public class DocumentController {
         return documentService.searchSimilarDocuments(query, topK);
     }
 
-    @GetMapping("/search")
-    public void deleteDocument(@RequestParam String id, @RequestParam int topK) {
+    @GetMapping("/delete")
+    public void deleteDocument(@RequestParam String id) {
         documentService.deleteDocument(id);
+    }
+
+    @GetMapping("/resource")
+    public String search() {
+        return documentService.resource();
     }
 }
 
