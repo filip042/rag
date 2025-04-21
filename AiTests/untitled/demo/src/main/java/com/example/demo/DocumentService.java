@@ -8,6 +8,8 @@ import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -32,7 +34,10 @@ public class DocumentService {
     }
 
     public void deleteDocument(String documentId) {
-        vectorStore.delete(documentId);
+        List<String> tempList = new ArrayList<>();
+        tempList.add(documentId);
+        System.out.println("hey");
+        vectorStore.delete(tempList);
     }
 
     public String resource() {
