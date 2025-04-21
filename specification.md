@@ -126,7 +126,7 @@ Uživateli zadá informace o workspacu do formuláře, který obsahuje následuj
 - Kdo z uživatelů bude mít k workspacu přístup
 - Jestli bude databáze updatována automaticky po změně adresáře
 
-Soubory mohou být v jednom z následujicich formátů: txt, pdf, md, Tex/Latex, Html
+Soubory mohou být v jednom z následujicich formátů: txt, pdf, md, Tex/Latex, Html (asi Spring AI Markdown/Tika/PDF Document Reader)
 
 ### 3.1.2 Dotazovaci část
 
