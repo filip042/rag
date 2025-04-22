@@ -1,7 +1,6 @@
 package com.example.demo;
 
 import org.springframework.ai.document.Document;
-import org.springframework.ai.ollama.OllamaChatModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,9 +12,6 @@ public class DocumentController {
 
     @Autowired
     private DocumentService documentService;
-
-    @Autowired
-    private OllamaChatModel chatModel;
 
     @GetMapping("/add")
     public void addDocuments() {

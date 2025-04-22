@@ -36,8 +36,8 @@ public class DocumentService {
     public void deleteDocument(String documentId) {
         List<String> tempList = new ArrayList<>();
         tempList.add(documentId);
-        System.out.println("hey");
         vectorStore.delete(tempList);
+        System.out.println("Deleted " + documentId);
     }
 
     public String resource() {
