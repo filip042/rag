@@ -4,9 +4,13 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.vectorstore.QuestionAnswerAdvisor;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.ollama.OllamaChatModel;
+import org.springframework.ai.reader.markdown.MarkdownDocumentReader;
+import org.springframework.ai.reader.markdown.config.MarkdownDocumentReaderConfig;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -20,6 +24,13 @@ public class DocumentService {
 
     @Autowired
     private OllamaChatModel chatModel;
+
+    @Autowired
+    private ResourceLoader resourceLoader;
+
+    public Resource loadMarkdownAsResource(String fileName) {
+        return resourceLoader.getResource("classpath:" + fileName);
+    }
 
     public void addDocuments() {
         List<Document> documents = List.of(
@@ -53,17 +64,17 @@ public class DocumentService {
                 .content();
 
         return responseContent;
+    }
 
+    public void addMd() {
+        MarkdownDocumentReaderConfig config = MarkdownDocumentReaderConfig.builder()
+                .withHorizontalRuleCreateDocument(true)
+                .withIncludeCodeBlock(false)
+                .withIncludeBlockquote(false)
+                .build();
 
-//        ChatResponse response = ChatClient.builder(chatModel)
-//                .build().prompt()
-//                .advisors(new QuestionAnswerAdvisor(vectorStore))
-//                .user(userText)
-//                .call()
-//                .chatResponse();
-//
-//        assert response != null;
-//        return response.getResult().toString();
+        MarkdownDocumentReader reader = new MarkdownDocumentReader(loadMarkdownAsResource("test.md"), config);
+        vectorStore.add(reader.get());
     }
 }
 

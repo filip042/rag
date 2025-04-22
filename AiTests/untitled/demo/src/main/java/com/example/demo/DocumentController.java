@@ -32,5 +32,10 @@ public class DocumentController {
     public String search() {
         return documentService.resource();
     }
+
+    @GetMapping("/md")
+    public void md() {
+        documentService.addMd();
+    }
 }
 
