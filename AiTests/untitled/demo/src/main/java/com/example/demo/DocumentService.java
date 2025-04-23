@@ -26,7 +26,7 @@ public class DocumentService {
     private OllamaChatModel chatModel;
 
     @Autowired
-    private ResourceLoader resourceLoader;
+    private ResourceLoader resourceLoader; // use FileSystemLoader
 
     public Resource loadMarkdownAsResource(String fileName) {
         return resourceLoader.getResource("classpath:" + fileName);
@@ -34,7 +34,8 @@ public class DocumentService {
 
     public void addDocuments() {
         List<Document> documents = List.of(
-                new Document("The sky is green.")
+                new Document("Hi."),
+                new Document("The grass is green.")
         );
 
         vectorStore.add(documents);
@@ -52,8 +53,6 @@ public class DocumentService {
     }
 
     public String resource() {
-        String userText = "Tell me a joke";
-
         QuestionAnswerAdvisor questionAnswerAdvisor = new QuestionAnswerAdvisor(vectorStore);
         ChatClient chatClient = ChatClient.builder(chatModel).build();
 
