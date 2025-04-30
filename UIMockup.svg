@@ -25,8 +25,8 @@
      inkscape:document-units="mm"
      showgrid="false"
      inkscape:zoom="0.46769781"
-     inkscape:cx="398.76175"
-     inkscape:cy="562.32891"
+     inkscape:cx="398.76176"
+     inkscape:cy="515.28999"
      inkscape:window-width="1366"
      inkscape:window-height="705"
      inkscape:window-x="-8"
@@ -39,6 +39,26 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1">
+    <text
+       xml:space="preserve"
+       style="font-size:8.46667px;white-space:pre;inline-size:67.9848;fill:#000000;fill-opacity:1;stroke-width:1.875;stroke-linecap:round;paint-order:markers fill stroke"
+       x="158.96571"
+       y="0"
+       id="text1682-6"
+       transform="translate(-140.59782,15.683127)"><tspan
+         x="158.96571"
+         y="0"
+         id="tspan3252">CHANGE </tspan><tspan
+         x="158.96571"
+         y="10.583338"
+         id="tspan3254">WORKSPACE</tspan></text>
+    <rect
+       style="fill:none;fill-opacity:1;stroke:#080808;stroke-width:1.875;stroke-linecap:round;stroke-opacity:1;paint-order:markers fill stroke"
+       id="rect1998-5"
+       width="56.603531"
+       height="23.262218"
+       x="17.284306"
+       y="7.1226768" />
     <rect
        style="fill:#575757;fill-opacity:1;stroke:#000000;stroke-width:1.875;stroke-linecap:round;paint-order:markers fill stroke;stroke-opacity:1"
        id="rect788-9"
@@ -68,53 +88,53 @@
     <rect
        style="fill:#ffffff;fill-opacity:1;stroke:#080808;stroke-width:1.875;stroke-linecap:round;paint-order:markers fill stroke"
        id="rect1108"
-       width="157.83429"
+       width="162.96564"
        height="98.999992"
-       x="22.062857"
+       x="16.931499"
        y="134.64" />
     <rect
        style="fill:#ffffff;fill-opacity:1;stroke:#080808;stroke-width:1.875;stroke-linecap:round;paint-order:markers fill stroke"
        id="rect1108-3"
-       width="157.83429"
-       height="98.999992"
-       x="22.911427"
-       y="22.911428" />
+       width="163.81422"
+       height="88.653488"
+       x="16.931499"
+       y="38.185703" />
     <text
        xml:space="preserve"
        style="font-size:19.8572px;fill:#ffffff;fill-opacity:1;stroke:#080808;stroke-width:1.87501;stroke-linecap:round;paint-order:markers fill stroke"
-       x="27.526894"
+       x="25.87554"
        y="150.22562"
        id="text1056-9"
        transform="scale(0.96133279,1.0402225)"><tspan
          sodipodi:role="line"
          id="tspan1054-5"
          style="font-size:19.8572px;stroke-width:1.87501"
-         x="27.526894"
+         x="25.87554"
          y="150.22562">Output...</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:19.8572px;fill:#ffffff;fill-opacity:1;stroke:#080808;stroke-width:1.87501;stroke-linecap:round;paint-order:markers fill stroke"
-       x="30.178028"
-       y="43.984142"
+       x="28.526674"
+       y="55.175655"
        id="text1056-9-1"
        transform="scale(0.96133279,1.0402225)"><tspan
          sodipodi:role="line"
          id="tspan1054-5-6"
          style="font-size:19.8572px;stroke-width:1.87501"
-         x="30.178028"
-         y="43.984142">Some previous</tspan><tspan
+         x="28.526674"
+         y="55.175655">Some previous</tspan><tspan
          sodipodi:role="line"
          style="font-size:19.8572px;stroke-width:1.87501"
-         x="30.178028"
-         y="68.805641"
+         x="28.526674"
+         y="79.997154"
          id="tspan1186">output...</tspan></text>
     <rect
        style="fill:#989898;fill-opacity:1;stroke:none;stroke-width:1.87499;stroke-linecap:round;stroke-opacity:1;paint-order:markers fill stroke"
        id="rect1262"
        width="7.3542857"
-       height="243.25714"
+       height="229.20323"
        x="194.03999"
-       y="23.194286" />
+       y="37.248203" />
     <rect
        style="fill:#5b5b5b;fill-opacity:1;stroke:none;stroke-width:1.87499;stroke-linecap:round;stroke-opacity:1;paint-order:markers fill stroke"
        id="rect1262-0"
@@ -122,5 +142,25 @@
        height="24.891426"
        x="194.03999"
        y="241.55972" />
+    <text
+       xml:space="preserve"
+       style="font-size:8.46667px;white-space:pre;inline-size:67.9848;fill:#000000;stroke-width:1.875;stroke-linecap:round;paint-order:markers fill stroke;fill-opacity:1"
+       x="158.96571"
+       y="0"
+       id="text1682"
+       transform="translate(-14.174092,15.683127)"><tspan
+         x="158.96571"
+         y="0"
+         id="tspan3256">REFRESH </tspan><tspan
+         x="158.96571"
+         y="10.583338"
+         id="tspan3258">WORKSPACE</tspan></text>
+    <rect
+       style="fill:none;fill-opacity:1;stroke:#080808;stroke-width:1.875;stroke-linecap:round;stroke-opacity:1;paint-order:markers fill stroke"
+       id="rect1998"
+       width="56.603531"
+       height="23.262218"
+       x="143.70801"
+       y="7.1226773" />
   </g>
 </svg>
