@@ -1,4 +1,36 @@
 package cz.cuni.mff.hanaf.mainapp;
 
+import org.springframework.ai.document.Document;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/app")
 public class FileController {
+
+    @Autowired
+    private FileLoader fileLoader;
+
+    @GetMapping("/search")
+    public List<Document> search(@RequestParam String query, @RequestParam int topK) {
+        return fileLoader.searchSimilarDocuments(query, topK);
+    }
+
+    @GetMapping("/ask")
+    public String search(@RequestParam String query, String workSpace) {
+        return fileLoader.ask(query, workSpace);
+    }
+
+    @GetMapping("/md")
+    public void md(@RequestParam String query) {
+        fileLoader.addDoc(query);
+    }
+
+    @GetMapping("/delete")
+    public void deleteDocuments(@RequestParam String name) {
+        fileLoader.deleteWorkspace(name);
+    }
 }
+

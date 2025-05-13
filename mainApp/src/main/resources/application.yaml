@@ -1,0 +1,27 @@
+spring:
+  application:
+    name: mainApp
+  http:
+    client:
+      connect-timeout: 120s
+      read-timeout: 120s
+  elasticsearch:
+    uris: http://localhost:9200
+  #    username: <elasticsearch username>
+  #    password: <elasticsearch password>
+  ai:
+    ollama:
+      base-url: http://localhost:11434
+      chat:
+        options:
+          model: tinyllama # or smallthinker?
+          temperature: 0.7
+      embedding:
+        # model: nomic-embed-text
+        model: hf.co/second-state/All-MiniLM-L6-v2-Embedding-GGUF:latest
+    vectorstore:
+      elasticsearch:
+        initialize-schema: true
+        index-name: custom-index
+        dimensions: 384
+        similarity: cosine
