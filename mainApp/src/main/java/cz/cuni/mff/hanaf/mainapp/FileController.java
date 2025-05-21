@@ -23,9 +23,9 @@ public class FileController {
         return fileLoader.ask(query, workSpace);
     }
 
-    @GetMapping("/md")
-    public void md(@RequestParam String query) {
-        fileLoader.addDoc(query);
+    @GetMapping("/add")
+    public void md(@RequestParam String workSpace) {
+        fileLoader.addDoc(workSpace);
     }
 
     @GetMapping("/delete")

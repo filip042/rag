@@ -3,13 +3,10 @@ package cz.cuni.mff.hanaf.mainapp;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.ollama.OllamaChatModel;
-import org.springframework.ai.reader.markdown.MarkdownDocumentReader;
 import org.springframework.ai.reader.markdown.config.MarkdownDocumentReaderConfig;
-import org.springframework.ai.reader.tika.TikaDocumentReader;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.ai.vectorstore.filter.Filter;
-import org.springframework.ai.vectorstore.filter.FilterExpressionBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.ai.chat.client.advisor.vectorstore.QuestionAnswerAdvisor;
@@ -21,6 +18,7 @@ import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Stream;
 
 @Service
@@ -31,9 +29,6 @@ public class FileLoader {
 
     @Autowired
     private OllamaChatModel chatModel;
-
-    //@Autowired
-    //private FileSystemResourceLoader resourceLoader;
 
     private Instant lastModifiedTime = Instant.MIN;
 
@@ -47,7 +42,6 @@ public class FileLoader {
     public List<Document> searchSimilarDocuments(String query, int topK) {
         return vectorStore.similaritySearch(SearchRequest.builder().query(query).topK(topK).build());
     }
-
 
     public String ask(String query, String workSpace) {
         Filter.Expression filterExpression = new Filter.Expression(
@@ -99,25 +93,10 @@ public class FileLoader {
                                 throw new RuntimeException(e);
                             }
                         }).forEach(f -> {
-                            String fileName = f.getFileName().toString();
-                            String p = f.toString();
-                            if (p.endsWith(".md")) {
-                                MarkdownDocumentReader reader = new MarkdownDocumentReader("file:" + p, config);
-                                vectorStore.add(reader.get());
-                            } else if (formats.stream().anyMatch(p::endsWith)) {
-                                TikaDocumentReader reader = new TikaDocumentReader("file:" + p);
-                                List<Document> temp = reader.get();
-                                for (Document document : temp) {
-                                    document.getMetadata().put("workSpace", path);
-                                    document.getMetadata().put("lastReadTime", finalThisTime.getEpochSecond());
-                                }
-                                vectorStore.add(temp);
-                            }
-                            FilterExpressionBuilder b = new FilterExpressionBuilder();
-                            Filter.Expression filterExpression = b.and(b.and(b.eq("workSpace", path), b.lt("lastReadTime", finalThisTime.getEpochSecond())), b.eq("source", fileName)).build();
-                            vectorStore.delete(filterExpression);
+                            ForkJoinPool.commonPool().execute(new ForkJoinLoad(f, path, finalThisTime, config, vectorStore));
                         });
                 lastModifiedTime = Instant.now();
+                // todo wait for finish
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

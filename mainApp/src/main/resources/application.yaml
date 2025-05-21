@@ -22,6 +22,6 @@ spring:
     vectorstore:
       elasticsearch:
         initialize-schema: true
-        index-name: custom-index
+        index-name: test-index
         dimensions: 384
         similarity: cosine
