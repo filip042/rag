@@ -9,6 +9,7 @@ import org.springframework.ai.document.Document;
 import org.springframework.ai.reader.markdown.MarkdownDocumentReader;
 import org.springframework.ai.reader.markdown.config.MarkdownDocumentReaderConfig;
 import org.springframework.ai.reader.tika.TikaDocumentReader;
+import org.springframework.ai.transformer.splitter.TokenTextSplitter;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.ai.vectorstore.filter.Filter;
 import org.springframework.ai.vectorstore.filter.FilterExpressionBuilder;
@@ -34,22 +35,27 @@ public class ForkJoinLoad extends RecursiveTask<Void>{
     protected Void compute() {
         String fileName = f.getFileName().toString();
         String p = f.toString();
+        TokenTextSplitter splitter = new TokenTextSplitter(100, 100, 5, 10000, false);
         if (p.endsWith(".md")) {
             MarkdownDocumentReader reader = new MarkdownDocumentReader("file:" + p, config);
-            vectorStore.add(reader.get());
+            vectorStore.add(splitter.apply(reader.get()));
         } else if (formats.stream().anyMatch(p::endsWith)) {
             TikaDocumentReader reader = new TikaDocumentReader("file:" + p);
-            List<Document> temp = reader.get();
-            for (Document document : temp) {
+            List<Document> splitDocuments = splitter.apply(reader.get()); // todo replace splitter with LLM
+            for (Document document : splitDocuments) {
                 document.getMetadata().put("workSpace", path);
                 document.getMetadata().put("lastReadTime", finalThisTime.getEpochSecond());
             }
-            vectorStore.add(temp);
+            vectorStore.add(splitDocuments);
         }
         FilterExpressionBuilder b = new FilterExpressionBuilder();
         Filter.Expression filterExpression = b.and(b.and(b.eq("workSpace", path), b.lt("lastReadTime", finalThisTime.getEpochSecond())), b.eq("source", fileName)).build();
         vectorStore.delete(filterExpression);
         return null;
+    }
+
+    private Document addContext() {
+        return new Document("");
     }
 }
 

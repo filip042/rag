@@ -1,9 +1,11 @@
 package cz.cuni.mff.hanaf.mainapp;
 
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.prompt.PromptTemplate;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.ollama.OllamaChatModel;
 import org.springframework.ai.reader.markdown.config.MarkdownDocumentReaderConfig;
+import org.springframework.ai.template.st.StTemplateRenderer;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.ai.vectorstore.filter.Filter;
@@ -16,7 +18,6 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Stream;
@@ -31,8 +32,6 @@ public class FileLoader {
     private OllamaChatModel chatModel;
 
     private Instant lastModifiedTime = Instant.MIN;
-
-    private final List<String> formats = new ArrayList<>(List.of(".txt", ".html", ".pdf"));
 
     private Boolean isDir(Path path) { // todo move to own class
         if (path == null || !Files.exists(path)) return false;
@@ -49,9 +48,38 @@ public class FileLoader {
                 new Filter.Key("workSpace"),
                 new Filter.Value(workSpace)
         );
-        SearchRequest request = SearchRequest.builder().filterExpression(filterExpression).build();
-        QuestionAnswerAdvisor questionAnswerAdvisor = new QuestionAnswerAdvisor(vectorStore, request);
+        SearchRequest request = SearchRequest.builder().filterExpression(filterExpression).similarityThreshold(0.8d).topK(6).build();
         ChatClient chatClient = ChatClient.builder(chatModel).build();
+
+        PromptTemplate customPromptTemplate =
+                PromptTemplate.builder()
+                .renderer(StTemplateRenderer.builder().startDelimiterToken('<').endDelimiterToken('>').build())
+                .template("""
+            <query>
+
+            Context information is below.
+
+			---------------------
+			<question_answer_context>
+			---------------------
+
+			Given the context information and no prior knowledge, answer the query.
+
+			Follow these rules:
+
+			1. If the answer to the question asked is not in the context, or the context is empty, say "I don't know" and nothing else, even if you could answer the question. This is very important!
+			2. Otherwise, quote the relevant part of the context verbatim before your answer. Then, keep the subsequent answer as brief as possible.
+            3. Avoid statements like "Based on the context..." or "The provided information...".
+            4. Do not use information from the context that is not relevant to the question being asked.
+            5. Answer succinctly, without adding any information that is not in the context.
+			6. Every answer must either start with the quote of the relevant provided context, or be "I don't know". Nothing else is admissible!
+           \s""")
+                .build();
+        QuestionAnswerAdvisor questionAnswerAdvisor = QuestionAnswerAdvisor.builder(vectorStore)
+                .searchRequest(request) // todo also return these
+                .promptTemplate(customPromptTemplate) // should work with a smarter llm
+                .build();
+
 
         String responseContent = chatClient.prompt()
                 .user(query)
@@ -60,10 +88,6 @@ public class FileLoader {
                 .content();
 
         return responseContent;
-
-        // see var qaAdvisor = QuestionAnswerAdvisor.builder(vectorStore)
-        //        .searchRequest(SearchRequest.builder().similarityThreshold(0.8d).topK(6).build())
-        //        .build();
     }
 
     public void addDoc(String path) {
@@ -96,7 +120,7 @@ public class FileLoader {
                             ForkJoinPool.commonPool().execute(new ForkJoinLoad(f, path, finalThisTime, config, vectorStore));
                         });
                 lastModifiedTime = Instant.now();
-                // todo wait for finish
+                // todo probably wait for finish, ar set flag when finished
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
