@@ -117,7 +117,7 @@ public class FileLoader {
                                 throw new RuntimeException(e);
                             }
                         }).forEach(f -> {
-                            ForkJoinPool.commonPool().execute(new ForkJoinLoad(f, path, finalThisTime, config, vectorStore));
+                            ForkJoinPool.commonPool().execute(new ForkJoinLoad(f, path, finalThisTime, config, vectorStore, chatModel));
                         });
                 lastModifiedTime = Instant.now();
                 // todo probably wait for finish, ar set flag when finished

@@ -4,11 +4,18 @@ import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.RecursiveTask;
+
+import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.ai.chat.prompt.Prompt;
+import org.springframework.ai.chat.prompt.PromptTemplate;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.reader.markdown.MarkdownDocumentReader;
 import org.springframework.ai.reader.markdown.config.MarkdownDocumentReaderConfig;
 import org.springframework.ai.reader.tika.TikaDocumentReader;
+import org.springframework.ai.template.st.StTemplateRenderer;
 import org.springframework.ai.transformer.splitter.TokenTextSplitter;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.ai.vectorstore.filter.Filter;
@@ -20,15 +27,17 @@ public class ForkJoinLoad extends RecursiveTask<Void>{
     private final Instant finalThisTime;
     private final MarkdownDocumentReaderConfig config;
     private final SynchronizedVectorStore vectorStore;
+    private final ChatModel chatModel;
 
     private final List<String> formats = new ArrayList<>(List.of(".txt", ".html", ".pdf"));
 
-    public ForkJoinLoad(Path f, String path, Instant finalThisTime, MarkdownDocumentReaderConfig config, VectorStore vectorStore) {
+    public ForkJoinLoad(Path f, String path, Instant finalThisTime, MarkdownDocumentReaderConfig config, VectorStore vectorStore, ChatModel chatModel) {
         this.f = f;
         this.path = path;
         this.finalThisTime = finalThisTime;
-        this.vectorStore = new SynchronizedVectorStore(vectorStore);
         this.config = config;
+        this.vectorStore = new SynchronizedVectorStore(vectorStore);
+        this.chatModel = chatModel;
     }
 
     @Override
@@ -54,8 +63,27 @@ public class ForkJoinLoad extends RecursiveTask<Void>{
         return null;
     }
 
-    private Document addContext() {
-        return new Document("");
+    private Document addContext(Document previous, Document current, Document next) { // todo
+        PromptTemplate promptTemplate = PromptTemplate.builder()
+            .renderer(StTemplateRenderer.builder().startDelimiterToken('<').endDelimiterToken('>').build())
+            .template("""
+        Take the following three texts, and update the second one to make sense without the first and last.
+        Make as few changes as possible in order to preserve the original meaning.
+        Don't include any introductory or closing statements in your answer, only the modified second text.
+        
+        Text 1:
+        <text1>
+        
+        Text 2 (The one to modify)
+        <text2>
+        
+        Text 3:
+        <text3>
+        """)
+            .build();
+
+        String prompt = promptTemplate.render(Map.of("text1", previous.getText(), "text2", current.getText(), "text3", next.getText()));
+        return new Document(chatModel.call(prompt)); // todo temp
     }
 }
 
