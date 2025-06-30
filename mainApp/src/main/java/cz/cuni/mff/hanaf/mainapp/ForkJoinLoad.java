@@ -72,17 +72,17 @@ public class ForkJoinLoad extends RecursiveTask<Void>{
         Don't include any introductory or closing statements in your answer, only the modified second text.
         
         Text 1:
-        <text1>
+        <previous>
         
         Text 2 (The one to modify)
-        <text2>
+        <current>
         
         Text 3:
-        <text3>
+        <next>
         """)
             .build();
 
-        String prompt = promptTemplate.render(Map.of("text1", previous.getText(), "text2", current.getText(), "text3", next.getText()));
+        String prompt = promptTemplate.render(Map.of("previous", previous.getText(), "current", current.getText(), "next", next.getText()));
         return new Document(chatModel.call(prompt)); // todo temp
     }
 }

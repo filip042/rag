@@ -10,15 +10,19 @@ spring:
   #    username: <elasticsearch username>
   #    password: <elasticsearch password>
   ai:
-    ollama:
-      base-url: http://localhost:11434
+    openai:
       chat:
         options:
-          model: tinyllama # or smallthinker?
+          model: qwen3:latest
           temperature: 0.7
+          http-headers:
+            Authorization: Basic ${OLLAMACREDENTIALS} # needs to be set by the user
+        base-url: https://ai-dev.smartarch.cz/ollama/
       embedding:
-        # model: nomic-embed-text
-        model: hf.co/second-state/All-MiniLM-L6-v2-Embedding-GGUF:latest
+        base-url: http://localhost:11434 # It seems that none of the models from smartarch can do embedding
+        options:
+          model: hf.co/second-state/All-MiniLM-L6-v2-Embedding-GGUF:latest
+      api-key: o
     vectorstore:
       elasticsearch:
         initialize-schema: true

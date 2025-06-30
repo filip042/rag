@@ -3,7 +3,9 @@ package cz.cuni.mff.hanaf.mainapp;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.prompt.PromptTemplate;
 import org.springframework.ai.document.Document;
-import org.springframework.ai.ollama.OllamaChatModel;
+//import org.springframework.ai.ollama.OllamaChatModel;
+import org.springframework.ai.openai.OpenAiChatModel;
+import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.ai.reader.markdown.config.MarkdownDocumentReaderConfig;
 import org.springframework.ai.template.st.StTemplateRenderer;
 import org.springframework.ai.vectorstore.SearchRequest;
@@ -29,7 +31,7 @@ public class FileLoader {
     private VectorStore vectorStore; // maybe map instead of metadata
 
     @Autowired
-    private OllamaChatModel chatModel;
+    private OpenAiChatModel chatModel;
 
     private Instant lastModifiedTime = Instant.MIN;
 
@@ -38,8 +40,22 @@ public class FileLoader {
         else return Files.isDirectory(path);
     }
 
-    public List<Document> searchSimilarDocuments(String query, int topK) {
-        return vectorStore.similaritySearch(SearchRequest.builder().query(query).topK(topK).build());
+    public void test() {
+        OpenAiChatOptions options = (OpenAiChatOptions) chatModel.getDefaultOptions();
+        options.getHttpHeaders().put("username", "hana");
+        options.getHttpHeaders().put("password", "Columbus1879");
+        System.out.println("boo");
+    }
+
+    public List<Document> searchSimilarDocuments(String query, String workSpace, int topK) {
+        OpenAiChatOptions options = (OpenAiChatOptions) chatModel.getDefaultOptions();
+        options.getHttpHeaders().keySet().forEach(System.out::println);
+        Filter.Expression filterExpression = new Filter.Expression(
+                Filter.ExpressionType.EQ,
+                new Filter.Key("workSpace"),
+                new Filter.Value(workSpace)
+        );
+        return vectorStore.similaritySearch(SearchRequest.builder().query(query).filterExpression(filterExpression).topK(topK).build());
     }
 
     public String ask(String query, String workSpace) {
@@ -48,7 +64,7 @@ public class FileLoader {
                 new Filter.Key("workSpace"),
                 new Filter.Value(workSpace)
         );
-        SearchRequest request = SearchRequest.builder().filterExpression(filterExpression).similarityThreshold(0.8d).topK(6).build();
+        SearchRequest request = SearchRequest.builder().filterExpression(filterExpression).topK(6).build();
         ChatClient chatClient = ChatClient.builder(chatModel).build();
 
         PromptTemplate customPromptTemplate =
@@ -67,12 +83,14 @@ public class FileLoader {
 
 			Follow these rules:
 
-			1. If the answer to the question asked is not in the context, or the context is empty, say "I don't know" and nothing else, even if you could answer the question. This is very important!
-			2. Otherwise, quote the relevant part of the context verbatim before your answer. Then, keep the subsequent answer as brief as possible.
-            3. Avoid statements like "Based on the context..." or "The provided information...".
-            4. Do not use information from the context that is not relevant to the question being asked.
-            5. Answer succinctly, without adding any information that is not in the context.
-			6. Every answer must either start with the quote of the relevant provided context, or be "I don't know". Nothing else is admissible!
+                        
+            1. If the answer is not present in the context or if the context is empty, respond with "I don't know" and nothing else.
+            2. Do not use phrases like "Based on the context..." or "The provided information...".
+            3. Only use relevant information from the context that directly pertains to the question.
+            4. Provide a succinct answer without adding any extraneous information.
+            5. Do not include reasoning in your response.
+            6. Every answer must either begin with a quote from the relevant context or be "I don't know". No other responses are acceptable.
+        
            \s""")
                 .build();
         QuestionAnswerAdvisor questionAnswerAdvisor = QuestionAnswerAdvisor.builder(vectorStore)
@@ -120,7 +138,8 @@ public class FileLoader {
                             ForkJoinPool.commonPool().execute(new ForkJoinLoad(f, path, finalThisTime, config, vectorStore, chatModel));
                         });
                 lastModifiedTime = Instant.now();
-                // todo probably wait for finish, ar set flag when finished
+                // todo what's the best way to set flag when the pool is finished
+                //todo on frontend
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

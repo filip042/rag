@@ -3,6 +3,10 @@ package cz.cuni.mff.hanaf.mainapp;
 import org.springframework.ai.document.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
@@ -14,8 +18,8 @@ public class FileController {
     private FileLoader fileLoader;
 
     @GetMapping("/search")
-    public List<Document> search(@RequestParam String query, @RequestParam int topK) {
-        return fileLoader.searchSimilarDocuments(query, topK);
+    public List<Document> search(@RequestParam String query, @RequestParam String workSpace, @RequestParam int topK) {
+        return fileLoader.searchSimilarDocuments(query, workSpace, topK);
     }
 
     @GetMapping("/ask")
