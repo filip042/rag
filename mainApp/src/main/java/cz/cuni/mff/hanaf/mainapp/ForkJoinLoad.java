@@ -5,6 +5,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.RecursiveTask;
 
 import org.springframework.ai.chat.client.ChatClient;
@@ -44,18 +45,28 @@ public class ForkJoinLoad extends RecursiveTask<Void>{
     protected Void compute() {
         String fileName = f.getFileName().toString();
         String p = f.toString();
-        TokenTextSplitter splitter = new TokenTextSplitter(100, 100, 5, 10000, false);
+        TokenTextSplitter splitter = new TokenTextSplitter(1000, 100, 5, 10000, false);
         if (p.endsWith(".md")) {
             MarkdownDocumentReader reader = new MarkdownDocumentReader("file:" + p, config);
             vectorStore.add(splitter.apply(reader.get()));
         } else if (formats.stream().anyMatch(p::endsWith)) {
             TikaDocumentReader reader = new TikaDocumentReader("file:" + p);
-            List<Document> splitDocuments = splitter.apply(reader.get()); // todo replace splitter with LLM
-            for (Document document : splitDocuments) {
+            List<Document> splitDocuments = splitter.apply(reader.get());
+            List<Document> modifiedDocuments = new ArrayList<>(splitDocuments.size());
+            for (int i = 0; i < splitDocuments.size(); i++) {
+                Document previous = (i > 0) ? splitDocuments.get(i - 1) : null;
+                Document current = splitDocuments.get(i);
+                Document next = (i < splitDocuments.size() - 1) ? splitDocuments.get(i + 1) : null;
+
+                Document result = addContext(previous, current, next);
+                System.out.println("Working");
+                modifiedDocuments.add(result);
+            }
+            for (Document document : modifiedDocuments) {
                 document.getMetadata().put("workSpace", path);
                 document.getMetadata().put("lastReadTime", finalThisTime.getEpochSecond());
             }
-            vectorStore.add(splitDocuments);
+            vectorStore.add(modifiedDocuments);
         }
         FilterExpressionBuilder b = new FilterExpressionBuilder();
         Filter.Expression filterExpression = b.and(b.and(b.eq("workSpace", path), b.lt("lastReadTime", finalThisTime.getEpochSecond())), b.eq("source", fileName)).build();
@@ -63,7 +74,7 @@ public class ForkJoinLoad extends RecursiveTask<Void>{
         return null;
     }
 
-    private Document addContext(Document previous, Document current, Document next) { // todo
+    private Document addContext(Document previous, Document current, Document next) { // todo check
         PromptTemplate promptTemplate = PromptTemplate.builder()
             .renderer(StTemplateRenderer.builder().startDelimiterToken('<').endDelimiterToken('>').build())
             .template("""
@@ -82,8 +93,11 @@ public class ForkJoinLoad extends RecursiveTask<Void>{
         """)
             .build();
 
-        String prompt = promptTemplate.render(Map.of("previous", previous.getText(), "current", current.getText(), "next", next.getText()));
-        return new Document(chatModel.call(prompt)); // todo temp
+        String prompt = promptTemplate.render(Map.of(
+                "previous", Optional.ofNullable(previous).map(Document::getText).orElse("No previous document exists."),
+                "current", Optional.ofNullable(current).map(Document::getText).orElse("This document doesn't exist"),
+                "next", Optional.ofNullable(next).map(Document::getText).orElse("No next document exists.")));
+        return new Document(Utils.removeThinking(chatModel.call(prompt))); // todo check if works
     }
 }
 

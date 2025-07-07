@@ -1,6 +1,8 @@
 spring:
   application:
     name: mainApp
+  config:
+    import: optional:file:.env[.properties]
   http:
     client:
       connect-timeout: 120s

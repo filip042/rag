@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>Form</title>
+</head>
+<body>
+  <form action="#" th:action="@{/user/answer}" method="post">
+    <label for="question">Question:</label><br>
+    <input type="text" id="question" name="question" required><br>
+    <input type="submit" value="Submit">
+  </form>
+</body>
+</html>

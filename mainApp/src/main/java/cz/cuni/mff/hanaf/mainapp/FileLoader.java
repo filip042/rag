@@ -82,8 +82,7 @@ public class FileLoader {
 			Given the context information and no prior knowledge, answer the query.
 
 			Follow these rules:
-
-                        
+               
             1. If the answer is not present in the context or if the context is empty, respond with "I don't know" and nothing else.
             2. Do not use phrases like "Based on the context..." or "The provided information...".
             3. Only use relevant information from the context that directly pertains to the question.
