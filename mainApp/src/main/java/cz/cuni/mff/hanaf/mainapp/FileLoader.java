@@ -107,9 +107,9 @@ public class FileLoader {
         return responseContent;
     }
 
-    public void addDoc(String path) {
+    public void addDoc(String path, String workspace) {
         System.out.println(path);
-        Path directory = Path.of(URI.create("file:///C:/Users/filip/IdeaProjects/2025-hana/mainApp")); // todo for testing
+        Path directory = Path.of(URI.create("file:///C:/Users/filip/IdeaProjects/2025-hana/mainApp")); // testing: "file:///C:/Users/filip/IdeaProjects/2025-hana/mainApp"
         Instant thisTime = Instant.now();
 
 
@@ -117,7 +117,7 @@ public class FileLoader {
                 .withHorizontalRuleCreateDocument(true)
                 .withIncludeCodeBlock(false)
                 .withIncludeBlockquote(false)
-                .withAdditionalMetadata("workSpace", path) // todo temp
+                .withAdditionalMetadata("workSpace", workspace)
                 .withAdditionalMetadata("lastReadTime", thisTime.getEpochSecond()) // todo also user, language
                 .build();
 
@@ -134,7 +134,7 @@ public class FileLoader {
                                 throw new RuntimeException(e);
                             }
                         }).forEach(f -> {
-                            ForkJoinPool.commonPool().execute(new ForkJoinLoad(f, path, finalThisTime, config, vectorStore, chatModel));
+                            ForkJoinPool.commonPool().execute(new ForkJoinLoad(f, workspace, finalThisTime, config, vectorStore, chatModel));
                         });
                 lastModifiedTime = Instant.now();
                 // todo what's the best way to set flag when the pool is finished

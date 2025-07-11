@@ -5,8 +5,8 @@ spring:
     import: optional:file:.env[.properties]
   http:
     client:
-      connect-timeout: 120s
-      read-timeout: 120s
+      connect-timeout: 1200s
+      read-timeout: 1200s
   elasticsearch:
     uris: http://localhost:9200
   #    username: <elasticsearch username>

@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -31,7 +32,7 @@ public class ThymeLeafController {
     }
 
     @PostMapping("/answer")
-    public String myPage(@RequestParam(name = "question", required = true) String question, Model model) {
+    public String myPage(@RequestParam(name = "question") String question, Model model) {
         String apiUrl = "http://localhost:8080/app/ask?query=" + question + "&workSpace=async1"; // todo temp
         String data = restTemplate.getForObject(apiUrl, String.class); // todo temp type
 
@@ -41,5 +42,13 @@ public class ThymeLeafController {
 
         model.addAttribute("data", data);
         return "answer";
+    }
+
+    @PostMapping("/load")
+    public String loadDir(@RequestParam(name = "directory") String directory, @RequestParam(name = "workspace") String workspace) {
+        String apiUrl = "http://localhost:8080/app/add?path=" + directory + "&workSpace=" + workspace; // todo temp
+        restTemplate.getForObject(apiUrl, null);
+
+        return "done";
     }
 }

@@ -53,16 +53,16 @@ public class ForkJoinLoad extends RecursiveTask<Void>{
             TikaDocumentReader reader = new TikaDocumentReader("file:" + p);
             List<Document> splitDocuments = splitter.apply(reader.get());
             List<Document> modifiedDocuments = new ArrayList<>(splitDocuments.size());
-            for (int i = 0; i < splitDocuments.size(); i++) {
-                Document previous = (i > 0) ? splitDocuments.get(i - 1) : null;
-                Document current = splitDocuments.get(i);
-                Document next = (i < splitDocuments.size() - 1) ? splitDocuments.get(i + 1) : null;
-
-                Document result = addContext(previous, current, next);
-                System.out.println("Working");
-                modifiedDocuments.add(result);
-            }
-            for (Document document : modifiedDocuments) {
+//            for (int i = 0; i < splitDocuments.size(); i++) { // todo calls to llm time out
+//                Document previous = (i > 0) ? splitDocuments.get(i - 1) : null;
+//                Document current = splitDocuments.get(i);
+//                Document next = (i < splitDocuments.size() - 1) ? splitDocuments.get(i + 1) : null;
+//
+//                Document result = addContext(previous, current, next);
+//                System.out.println("Working");
+//                modifiedDocuments.add(result);
+//            }
+            for (Document document : splitDocuments) {
                 document.getMetadata().put("workSpace", path);
                 document.getMetadata().put("lastReadTime", finalThisTime.getEpochSecond());
             }
@@ -74,7 +74,7 @@ public class ForkJoinLoad extends RecursiveTask<Void>{
         return null;
     }
 
-    private Document addContext(Document previous, Document current, Document next) { // todo check
+    private Document addContext(Document previous, Document current, Document next) { // todo do in the background, not here
         PromptTemplate promptTemplate = PromptTemplate.builder()
             .renderer(StTemplateRenderer.builder().startDelimiterToken('<').endDelimiterToken('>').build())
             .template("""

@@ -26,8 +26,8 @@ public class FileController {
     }
 
     @GetMapping("/add")
-    public void md(@RequestParam String workSpace) {
-        fileLoader.addDoc(workSpace);
+    public void md(@RequestParam String path, String workSpace) {
+        fileLoader.addDoc(path, workSpace);
     }
 
     @GetMapping("/delete")
