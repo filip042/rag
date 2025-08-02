@@ -23,7 +23,7 @@ spring:
       embedding:
         base-url: http://localhost:11434 # It seems that none of the models from smartarch can do embedding
         options:
-          model: hf.co/second-state/All-MiniLM-L6-v2-Embedding-GGUF:latest
+          model: nomic-embed-text
       api-key: o
     vectorstore:
       elasticsearch:

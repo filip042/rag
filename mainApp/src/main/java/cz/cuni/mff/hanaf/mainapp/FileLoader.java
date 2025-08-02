@@ -40,13 +40,6 @@ public class FileLoader {
         else return Files.isDirectory(path);
     }
 
-    public void test() {
-        OpenAiChatOptions options = (OpenAiChatOptions) chatModel.getDefaultOptions();
-        options.getHttpHeaders().put("username", "hana");
-        options.getHttpHeaders().put("password", "Columbus1879");
-        System.out.println("boo");
-    }
-
     public List<Document> searchSimilarDocuments(String query, String workSpace, int topK) {
         OpenAiChatOptions options = (OpenAiChatOptions) chatModel.getDefaultOptions();
         options.getHttpHeaders().keySet().forEach(System.out::println);
