@@ -47,7 +47,8 @@ public class ThymeLeafController {
     @PostMapping("/load")
     public String loadDir(@RequestParam(name = "directory") String directory, @RequestParam(name = "workspace") String workspace) {
         String apiUrl = "http://localhost:8080/app/add?path=" + directory + "&workSpace=" + workspace; // todo temp
-        restTemplate.getForObject(apiUrl, null);
+        restTemplate.getForObject(apiUrl, Void.class);
+        // restTemplate.getForObject(apiUrl, Void.class);
 
         return "done";
     }

@@ -45,19 +45,19 @@ public class ForkJoinLoad extends RecursiveTask<Void>{
     protected Void compute() {
         String fileName = f.getFileName().toString();
         String p = f.toString();
-        OverlapTextSplitter splitter = new OverlapTextSplitter(1000, 100, 5, 10000, false, 5);
+        OverlapTextSplitter splitter = new OverlapTextSplitter(1000, 100, 5, 10000, false, 20);
         if (p.endsWith(".md")) {
             MarkdownDocumentReader reader = new MarkdownDocumentReader("file:" + p, config);
             vectorStore.add(splitter.apply(reader.get()));
+            System.out.println("test");
         } else if (formats.stream().anyMatch(p::endsWith)) {
             TikaDocumentReader reader = new TikaDocumentReader("file:" + p);
             List<Document> splitDocuments = splitter.apply(reader.get());
-            List<Document> modifiedDocuments = new ArrayList<>(splitDocuments.size());
             for (Document document : splitDocuments) {
                 document.getMetadata().put("workSpace", path);
                 document.getMetadata().put("lastReadTime", finalThisTime.getEpochSecond());
             }
-            vectorStore.add(modifiedDocuments);
+            vectorStore.add(splitter.apply(splitDocuments));
         }
         FilterExpressionBuilder b = new FilterExpressionBuilder();
         Filter.Expression filterExpression = b.and(b.and(b.eq("workSpace", path), b.lt("lastReadTime", finalThisTime.getEpochSecond())), b.eq("source", fileName)).build();

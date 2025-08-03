@@ -102,7 +102,7 @@ public class FileLoader {
 
     public void addDoc(String path, String workspace) {
         System.out.println(path);
-        Path directory = Path.of(URI.create("file:///C:/Users/filip/IdeaProjects/2025-hana/mainApp")); // testing: "file:///C:/Users/filip/IdeaProjects/2025-hana/mainApp"
+        Path directory = Path.of(URI.create("file:///C:/Users/filip/Java/2025-hana/mainApp")); // testing: "file:///C:/Users/filip/IdeaProjects/2025-hana/mainApp"
         Instant thisTime = Instant.now();
 
 
@@ -127,6 +127,7 @@ public class FileLoader {
                                 throw new RuntimeException(e);
                             }
                         }).forEach(f -> {
+                            System.out.println(f.toString());
                             ForkJoinPool.commonPool().execute(new ForkJoinLoad(f, workspace, finalThisTime, config, vectorStore, chatModel));
                         });
                 lastModifiedTime = Instant.now();

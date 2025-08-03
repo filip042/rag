@@ -77,7 +77,10 @@ public class OverlapTextSplitter extends TextSplitter {
                         chunks.add(chunkTextToAppend);
                     }
 
-                    tokens = tokens.subList(this.getEncodedTokens(chunkText).size() - this.overlapTokens, tokens.size());
+                    int stepSize = chunk.size() - this.overlapTokens;
+                    if (stepSize <= 0) break;  // Avoid infinite loop
+                    tokens = tokens.subList(stepSize, tokens.size());
+                    // tokens = tokens.subList(this.getEncodedTokens(chunkText).size() - this.overlapTokens, tokens.size()); // todo this is bad
                     ++num_chunks;
                 }
             }
