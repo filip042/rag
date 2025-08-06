@@ -1,8 +1,6 @@
 spring:
   application:
     name: mainApp
-  config:
-    import: optional:file:.env[.properties]
   http:
     client:
       connect-timeout: 1200s
@@ -15,19 +13,19 @@ spring:
     openai:
       chat:
         options:
-          model: qwen3:latest
+          model: <chat model>
           temperature: 0.7
           http-headers:
-            Authorization: Basic ${OLLAMACREDENTIALS} # needs to be set by the user
-        base-url: https://ai-dev.smartarch.cz/ollama/
+            Authorization: <username and password>
+        base-url: <chat model url>
       embedding:
-        base-url: http://localhost:11434 # It seems that none of the models from smartarch can do embedding
+        base-url: http://localhost:11434 # ollama default
         options:
-          model: nomic-embed-text
+          model: <embedding model>
       api-key: o
     vectorstore:
       elasticsearch:
         initialize-schema: true
-        index-name: async-index
-        dimensions: 384
+        index-name: <index name>
+        dimensions: <embedding model dimensions>
         similarity: cosine

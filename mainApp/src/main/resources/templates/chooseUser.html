@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <title>Dropdown Example</title>
+</head>
+<body>
+
+<form th:object="${user}" action="#" th:action="@{/user/temp}" method="post">
+    <label for="usernames">Available Users:</label><br>
+    <select id="usernames" name="usernames" required th:field="*{username}">
+        <option th:each="option : ${availableUsers}" th:value="${option}" th:text="${option}"/>
+    </select>
+    <br>
+    <label for="password">Password:</label><br>
+    <input type="text" id="password" name="password" required><br>
+    <input type="submit" value="Submit">
+</form>
+
+
+<form action="#" th:action="@{/user/temp}" method="post" th:object="${users}">
+    <label for="userNames">New User:</label><br>
+    <input type="submit" value="Create">
+</form>
+
+</body>
+</html>

@@ -8,13 +8,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.ArrayList;
+import java.util.List;
 
 @Controller
 @RequestMapping("/user")
@@ -28,7 +24,18 @@ public class ThymeLeafController {
 
     @GetMapping("/form")
     public String loadForm() {
-        return "form";
+        return "load";
+    }
+
+    @GetMapping("/user")
+    public String chooseUser(Model model) {
+        List<String> userNames = new ArrayList<>(); // todo database
+        userNames.add("John");
+        userNames.add("Jane");
+        userNames.add("Joe");
+        model.addAttribute("user", new User());
+        model.addAttribute("availableUsers", userNames);
+        return "chooseUser";
     }
 
     @PostMapping("/answer")
@@ -50,6 +57,7 @@ public class ThymeLeafController {
         restTemplate.getForObject(apiUrl, Void.class);
         // restTemplate.getForObject(apiUrl, Void.class);
 
-        return "done";
+        return "indexingResult"; // temp, show notification or something
     }
 }
+

@@ -100,7 +100,7 @@ public class FileLoader {
         return responseContent;
     }
 
-    public void addDoc(String path, String workspace) {
+    public void addDoc(String path, String workspace) { // todo make return boolean
         System.out.println(path);
         Path directory = Path.of(URI.create("file:///C:/Users/filip/Java/2025-hana/mainApp")); // testing: "file:///C:/Users/filip/IdeaProjects/2025-hana/mainApp"
         Instant thisTime = Instant.now();
