@@ -29,3 +29,19 @@ spring:
         index-name: <index name>
         dimensions: <embedding model dimensions>
         similarity: cosine
+  datasource:
+    url: jdbc:h2:mem:testdb  # for in-memory database
+    username: <username>
+    password: <password>
+    driverClassName: org.h2.Driver
+  jpa:
+    database-platform: <database platform>
+    hibernate:
+      ddl-auto: create
+    defer-datasource-initialization: true  # create tables before sql commands from data.sql are executed
+  h2:
+    console:
+      enabled: true
+  sql:
+    init:
+      mode: always
