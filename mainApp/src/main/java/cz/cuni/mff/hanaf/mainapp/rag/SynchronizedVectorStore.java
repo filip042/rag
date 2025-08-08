@@ -1,4 +1,4 @@
-package cz.cuni.mff.hanaf.mainapp;
+package cz.cuni.mff.hanaf.mainapp.rag;
 
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.SearchRequest;

@@ -1,4 +1,4 @@
-package cz.cuni.mff.hanaf.mainapp;
+package cz.cuni.mff.hanaf.mainapp.rag;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

@@ -1,4 +1,4 @@
-package cz.cuni.mff.hanaf.mainapp;
+package cz.cuni.mff.hanaf.mainapp.rag;
 
 import org.springframework.ai.transformer.splitter.TextSplitter;
 

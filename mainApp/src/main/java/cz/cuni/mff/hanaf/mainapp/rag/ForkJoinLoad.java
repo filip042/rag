@@ -1,4 +1,4 @@
-package cz.cuni.mff.hanaf.mainapp;
+package cz.cuni.mff.hanaf.mainapp.rag;
 
 import java.nio.file.Path;
 import java.time.Instant;
@@ -8,16 +8,13 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.RecursiveTask;
 
-import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
-import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.chat.prompt.PromptTemplate;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.reader.markdown.MarkdownDocumentReader;
 import org.springframework.ai.reader.markdown.config.MarkdownDocumentReaderConfig;
 import org.springframework.ai.reader.tika.TikaDocumentReader;
 import org.springframework.ai.template.st.StTemplateRenderer;
-import org.springframework.ai.transformer.splitter.TokenTextSplitter;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.ai.vectorstore.filter.Filter;
 import org.springframework.ai.vectorstore.filter.FilterExpressionBuilder;

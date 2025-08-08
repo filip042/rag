@@ -1,4 +1,4 @@
-package cz.cuni.mff.hanaf.mainapp;
+package cz.cuni.mff.hanaf.mainapp.rag;
 
 import org.springframework.ai.document.Document;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,7 +10,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/app")
-public class FileController {
+public class RagController {
 
     @Autowired
     private FileLoader fileLoader;

@@ -1,6 +1,9 @@
 package cz.cuni.mff.hanaf.mainapp;
 
 
+import cz.cuni.mff.hanaf.mainapp.data.User;
+import cz.cuni.mff.hanaf.mainapp.data.UserRepository;
+import cz.cuni.mff.hanaf.mainapp.rag.Utils;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,15 +14,18 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/user")
 public class ThymeLeafController {
 
     private final RestTemplate restTemplate;
+    private final UserRepository userRepository;
 
-    public ThymeLeafController(RestTemplate restTemplate) {
+    public ThymeLeafController(RestTemplate restTemplate, UserRepository userRepository) {
         this.restTemplate = restTemplate;
+        this.userRepository = userRepository;
     }
 
     @GetMapping("/form")
@@ -29,10 +35,8 @@ public class ThymeLeafController {
 
     @GetMapping("/user")
     public String chooseUser(Model model) {
-        List<String> userNames = new ArrayList<>(); // todo database
-        userNames.add("John");
-        userNames.add("Jane");
-        userNames.add("Joe");
+        List<User> users = userRepository.findAll();
+        List<String> userNames = users.stream().map(User::getUsername).toList();
         model.addAttribute("user", new User());
         model.addAttribute("availableUsers", userNames);
         return "chooseUser";
