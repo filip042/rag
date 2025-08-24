@@ -54,7 +54,7 @@ public class ForkJoinLoad extends RecursiveTask<Void>{
                 document.getMetadata().put("workSpace", path);
                 document.getMetadata().put("lastReadTime", finalThisTime.getEpochSecond());
             }
-            vectorStore.add(splitter.apply(splitDocuments));
+            vectorStore.add(splitDocuments);
         }
         FilterExpressionBuilder b = new FilterExpressionBuilder();
         Filter.Expression filterExpression = b.and(b.and(b.eq("workSpace", path), b.lt("lastReadTime", finalThisTime.getEpochSecond())), b.eq("source", fileName)).build();
@@ -62,7 +62,8 @@ public class ForkJoinLoad extends RecursiveTask<Void>{
         return null;
     }
 
-    private Document addContext(Document previous, Document current, Document next) { // todo do in the background, not here
+    private Document addContext(Document previous, Document current, Document next) {
+        // todo do in the background, not here
         // todo maybe remove or rework to summarize document instead
         PromptTemplate promptTemplate = PromptTemplate.builder()
             .renderer(StTemplateRenderer.builder().startDelimiterToken('<').endDelimiterToken('>').build())

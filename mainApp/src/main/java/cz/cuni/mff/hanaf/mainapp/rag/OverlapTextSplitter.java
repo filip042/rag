@@ -58,7 +58,7 @@ public class OverlapTextSplitter extends TextSplitter {
     protected List<String> doSplit(String text, int chunkSize) {
         if (text != null && !text.trim().isEmpty()) {
             List<Integer> tokens = this.getEncodedTokens(text);
-            List<String> chunks = new ArrayList();
+            List<String> chunks = new ArrayList<>();
             int num_chunks = 0;
 
             while(!tokens.isEmpty() && num_chunks < this.maxNumChunks) {
@@ -78,7 +78,11 @@ public class OverlapTextSplitter extends TextSplitter {
                     }
 
                     int stepSize = chunk.size() - this.overlapTokens;
-                    if (stepSize <= 0) break;  // Avoid infinite loop
+                    System.out.println(stepSize);
+                    if (stepSize <= 0 || stepSize > tokens.size()) {
+                        tokens = new ArrayList<>();
+                        break;  // Avoid infinite loop
+                    }
                     tokens = tokens.subList(stepSize, tokens.size());
                     // tokens = tokens.subList(this.getEncodedTokens(chunkText).size() - this.overlapTokens, tokens.size()); // todo this is bad
                     ++num_chunks;
@@ -86,12 +90,15 @@ public class OverlapTextSplitter extends TextSplitter {
             }
 
             if (!tokens.isEmpty()) {
+                System.out.println("not empty:" + tokens);
                 String remaining_text = this.decodeTokens(tokens).replace(System.lineSeparator(), " ").trim();
                 if (remaining_text.length() > this.minChunkLengthToEmbed) {
                     chunks.add(remaining_text);
                 }
             }
 
+            System.out.println(chunks);
+            System.out.println(chunkSize);
             return chunks;
         } else {
             return new ArrayList();

@@ -87,7 +87,7 @@ public class FileLoader {
                 .build();
         QuestionAnswerAdvisor questionAnswerAdvisor = QuestionAnswerAdvisor.builder(vectorStore)
                 .searchRequest(request) // todo also return these
-                .promptTemplate(customPromptTemplate) // should work with a smarter llm
+                .promptTemplate(customPromptTemplate)
                 .build();
 
 
@@ -102,7 +102,7 @@ public class FileLoader {
 
     public void addDoc(String path, String workspace) { // todo make return boolean
         System.out.println(path);
-        Path directory = Path.of(URI.create("file:///C:/Users/filip/Java/2025-hana/mainApp")); // testing: "file:///C:/Users/filip/IdeaProjects/2025-hana/mainApp"
+        Path directory = Path.of(URI.create("file:///C:/Users/filip/Java/2025-hana/mainApp/testDocuments")); // testing: "file:///C:/Users/filip/IdeaProjects/2025-hana/mainApp"
         Instant thisTime = Instant.now();
 
 
@@ -119,7 +119,7 @@ public class FileLoader {
             try (Stream<Path> paths = Files.walk(directory)) {
                 thisTime = Instant.now();
                 Instant finalThisTime = thisTime;
-                paths
+                paths  // todo doesn't add when files have been deleted
                         .filter(Files::isRegularFile).filter(f -> {
                             try {
                                 return Files.getLastModifiedTime(f).toInstant().isAfter(lastModifiedTime);
