@@ -6,10 +6,7 @@ import cz.cuni.mff.hanaf.mainapp.data.UserRepository;
 import cz.cuni.mff.hanaf.mainapp.rag.Utils;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
@@ -41,6 +38,34 @@ public class ThymeLeafController {
         model.addAttribute("availableUsers", userNames);
         return "chooseUser";
     }
+
+    @PostMapping("/user")
+    public String verifyUser(
+            @ModelAttribute("user") User user,
+            @RequestParam("password") String password,
+            Model model
+    ) {
+        User existingUser = userRepository.findByUsername(user.getUsername())
+                .orElse(null);
+
+        if (existingUser != null && passwordMatches(existingUser, password)) {
+            return "redirect:/user/dashboard";
+        } else {
+            model.addAttribute("error", "Invalid username or password");
+
+            List<String> userNames = userRepository.findAll().stream()
+                    .map(User::getUsername)
+                    .collect(Collectors.toList());
+
+            model.addAttribute("availableUsers", userNames);
+            return "chooseUser";
+        }
+    }
+
+    private boolean passwordMatches(User user, String rawPassword) {
+        return user.getPassword().equals(rawPassword);  // todo temp
+    }
+
 
     @PostMapping("/answer")
     public String myPage(@RequestParam(name = "question") String question, Model model) {
