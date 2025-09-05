@@ -116,5 +116,42 @@ public class ThymeLeafController {
 
         return "indexingResult"; // temp, show notification or something
     }
+
+    @GetMapping("/newUser")
+    public String showNewUserForm(Model model) {
+        model.addAttribute("user", new User());
+        return "newUser";
+    }
+
+    @PostMapping("/newUser")
+    public String createNewUser(
+            @ModelAttribute("user") User user,
+            @RequestParam("confirmPassword") String confirmPassword,
+            Model model
+    ) {
+        if (user.getUsername() == null || user.getUsername().trim().isEmpty()) {
+            model.addAttribute("error", "Username cannot be empty");
+            return "newUser";
+        }
+        if (user.getPassword() == null || user.getPassword().trim().isEmpty()) {
+            model.addAttribute("error", "Password cannot be empty");
+            return "newUser";
+        }
+        if (userRepository.findByUsername(user.getUsername()).isPresent()) {
+            model.addAttribute("error", "Username already exists");
+            return "newUser";
+        }
+        if (!user.getPassword().equals(confirmPassword)) {
+            model.addAttribute("error", "Passwords do not match");
+            return "newUser";
+        }
+        try {
+            userRepository.save(user);
+            return "redirect:/user/login";
+        } catch (Exception e) {
+            model.addAttribute("error", "Error creating user");
+            return "newUser";
+        }
+    }
 }
 
