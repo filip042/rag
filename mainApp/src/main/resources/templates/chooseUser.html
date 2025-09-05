@@ -9,7 +9,7 @@
     <p th:text="${error}"></p>
 </div>
 
-<form th:object="${user}" action="#" th:action="@{/user/user}" method="post">
+<form th:object="${user}" action="#" th:action="@{/user/login}" method="post">
     <label for="usernames">Available Users:</label><br>
     <select id="usernames" name="usernames" required th:field="*{username}">
         <option th:each="option : ${availableUsers}" th:value="${option}" th:text="${option}"/>
@@ -22,7 +22,7 @@
 
 
 <form action="#" th:action="@{/user/create}" method="post" th:object="${users}">
-    <label for="userNames">New User:</label><br>
+    <label>New User:</label><br>
     <input type="submit" value="Create">
 </form>
 

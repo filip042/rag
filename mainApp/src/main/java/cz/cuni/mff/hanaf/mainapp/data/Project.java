@@ -1,9 +1,8 @@
 package cz.cuni.mff.hanaf.mainapp.data;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
+
+import java.util.Set;
 
 
 @Entity
@@ -13,7 +12,14 @@ public class Project {
     private Long id;
 
     private String name;
-    private String password;
+
+    @ManyToMany
+    @JoinTable(
+            name = "project_user_access",
+            joinColumns = @JoinColumn(name = "project_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
+    private Set<User> accessibleUsers;
 
     public Project() {
 
@@ -23,19 +29,27 @@ public class Project {
         return id;
     }
 
-    public String getUsername() {
+    public String getName() {
         return this.name;
     }
 
-    public void setUsername(String username) {
-        this.name = username;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public String getPassword() {
-        return this.password;
+    public Set<User> getAccessibleUsers() {
+        return accessibleUsers;
     }
 
-    public void setPassword(String password) {
-        this.password = password;
+    public void setAccessibleUsers(Set<User> accessibleUsers) {
+        this.accessibleUsers = accessibleUsers;
+    }
+
+    public void addAccessibleUser(User user) {
+        this.accessibleUsers.add(user);
+    }
+
+    public void removeAccessibleUser(User user) {
+        this.accessibleUsers.remove(user);
     }
 }

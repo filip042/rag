@@ -1,9 +1,12 @@
 package cz.cuni.mff.hanaf.mainapp;
 
 
+import cz.cuni.mff.hanaf.mainapp.data.Project;
+import cz.cuni.mff.hanaf.mainapp.data.ProjectRepository;
 import cz.cuni.mff.hanaf.mainapp.data.User;
 import cz.cuni.mff.hanaf.mainapp.data.UserRepository;
 import cz.cuni.mff.hanaf.mainapp.rag.Utils;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -19,10 +22,12 @@ public class ThymeLeafController {
 
     private final RestTemplate restTemplate;
     private final UserRepository userRepository;
+    private final ProjectRepository projectRepository;
 
-    public ThymeLeafController(RestTemplate restTemplate, UserRepository userRepository) {
+    public ThymeLeafController(RestTemplate restTemplate, UserRepository userRepository, ProjectRepository projectRepository) {
         this.restTemplate = restTemplate;
         this.userRepository = userRepository;
+        this.projectRepository = projectRepository;
     }
 
     @GetMapping("/form")
@@ -30,7 +35,7 @@ public class ThymeLeafController {
         return "load";
     }
 
-    @GetMapping("/user")
+    @GetMapping("/login")
     public String chooseUser(Model model) {
         List<User> users = userRepository.findAll();
         List<String> userNames = users.stream().map(User::getUsername).toList();
@@ -39,16 +44,37 @@ public class ThymeLeafController {
         return "chooseUser";
     }
 
-    @PostMapping("/user")
+    private boolean passwordMatches(User user, String rawPassword) {
+        return user.getPassword().equals(rawPassword);  // todo temp
+    }
+
+    @GetMapping("/dashboard")
+    public String showDashboard(HttpSession session, Model model) {
+        User user = (User) session.getAttribute("authenticatedUser");
+        if (user == null) {
+            return "redirect:/user/login";
+        }
+
+        List<Project> projects = projectRepository.findByAccessibleUsers_Username(user.getUsername());
+        List<String> projectNames = projects.stream().map(Project::getName).toList();
+        model.addAttribute("project", new Project());
+        model.addAttribute("availableProjects", projectNames);
+
+        return "dashboard";
+    }
+
+    @PostMapping("/login")
     public String verifyUser(
             @ModelAttribute("user") User user,
             @RequestParam("password") String password,
-            Model model
+            Model model,
+            HttpSession session
     ) {
         User existingUser = userRepository.findByUsername(user.getUsername())
                 .orElse(null);
 
         if (existingUser != null && passwordMatches(existingUser, password)) {
+            session.setAttribute("authenticatedUser", existingUser);
             return "redirect:/user/dashboard";
         } else {
             model.addAttribute("error", "Invalid username or password");
@@ -62,8 +88,10 @@ public class ThymeLeafController {
         }
     }
 
-    private boolean passwordMatches(User user, String rawPassword) {
-        return user.getPassword().equals(rawPassword);  // todo temp
+    @GetMapping("/logout")
+    public String logout(HttpSession session) {
+        session.removeAttribute("authenticatedUser");
+        return "redirect:/user/login";
     }
 
 
