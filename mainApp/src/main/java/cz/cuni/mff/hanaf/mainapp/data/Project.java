@@ -2,6 +2,7 @@ package cz.cuni.mff.hanaf.mainapp.data;
 
 import jakarta.persistence.*;
 
+import java.util.HashSet;
 import java.util.Set;
 
 
@@ -22,7 +23,7 @@ public class Project {
     private Set<User> accessibleUsers;
 
     public Project() {
-
+        this.accessibleUsers = new HashSet<User>();
     }
 
     public Long getId() {

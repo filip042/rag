@@ -153,5 +153,31 @@ public class ThymeLeafController {
             return "newUser";
         }
     }
+
+    @GetMapping("/newProject")
+    public String showNewProjectForm(Model model) {
+        model.addAttribute("project", new Project());
+        return "newProject";
+    }
+
+    @PostMapping("/newProject")
+    public String createNewProject(
+            @ModelAttribute("project") Project project,
+            HttpSession session,
+            Model model
+    ) {
+        project.addAccessibleUser((User)session.getAttribute("authenticatedUser"));
+        if (project.getName() == null || project.getName().trim().isEmpty()) {
+            model.addAttribute("error", "Name cannot be empty");
+            return "newProject";
+        }
+        try {
+            projectRepository.save(project);
+            return "redirect:/user/dashboard";
+        } catch (Exception e) {
+            model.addAttribute("error", "Error creating user");
+            return "newProject";
+        }
+    }
 }
 
