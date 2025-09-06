@@ -33,19 +33,20 @@ public class ThymeLeafController {
     }
 
     @PostMapping("/chat")
-    public String loadForm(@ModelAttribute("project") Project project, HttpSession session) {
-        if (project != null) {
-            session.setAttribute("project", project);
-        }
+    public String loadForm(@RequestParam("projectId") Long projectId, HttpSession session) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new RuntimeException("Project not found"));
+
+        session.setAttribute("project", project);
         return "load";
     }
+
 
     @GetMapping("/login")
     public String chooseUser(Model model) {
         List<User> users = userRepository.findAll();
-        List<String> userNames = users.stream().map(User::getUsername).toList();
         model.addAttribute("user", new User());
-        model.addAttribute("availableUsers", userNames);
+        model.addAttribute("availableUsers", users);
         return "chooseUser";
     }
 
@@ -62,21 +63,20 @@ public class ThymeLeafController {
         }
 
         List<Project> projects = projectRepository.findByAccessibleUsers_Username(user.getUsername());
-        List<String> projectNames = projects.stream().map(Project::getName).toList();
         model.addAttribute("project", new Project());
-        model.addAttribute("availableProjects", projectNames);
+        model.addAttribute("availableProjects", projects);
 
         return "dashboard";
     }
 
     @PostMapping("/login")
     public String verifyUser(
-            @ModelAttribute("user") User user,
+            @ModelAttribute("userId") Long id,
             @RequestParam("password") String password,
             Model model,
             HttpSession session
     ) {
-        User existingUser = userRepository.findByUsername(user.getUsername())
+        User existingUser = userRepository.findById(id)
                 .orElse(null);
 
         if (existingUser != null && passwordMatches(existingUser, password)) {
@@ -102,8 +102,9 @@ public class ThymeLeafController {
 
 
     @PostMapping("/answer")
-    public String myPage(@RequestParam(name = "question") String question, Model model) {
-        String apiUrl = "http://localhost:8080/app/ask?query=" + question + "&workSpace=async1"; // todo temp
+    public String myPage(@RequestParam(name = "question") String question, Model model, HttpSession session) {
+        Project project = (Project) session.getAttribute("project");
+        String apiUrl = "http://localhost:8080/app/ask?query=" + question + "&workSpace=" + project.getId(); // todo temp
         String data = restTemplate.getForObject(apiUrl, String.class); // todo temp type
 
         data = Utils.removeThinking(data);
@@ -188,6 +189,18 @@ public class ThymeLeafController {
             model.addAttribute("error", "Error creating user");
             return "newProject";
         }
+    }
+
+    @PostMapping("/deleteProject")
+    public String deleteProject(HttpSession session) {
+        Project project = (Project) session.getAttribute("project");
+        projectRepository.deleteById(project.getId());
+        String apiUrl = "http://localhost:8080/app/delete";
+        Map<String, Long> params = new HashMap<>();
+        params.put("workSpace", project.getId());
+
+        restTemplate.postForObject(apiUrl, params, Void.class);
+        return "redirect:/user/dashboard";
     }
 }
 

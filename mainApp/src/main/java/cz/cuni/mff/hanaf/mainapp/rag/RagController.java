@@ -1,5 +1,6 @@
 package cz.cuni.mff.hanaf.mainapp.rag;
 
+import cz.cuni.mff.hanaf.mainapp.data.Project;
 import org.springframework.ai.document.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -22,7 +23,7 @@ public class RagController {
     }
 
     @GetMapping("/ask")
-    public String search(@RequestParam String query, String workSpace) {
+    public String search(@RequestParam String query, long workSpace) {
         return fileLoader.ask(query, workSpace);
     }
 
@@ -33,9 +34,10 @@ public class RagController {
         fileLoader.addDoc(path, workSpace);
     }
 
-    @GetMapping("/delete")
-    public void deleteDocuments(@RequestParam String name) {
-        fileLoader.deleteWorkspace(name);
+    @PostMapping("/delete")
+    public void deleteDocuments(@RequestBody Map<String, Long> payload) {
+        long workSpace = payload.get("workSpace");
+        fileLoader.deleteWorkspace(workSpace);
     }
 }
 

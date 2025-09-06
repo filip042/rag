@@ -51,7 +51,7 @@ public class FileLoader {
         return vectorStore.similaritySearch(SearchRequest.builder().query(query).filterExpression(filterExpression).topK(topK).build());
     }
 
-    public String ask(String query, String workSpace) {
+    public String ask(String query, long workSpace) {
         Filter.Expression filterExpression = new Filter.Expression(
                 Filter.ExpressionType.EQ,
                 new Filter.Key("workSpace"),
@@ -139,7 +139,7 @@ public class FileLoader {
         }
     }
 
-    public void deleteWorkspace(String fileName) {
+    public void deleteWorkspace(long fileName) {
         Filter.Expression filterExpression = new Filter.Expression(
                 Filter.ExpressionType.EQ,
                 new Filter.Key("workSpace"),

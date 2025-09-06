@@ -5,21 +5,19 @@
 </head>
 <body>
 
-<form th:object="${project}" action="#" th:action="@{/user/chat}" method="post">
+<form action="#" th:action="@{/user/chat}" method="post">
     <label for="projects">Available Projects:</label><br>
-    <select id="projects" name="projects" required th:field="*{name}">
-        <option th:each="option : ${availableProjects}" th:value="${option}" th:text="${option}"/>
+    <select id="projects" name="projectId" required>
+        <option th:each="option : ${availableProjects}" th:value="${option.id}" th:text="${option.name}"/>
     </select>
     <br>
     <input type="submit" value="Submit">
 </form>
 
-
 <form action="#" th:action="@{/user/newProject}" method="get" th:object="${users}">
     <label>New Project:</label><br>
     <input type="submit" value="Create">
 </form>
-
 
 <form action="#" th:action="@{/user/logout}" method="get">
     <input type="submit" value="Logout">
