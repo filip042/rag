@@ -14,9 +14,13 @@
   <form action="#" th:action="@{/user/load}" method="post"> <!-- need path, doesn't work -->
       <label for="directory">Directory:</label><br>
       <input type="text" id="directory" name="directory" required><br>
-      <label for="workspace">Workspace:</label><br>
-      <input type="text" id="workspace" name="workspace" required><br>
       <button type="submit">Upload Directory</button>
+  </form>
+
+  <br>
+
+  <form action="#" th:action="@{/user/dashboard}" method="get"> <!-- need path, doesn't work -->
+      <button type="submit">Return</button>
   </form>
 </body>
 </html>

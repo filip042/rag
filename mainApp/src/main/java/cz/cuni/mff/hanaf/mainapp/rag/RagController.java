@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/app")
@@ -25,8 +26,10 @@ public class RagController {
         return fileLoader.ask(query, workSpace);
     }
 
-    @GetMapping("/add")
-    public void md(@RequestParam String path, String workSpace) {
+    @PostMapping("/add")
+    public void md(@RequestBody Map<String, String> payload) {
+        String path = payload.get("path");
+        String workSpace = payload.get("workSpace");
         fileLoader.addDoc(path, workSpace);
     }
 

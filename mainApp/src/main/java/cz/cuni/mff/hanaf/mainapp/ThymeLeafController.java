@@ -13,7 +13,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Controller
@@ -30,8 +32,11 @@ public class ThymeLeafController {
         this.projectRepository = projectRepository;
     }
 
-    @GetMapping("/form")
-    public String loadForm() {
+    @PostMapping("/chat")
+    public String loadForm(@ModelAttribute("project") Project project, HttpSession session) {
+        if (project != null) {
+            session.setAttribute("project", project);
+        }
         return "load";
     }
 
@@ -50,6 +55,7 @@ public class ThymeLeafController {
 
     @GetMapping("/dashboard")
     public String showDashboard(HttpSession session, Model model) {
+        session.removeAttribute("project");
         User user = (User) session.getAttribute("authenticatedUser");
         if (user == null) {
             return "redirect:/user/login";
@@ -109,10 +115,14 @@ public class ThymeLeafController {
     }
 
     @PostMapping("/load")
-    public String loadDir(@RequestParam(name = "directory") String directory, @RequestParam(name = "workspace") String workspace) {
-        String apiUrl = "http://localhost:8080/app/add?path=" + directory + "&workSpace=" + workspace; // todo temp
-        restTemplate.getForObject(apiUrl, Void.class);
-        // restTemplate.getForObject(apiUrl, Void.class);
+    public String loadDir(@RequestParam(name = "directory") String directory, HttpSession session) {
+        String apiUrl = "http://localhost:8080/app/add";
+        Map<String, String> params = new HashMap<>();
+        Project project = (Project) session.getAttribute("project");
+        params.put("path", directory);
+        params.put("workSpace", project.getName()); // todo probably do with id
+
+        restTemplate.postForObject(apiUrl, params, Void.class);
 
         return "indexingResult"; // temp, show notification or something
     }
