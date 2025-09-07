@@ -33,11 +33,10 @@ public class ThymeLeafController {
     }
 
     @PostMapping("/chat")
-    public String loadForm(@RequestParam("projectId") Long projectId, HttpSession session) {
-        Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new RuntimeException("Project not found"));
-
-        session.setAttribute("project", project);
+    public String loadForm(@RequestParam(value = "projectId", required = false) Long projectId, HttpSession session) {
+        if (projectId != null) {
+            projectRepository.findById(projectId).ifPresent(project -> session.setAttribute("project", project));
+        }
         return "load";
     }
 
@@ -118,10 +117,10 @@ public class ThymeLeafController {
     @PostMapping("/load")
     public String loadDir(@RequestParam(name = "directory") String directory, HttpSession session) {
         String apiUrl = "http://localhost:8080/app/add";
-        Map<String, String> params = new HashMap<>();
+        Map<String, Object> params = new HashMap<>();
         Project project = (Project) session.getAttribute("project");
         params.put("path", directory);
-        params.put("workSpace", project.getName()); // todo probably do with id
+        params.put("workSpace", project.getId());
 
         restTemplate.postForObject(apiUrl, params, Void.class);
 

@@ -40,7 +40,7 @@ public class FileLoader {
         else return Files.isDirectory(path);
     }
 
-    public List<Document> searchSimilarDocuments(String query, String workSpace, int topK) {
+    public List<Document> searchSimilarDocuments(String query, long workSpace, int topK) {
         OpenAiChatOptions options = (OpenAiChatOptions) chatModel.getDefaultOptions();
         options.getHttpHeaders().keySet().forEach(System.out::println);
         Filter.Expression filterExpression = new Filter.Expression(
@@ -100,7 +100,7 @@ public class FileLoader {
         return responseContent;
     }
 
-    public void addDoc(String path, String workspace) { // todo make return boolean
+    public void addDoc(String path, long workspace) { // todo make return boolean
         System.out.println(path);
         Path directory = Path.of(URI.create("file:///C:/Users/filip/Java/2025-hana/mainApp/testDocuments")); // testing: "file:///C:/Users/filip/IdeaProjects/2025-hana/mainApp"
         Instant thisTime = Instant.now();

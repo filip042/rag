@@ -21,7 +21,7 @@ import org.springframework.ai.vectorstore.filter.FilterExpressionBuilder;
 
 public class ForkJoinLoad extends RecursiveTask<Void>{
     private final Path f;
-    private final String path;
+    private final long workspace;
     private final Instant finalThisTime;
     private final MarkdownDocumentReaderConfig config;
     private final SynchronizedVectorStore vectorStore;
@@ -29,9 +29,9 @@ public class ForkJoinLoad extends RecursiveTask<Void>{
 
     private final List<String> formats = new ArrayList<>(List.of(".txt", ".html", ".pdf"));
 
-    public ForkJoinLoad(Path f, String path, Instant finalThisTime, MarkdownDocumentReaderConfig config, VectorStore vectorStore, ChatModel chatModel) {
+    public ForkJoinLoad(Path f, long workspace, Instant finalThisTime, MarkdownDocumentReaderConfig config, VectorStore vectorStore, ChatModel chatModel) {
         this.f = f;
-        this.path = path;
+        this.workspace = workspace;
         this.finalThisTime = finalThisTime;
         this.config = config;
         this.vectorStore = new SynchronizedVectorStore(vectorStore);
@@ -51,13 +51,13 @@ public class ForkJoinLoad extends RecursiveTask<Void>{
             TikaDocumentReader reader = new TikaDocumentReader("file:" + p);
             List<Document> splitDocuments = splitter.apply(reader.get());
             for (Document document : splitDocuments) {
-                document.getMetadata().put("workSpace", path);
+                document.getMetadata().put("workSpace", workspace);
                 document.getMetadata().put("lastReadTime", finalThisTime.getEpochSecond());
             }
             vectorStore.add(splitDocuments);
         }
         FilterExpressionBuilder b = new FilterExpressionBuilder();
-        Filter.Expression filterExpression = b.and(b.and(b.eq("workSpace", path), b.lt("lastReadTime", finalThisTime.getEpochSecond())), b.eq("source", fileName)).build();
+        Filter.Expression filterExpression = b.and(b.and(b.eq("workSpace", workspace), b.lt("lastReadTime", finalThisTime.getEpochSecond())), b.eq("source", fileName)).build();
         vectorStore.delete(filterExpression);
         return null;
     }

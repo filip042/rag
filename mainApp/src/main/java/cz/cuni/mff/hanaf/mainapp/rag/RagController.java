@@ -18,7 +18,7 @@ public class RagController {
     private FileLoader fileLoader;
 
     @GetMapping("/search")
-    public List<Document> search(@RequestParam String query, @RequestParam String workSpace, @RequestParam int topK) {
+    public List<Document> search(@RequestParam String query, @RequestParam long workSpace, @RequestParam int topK) {
         return fileLoader.searchSimilarDocuments(query, workSpace, topK);
     }
 
@@ -28,9 +28,9 @@ public class RagController {
     }
 
     @PostMapping("/add")
-    public void md(@RequestBody Map<String, String> payload) {
-        String path = payload.get("path");
-        String workSpace = payload.get("workSpace");
+    public void md(@RequestBody Map<String, Object> payload) {
+        String path = (String) payload.get("path");
+        long workSpace = ((Number) payload.get("workSpace")).longValue();
         fileLoader.addDoc(path, workSpace);
     }
 
