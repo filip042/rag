@@ -42,7 +42,7 @@ public class ForkJoinLoad extends RecursiveTask<Void>{
     protected Void compute() {
         String fileName = f.getFileName().toString();
         String p = f.toString();
-        OverlapTextSplitter splitter = new OverlapTextSplitter(1000, 100, 5, 10000, false, 20);
+        OverlapTextSplitter splitter = new OverlapTextSplitter(2000, 300, 100, 10000, true, 100);
         if (p.endsWith(".md")) {
             MarkdownDocumentReader reader = new MarkdownDocumentReader("file:" + p, config);
             vectorStore.add(splitter.apply(reader.get()));
