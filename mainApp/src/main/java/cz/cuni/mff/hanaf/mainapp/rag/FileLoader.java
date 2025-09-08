@@ -21,6 +21,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Stream;
 
@@ -34,6 +38,8 @@ public class FileLoader {
     private OpenAiChatModel chatModel;
 
     private Instant lastModifiedTime = Instant.MIN;
+    private final Map<Long, CompletableFuture<Void>> indexingTasks = new ConcurrentHashMap<>();
+    private final Map<Long, ConcurrentLinkedQueue<String>> finishedFiles = new ConcurrentHashMap<>();
 
     private Boolean isDir(Path path) { // todo move to own class
         if (path == null || !Files.exists(path)) return false;
@@ -111,32 +117,58 @@ public class FileLoader {
                 .withIncludeCodeBlock(false)
                 .withIncludeBlockquote(false)
                 .withAdditionalMetadata("workSpace", workspace)
-                .withAdditionalMetadata("lastReadTime", thisTime.getEpochSecond()) // todo also user, language
+                .withAdditionalMetadata("lastReadTime", thisTime.getEpochSecond()) // todo also language
                 .build();
 
 
-        if (isDir(directory)) {
-            try (Stream<Path> paths = Files.walk(directory)) {
-                thisTime = Instant.now();
-                Instant finalThisTime = thisTime;
-                paths  // todo doesn't add when files have been deleted
-                        .filter(Files::isRegularFile).filter(f -> {
-                            try {
-                                return Files.getLastModifiedTime(f).toInstant().isAfter(lastModifiedTime);
-                            } catch (IOException e) {
-                                throw new RuntimeException(e);
-                            }
-                        }).forEach(f -> {
-                            System.out.println(f.toString());
-                            ForkJoinPool.commonPool().execute(new ForkJoinLoad(f, workspace, finalThisTime, config, vectorStore, chatModel));
-                        });
-                lastModifiedTime = Instant.now();
-                // todo what's the best way to set flag when the pool is finished
-                //todo on frontend
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+        if (!isDir(directory)) {
+            return;
         }
+
+        try (Stream<Path> paths = Files.walk(directory)) {
+            thisTime = Instant.now();
+            Instant finalThisTime = thisTime;
+            ConcurrentLinkedQueue<String> finishedQueue = new ConcurrentLinkedQueue<>();
+            finishedFiles.put(workspace, finishedQueue);
+
+            List<CompletableFuture<Void>> futures = paths
+                    .filter(Files::isRegularFile).filter(f -> {
+                        try {
+                            return Files.getLastModifiedTime(f).toInstant().isAfter(lastModifiedTime);
+                            // todo also check if file is already indexed, if not, index anyway
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    })
+                    .map(f -> {
+                        System.out.println("Submitting: " + f);
+                        ForkJoinLoad task = new ForkJoinLoad(f, workspace, finalThisTime, config, vectorStore, chatModel);
+                        return CompletableFuture.runAsync(() -> {
+                            System.out.println("Running task for: " + f);
+                            try {
+                                ForkJoinPool.commonPool().invoke(task);
+                                finishedQueue.add(f.toString());
+                                System.out.println("Finished task for: " + f);
+                            } catch (Exception e) {
+                                System.err.println("Failed processing " + f + ": " + e.getMessage());
+                            }
+                        });
+                    })
+                    .toList();
+
+            CompletableFuture<Void> allDone = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
+            indexingTasks.put(workspace, allDone);
+            lastModifiedTime = Instant.now();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public boolean allAdded(long workspace) { // todo add endpoint
+        CompletableFuture<Void> future = indexingTasks.get(workspace);
+        System.out.println(indexingTasks.keySet());
+        System.out.println(indexingTasks.values());
+        return future != null && future.isDone(); // todo also return finished files
     }
 
     public void deleteWorkspace(long fileName) {

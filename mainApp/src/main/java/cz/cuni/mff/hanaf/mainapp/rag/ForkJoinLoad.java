@@ -19,7 +19,7 @@ import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.ai.vectorstore.filter.Filter;
 import org.springframework.ai.vectorstore.filter.FilterExpressionBuilder;
 
-public class ForkJoinLoad extends RecursiveTask<Void>{
+public class ForkJoinLoad extends RecursiveTask<Void>{ // todo runnable instead of this?
     private final Path f;
     private final long workspace;
     private final Instant finalThisTime;
@@ -42,11 +42,11 @@ public class ForkJoinLoad extends RecursiveTask<Void>{
     protected Void compute() {
         String fileName = f.getFileName().toString();
         String p = f.toString();
-        OverlapTextSplitter splitter = new OverlapTextSplitter(2000, 300, 100, 10000, true, 100);
+        OverlapTextSplitter splitter = new OverlapTextSplitter(2000, 300, 50, 10000, true, 100);
         if (p.endsWith(".md")) {
             MarkdownDocumentReader reader = new MarkdownDocumentReader("file:" + p, config);
             vectorStore.add(splitter.apply(reader.get()));
-            System.out.println("test");
+            // System.out.println("test"); // todo remove
         } else if (formats.stream().anyMatch(p::endsWith)) {
             TikaDocumentReader reader = new TikaDocumentReader("file:" + p);
             List<Document> splitDocuments = splitter.apply(reader.get());
@@ -54,10 +54,15 @@ public class ForkJoinLoad extends RecursiveTask<Void>{
                 document.getMetadata().put("workSpace", workspace);
                 document.getMetadata().put("lastReadTime", finalThisTime.getEpochSecond());
             }
-            vectorStore.add(splitDocuments);
+            if (!splitDocuments.isEmpty()) {
+                vectorStore.add(splitDocuments);
+            } else {
+                System.out.println(fileName + " is empty");
+            }
         }
         FilterExpressionBuilder b = new FilterExpressionBuilder();
         Filter.Expression filterExpression = b.and(b.and(b.eq("workSpace", workspace), b.lt("lastReadTime", finalThisTime.getEpochSecond())), b.eq("source", fileName)).build();
+        // todo check if source exists
         vectorStore.delete(filterExpression);
         return null;
     }

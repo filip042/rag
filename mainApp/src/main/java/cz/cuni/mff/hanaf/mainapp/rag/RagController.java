@@ -27,6 +27,11 @@ public class RagController {
         return fileLoader.ask(query, workSpace);
     }
 
+    @GetMapping("/status")
+    public String getIndexStatus(@RequestParam long workSpace) {
+        return fileLoader.allAdded(workSpace) ? "true" : "false";
+    }
+
     @PostMapping("/add")
     public void md(@RequestBody Map<String, Object> payload) {
         String path = (String) payload.get("path");

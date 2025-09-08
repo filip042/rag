@@ -78,7 +78,7 @@ public class OverlapTextSplitter extends TextSplitter {
                     }
 
                     int stepSize = chunk.size() - this.overlapTokens;
-                    System.out.println(stepSize);
+                    // System.out.println(stepSize);
                     if (stepSize <= 0 || stepSize > tokens.size()) {
                         tokens = new ArrayList<>();
                         break;  // Avoid infinite loop
@@ -90,15 +90,15 @@ public class OverlapTextSplitter extends TextSplitter {
             }
 
             if (!tokens.isEmpty()) {
-                System.out.println("not empty:" + tokens);
+                // System.out.println("not empty:" + tokens);
                 String remaining_text = this.decodeTokens(tokens).replace(System.lineSeparator(), " ").trim();
                 if (remaining_text.length() > this.minChunkLengthToEmbed) {
                     chunks.add(remaining_text);
                 }
             }
 
-            System.out.println(chunks);
-            System.out.println(chunkSize);
+            // System.out.println(chunks);
+            // System.out.println(chunkSize);
             return chunks;
         } else {
             return new ArrayList();
