@@ -61,7 +61,7 @@ public class ForkJoinLoad extends RecursiveTask<Void>{ // todo runnable instead 
         List<Document> documentsWithSource = new ArrayList<>();
 
         for (Document document : splitDocuments) {
-            String textWithSource = "[Source: " + fileName + "]\n" + document.getText();
+            String textWithSource = "<chunk source=\"" + fileName + "\">\n" + document.getText() + "\n</chunk>";
             Document newDoc = Document.builder()
                     .text(textWithSource)
                     .metadata(document.getMetadata())
@@ -77,13 +77,11 @@ public class ForkJoinLoad extends RecursiveTask<Void>{ // todo runnable instead 
         }
         FilterExpressionBuilder b = new FilterExpressionBuilder();
         Filter.Expression filterExpression = b.and(b.and(b.eq("workSpace", workspace), b.lt("lastReadTime", finalThisTime.getEpochSecond())), b.eq("source", fileName)).build();
-        // todo check if source exists
         vectorStore.delete(filterExpression);
         return null;
     }
 
     private Document addContext(Document previous, Document current, Document next) {
-        // todo do in the background, not here
         // todo maybe remove or rework to summarize document instead
         PromptTemplate promptTemplate = PromptTemplate.builder()
             .renderer(StTemplateRenderer.builder().startDelimiterToken('<').endDelimiterToken('>').build())

@@ -24,7 +24,7 @@ public class RagController {
     }
 
     @GetMapping("/ask")
-    public Object[] search(@RequestParam String query, long workSpace) {
+    public String search(@RequestParam String query, long workSpace) {
         return fileLoader.ask(query, workSpace);
     }
 

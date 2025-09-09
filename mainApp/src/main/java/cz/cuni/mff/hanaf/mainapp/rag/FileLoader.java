@@ -2,6 +2,9 @@ package cz.cuni.mff.hanaf.mainapp.rag;
 
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.ChatClientResponse;
+import org.springframework.ai.chat.messages.AbstractMessage;
+import org.springframework.ai.chat.model.ChatResponse;
+import org.springframework.ai.chat.model.Generation;
 import org.springframework.ai.chat.prompt.PromptTemplate;
 import org.springframework.ai.document.Document;
 //import org.springframework.ai.ollama.OllamaChatModel;
@@ -58,7 +61,7 @@ public class FileLoader {
         return vectorStore.similaritySearch(SearchRequest.builder().query(query).filterExpression(filterExpression).topK(topK).build());
     }
 
-    public Object[] ask(String query, long workSpace) {
+    public String ask(String query, long workSpace) {
         Filter.Expression filterExpression = new Filter.Expression(
                 Filter.ExpressionType.EQ,
                 new Filter.Key("workSpace"),
@@ -72,24 +75,25 @@ public class FileLoader {
         PromptTemplate customPromptTemplate = PromptTemplate.builder() // todo clarify that ids are in brackets, cross-reference these with the retrieved ones
                 .renderer(StTemplateRenderer.builder().startDelimiterToken('<').endDelimiterToken('>').build())
                 .template("""
-            Context information is below. Each chunk is labeled with a unique ID.
-            
-            ---------------------
-            <question_answer_context>
-            ---------------------
-            
-            Answer the following query using only the context provided. For each fact you use, include the ID of the chunk it came from. If the answer is not in the context, just say "I don't know."
-            
-            ---------------------
-            <query>
-            ---------------------
-            
-            Follow these rules:
-            1. Use all relevant chunks in the context to answer the question.
-            2. Include the source ID(s) for any information you reference.
-            3. Do not rely on prior knowledge outside the provided context.
-            4. Avoid statements like "Based on the context..." or "The provided information...".
-
+                        Context information is below. Each chunk is enclosed in an xml tag. The opening tag contains the source filename.
+                        
+                        ---------------------
+                        <question_answer_context>
+                        ---------------------
+                        
+                        Answer the following query using only the context provided.
+                                                
+                        Rules:
+                        1. Use all relevant chunks in the context to answer the question.
+                        2. Do not rely on prior knowledge outside the provided context.
+                        3. Avoid statements like "Based on the context..." or "The provided information...".
+                        4. At the end of your answer, after two newlines, output ONLY the exact values of the source attributes of the chunks you used, separated by commas, with no extra words or headings.
+                        5. If the answer is not in the context, say "I don't know." and output nothing on the filenames line.
+                        
+                        ---------------------
+                        <query>
+                        ---------------------
+                        
             """)
                 .build();
 
@@ -102,14 +106,16 @@ public class FileLoader {
                 .advisors(qaAdvisor)
                 .call().chatClientResponse();
 
-        String answer = clientResponse.chatResponse().getResults().getFirst().getOutput().getText();
-        Set<String> sources = extractSources(clientResponse);
+        String answer = Optional.ofNullable(clientResponse.chatResponse())
+                .map(ChatResponse::getResult)
+                .map(Generation::getOutput)
+                .map(AbstractMessage::getText)
+                .orElse( null);
 
-        Object[] results = new Object[]{answer, clientResponse};
-        return results;
+        return answer;
     }
 
-    private Set<String> extractSources(ChatClientResponse response) {
+    private Set<String> extractSources(ChatClientResponse response) { // todo probably unnecessary
         Object documentsObj = response.context().get("qa_retrieved_documents");
         if (documentsObj instanceof List) {
             return ((List<?>) documentsObj).stream()
@@ -133,7 +139,7 @@ public class FileLoader {
 
     public void addDoc(String path, long workspace) { // todo make return boolean
         System.out.println(path);
-        Path directory = Path.of(URI.create("file:///C:/Users/filip/Java/2025-hana/mainApp/testDocuments")); // testing: "file:///C:/Users/filip/IdeaProjects/2025-hana/mainApp"
+        Path directory = Path.of(URI.create("file:///C:/Users/filip/Java/2025-hana/mainApp/testDocuments")); // testing, todo replace with path string
         Instant thisTime = Instant.now();
 
 
@@ -156,7 +162,7 @@ public class FileLoader {
             ConcurrentLinkedQueue<String> finishedQueue = new ConcurrentLinkedQueue<>();
             finishedFiles.put(workspace, finishedQueue);
 
-            List<CompletableFuture<Void>> futures = paths
+            List<CompletableFuture<Void>> futures = paths // todo keep list of indexed files, compare with this
                     .filter(Files::isRegularFile).filter(f -> {
                         try {
                             return Files.getLastModifiedTime(f).toInstant().isAfter(lastModifiedTime);
