@@ -1,5 +1,7 @@
 package cz.cuni.mff.hanaf.mainapp.rag;
 
+import cz.cuni.mff.hanaf.mainapp.data.Project;
+import cz.cuni.mff.hanaf.mainapp.data.ProjectRepository;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.ChatClientResponse;
 import org.springframework.ai.chat.messages.AbstractMessage;
@@ -40,6 +42,9 @@ public class FileLoader {
 
     @Autowired
     private OpenAiChatModel chatModel;
+
+    @Autowired
+    private ProjectRepository projectRepository;
 
     private Instant lastModifiedTime = Instant.MIN;
     private final Map<Long, CompletableFuture<Void>> indexingTasks = new ConcurrentHashMap<>();
@@ -139,12 +144,10 @@ public class FileLoader {
         return null;
     }
 
-
-    public void addDoc(String path, long workspace) { // todo make return boolean
+    public void addDoc(String path, long workspace) { // doesn't remove files that don't exist
         System.out.println(path);
         Path directory = Path.of(URI.create("file:///C:/Users/filip/Java/2025-hana/mainApp/testDocuments")); // testing, todo replace with path string
         Instant thisTime = Instant.now();
-
 
         MarkdownDocumentReaderConfig config = MarkdownDocumentReaderConfig.builder()
                 .withHorizontalRuleCreateDocument(true)
@@ -165,11 +168,19 @@ public class FileLoader {
             ConcurrentLinkedQueue<String> finishedQueue = new ConcurrentLinkedQueue<>();
             finishedFiles.put(workspace, finishedQueue);
 
-            List<CompletableFuture<Void>> futures = paths // todo keep list of indexed files, compare with this
+            Project project = projectRepository.getReferenceById(workspace);
+            Set<String> existingFiles = Optional.ofNullable(project.getFiles()).orElseGet(HashSet::new);
+
+            Set<String> finishedFilesSet = ConcurrentHashMap.newKeySet();
+
+            List<CompletableFuture<Void>> futures = paths
                     .filter(Files::isRegularFile).filter(f -> {
                         try {
-                            return Files.getLastModifiedTime(f).toInstant().isAfter(lastModifiedTime);
-                            // todo also check if file is already indexed, if not, index anyway
+                            if (existingFiles.contains(f.toString()) && !Files.getLastModifiedTime(f).toInstant().isAfter(lastModifiedTime)) {
+                                finishedFilesSet.add(f.toString());
+                                return false;
+                            }
+                            return true;
                         } catch (IOException e) {
                             throw new RuntimeException(e);
                         }
@@ -181,6 +192,7 @@ public class FileLoader {
                             System.out.println("Running task for: " + f);
                             try {
                                 ForkJoinPool.commonPool().invoke(task);
+                                finishedFilesSet.add(f.toString());
                                 finishedQueue.add(f.toString());
                                 System.out.println("Finished task for: " + f);
                             } catch (Exception e) {
@@ -192,17 +204,27 @@ public class FileLoader {
 
             CompletableFuture<Void> allDone = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
             indexingTasks.put(workspace, allDone);
-            lastModifiedTime = Instant.now();
+            allDone.thenRun(() -> {
+                project.addFiles(finishedFilesSet);
+                projectRepository.save(project);
+            });
+            lastModifiedTime = finalThisTime;
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public boolean allAdded(long workspace) { // todo add endpoint
+    public Map<String, Object> allAdded(long workspace) { // todo add endpoint
         CompletableFuture<Void> future = indexingTasks.get(workspace);
-        System.out.println(indexingTasks.keySet());
-        System.out.println(indexingTasks.values());
-        return future != null && future.isDone(); // todo also return finished files
+        boolean done = (future != null && future.isDone());
+        ConcurrentLinkedQueue<String> finishedQueue = finishedFiles.get(workspace);
+        List<String> finishedList = finishedQueue != null ? new ArrayList<>(finishedQueue) : Collections.emptyList();
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("done", done);
+        result.put("finishedFiles", finishedList);
+
+        return result;
     }
 
     public void deleteWorkspace(long fileName) {

@@ -29,8 +29,8 @@ public class RagController {
     }
 
     @GetMapping("/status")
-    public String getIndexStatus(@RequestParam long workSpace) {
-        return fileLoader.allAdded(workSpace) ? "true" : "false";
+    public Map<String, Object> getIndexStatus(@RequestParam long workSpace) {
+        return fileLoader.allAdded(workSpace);
     }
 
     @PostMapping("/add")

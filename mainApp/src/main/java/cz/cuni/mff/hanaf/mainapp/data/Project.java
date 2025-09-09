@@ -2,6 +2,7 @@ package cz.cuni.mff.hanaf.mainapp.data;
 
 import jakarta.persistence.*;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -14,6 +15,9 @@ public class Project {
 
     private String name;
 
+    @ElementCollection(fetch = FetchType.EAGER)
+    private Set<String> files;
+
     @ManyToMany
     @JoinTable(
             name = "project_user_access",
@@ -23,7 +27,8 @@ public class Project {
     private Set<User> accessibleUsers;
 
     public Project() {
-        this.accessibleUsers = new HashSet<User>();
+        this.files = new HashSet<>();
+        this.accessibleUsers = new HashSet<>();
     }
 
     public Long getId() {
@@ -36,6 +41,22 @@ public class Project {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public Set<String> getFiles() {
+        return this.files;
+    }
+
+    public void setFiles(Set<String> files) {
+        this.files = files;
+    }
+
+    public void addFiles(Collection<String> files) {
+        this.files.addAll(files);
+    }
+
+    public void removeFile(String file) {
+        this.files.remove(file);
     }
 
     public Set<User> getAccessibleUsers() {
