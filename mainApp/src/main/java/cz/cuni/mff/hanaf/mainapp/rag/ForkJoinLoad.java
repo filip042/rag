@@ -58,8 +58,20 @@ public class ForkJoinLoad extends RecursiveTask<Void>{ // todo runnable instead 
             splitDocuments = new ArrayList<>();
         }
 
-        if (!splitDocuments.isEmpty()) {
-            vectorStore.add(splitDocuments);
+        List<Document> documentsWithSource = new ArrayList<>();
+
+        for (Document document : splitDocuments) {
+            String textWithSource = "[Source: " + fileName + "]\n" + document.getText();
+            Document newDoc = Document.builder()
+                    .text(textWithSource)
+                    .metadata(document.getMetadata())
+                    .metadata("source", fileName)
+                    .build();
+            documentsWithSource.add(newDoc);
+        }
+
+        if (!documentsWithSource.isEmpty()) {
+            vectorStore.add(documentsWithSource);
         } else {
             System.out.println(fileName + " is empty");
         }

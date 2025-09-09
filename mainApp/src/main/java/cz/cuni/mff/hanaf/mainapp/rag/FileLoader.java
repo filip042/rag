@@ -64,30 +64,32 @@ public class FileLoader {
                 new Filter.Key("workSpace"),
                 new Filter.Value(workSpace)
         );
-        SearchRequest request = SearchRequest.builder().filterExpression(filterExpression).topK(20).build();
+        SearchRequest request = SearchRequest.builder().filterExpression(filterExpression).topK(6).build();
         ChatClient chatClient = ChatClient.builder(chatModel).build();
 
         System.out.println(query);
 
-        PromptTemplate customPromptTemplate = PromptTemplate.builder()
+        PromptTemplate customPromptTemplate = PromptTemplate.builder() // todo clarify that ids are in brackets, cross-reference these with the retrieved ones
                 .renderer(StTemplateRenderer.builder().startDelimiterToken('<').endDelimiterToken('>').build())
                 .template("""
-            Context information is below.
-
-			---------------------
-			<question_answer_context>
-			---------------------
-
-			Given the context information and no prior knowledge, answer the following query:
+            Context information is below. Each chunk is labeled with a unique ID.
+            
+            ---------------------
+            <question_answer_context>
+            ---------------------
+            
+            Answer the following query using only the context provided. For each fact you use, include the ID of the chunk it came from. If the answer is not in the context, just say "I don't know."
             
             ---------------------
             <query>
             ---------------------
+            
+            Follow these rules:
+            1. Use all relevant chunks in the context to answer the question.
+            2. Include the source ID(s) for any information you reference.
+            3. Do not rely on prior knowledge outside the provided context.
+            4. Avoid statements like "Based on the context..." or "The provided information...".
 
-			Follow these rules:
-
-			1. If the answer is not in the context, just say that you don't know.
-			2. Avoid statements like "Based on the context..." or "The provided information...".
             """)
                 .build();
 
