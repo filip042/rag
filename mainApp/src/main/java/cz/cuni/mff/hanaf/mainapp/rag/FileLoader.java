@@ -67,7 +67,7 @@ public class FileLoader {
                 new Filter.Key("workSpace"),
                 new Filter.Value(workSpace)
         );
-        SearchRequest request = SearchRequest.builder().filterExpression(filterExpression).topK(6).build();
+        SearchRequest request = SearchRequest.builder().filterExpression(filterExpression).topK(10).build();
         ChatClient chatClient = ChatClient.builder(chatModel).build();
 
         System.out.println(query);
@@ -76,20 +76,23 @@ public class FileLoader {
                 .renderer(StTemplateRenderer.builder().startDelimiterToken('<').endDelimiterToken('>').build())
                 .template("""
                         Context information is below. Each chunk is enclosed in an xml tag. The opening tag contains the source filename.
-                        
+            
                         ---------------------
                         <question_answer_context>
                         ---------------------
-                        
-                        Answer the following query using only the context provided.
-                                                
-                        Rules:
-                        1. Use all relevant chunks in the context to answer the question.
-                        2. Do not rely on prior knowledge outside the provided context.
-                        3. Avoid statements like "Based on the context..." or "The provided information...".
-                        4. At the end of your answer, after two newlines, output ONLY the exact values of the source attributes of the chunks you used, separated by commas, with no extra words or headings.
-                        5. If the answer is not in the context, say "I don't know." and output nothing on the filenames line.
-                        
+            
+                        Strictly follow these instructions when answering the query:
+            
+                        1. ONLY use information from the provided context.
+                        2. Write a concise, direct answer.
+                        3. Do NOT use phrases like "Based on the context" or "The provided information".
+                        4. If you cannot find the answer definitively in the context:
+                           - CLEARLY mark your response as an EDUCATED GUESS
+                           - Explain briefly why it's a guess
+                           - Provide your reasoning
+                        5. After your answer, on a separate line, list ONLY the source filenames used, comma-separated.
+                        6. Be precise and avoid unnecessary elaboration.
+                                    
                         ---------------------
                         <query>
                         ---------------------

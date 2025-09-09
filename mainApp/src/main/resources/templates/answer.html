@@ -5,6 +5,13 @@
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 </head>
 <body>
-  <p th:text="|${data}|" />
+<p th:text="${data}"></p>
+
+<div th:if="${sources != null and !sources.isEmpty()}">
+  <h3>Sources:</h3>
+  <ul>
+    <li th:each="src : ${sources}" th:text="${src}"></li>
+  </ul>
+</div>
 </body>
 </html>

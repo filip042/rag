@@ -12,10 +12,9 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Controller
@@ -110,7 +109,28 @@ public class ThymeLeafController {
 
         System.out.println(data); // todo test remove
 
+        String[] lines = data.strip().split("\\R");
+        Set<String> sources = new HashSet<>();
+
+        if (lines.length > 0) {
+            String lastLine = lines[lines.length - 1].trim();
+            if (!lastLine.isEmpty()) {
+                Pattern p = Pattern.compile("[^,]+?\\.[A-Za-z0-9]+"); // e.g., "file-name.md"
+                Matcher m = p.matcher(lastLine);
+                while (m.find()) {
+                    sources.add(m.group().trim());
+                }
+            }
+            data = Arrays.stream(lines)
+                    .limit(lines.length - 1)
+                    .collect(Collectors.joining("\n"));
+        }
+
+        System.out.println("sources: " + sources); // todo cross-reference with actual files
+        System.out.println(data);
+
         model.addAttribute("data", data);
+        model.addAttribute("sources", sources);
         return "answer";
     }
 
