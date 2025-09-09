@@ -1,6 +1,7 @@
 package cz.cuni.mff.hanaf.mainapp.rag;
 
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.client.ChatClientResponse;
 import org.springframework.ai.chat.prompt.PromptTemplate;
 import org.springframework.ai.document.Document;
 //import org.springframework.ai.ollama.OllamaChatModel;
@@ -20,12 +21,12 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ForkJoinPool;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service
@@ -57,54 +58,76 @@ public class FileLoader {
         return vectorStore.similaritySearch(SearchRequest.builder().query(query).filterExpression(filterExpression).topK(topK).build());
     }
 
-    public String ask(String query, long workSpace) {
+    public Object[] ask(String query, long workSpace) {
         Filter.Expression filterExpression = new Filter.Expression(
                 Filter.ExpressionType.EQ,
                 new Filter.Key("workSpace"),
                 new Filter.Value(workSpace)
         );
-        SearchRequest request = SearchRequest.builder().filterExpression(filterExpression).topK(6).build();
+        SearchRequest request = SearchRequest.builder().filterExpression(filterExpression).topK(20).build();
         ChatClient chatClient = ChatClient.builder(chatModel).build();
 
-        PromptTemplate customPromptTemplate =
-                PromptTemplate.builder()
+        System.out.println(query);
+
+        PromptTemplate customPromptTemplate = PromptTemplate.builder()
                 .renderer(StTemplateRenderer.builder().startDelimiterToken('<').endDelimiterToken('>').build())
                 .template("""
-            <query>
-
             Context information is below.
 
 			---------------------
 			<question_answer_context>
 			---------------------
 
-			Given the context information and no prior knowledge, answer the query.
+			Given the context information and no prior knowledge, answer the following query:
+            
+            ---------------------
+            <query>
+            ---------------------
 
 			Follow these rules:
-               
-            1. If the answer is not present in the context or if the context is empty, respond with "I don't know" and nothing else.
-            2. Do not use phrases like "Based on the context..." or "The provided information...".
-            3. Only use relevant information from the context that directly pertains to the question.
-            4. Provide a succinct answer without adding any extraneous information.
-            5. Do not include reasoning in your response.
-            6. Every answer must either begin with a quote from the relevant context or be "I don't know". No other responses are acceptable.
-        
-           \s""")
+
+			1. If the answer is not in the context, just say that you don't know.
+			2. Avoid statements like "Based on the context..." or "The provided information...".
+            """)
                 .build();
-        QuestionAnswerAdvisor questionAnswerAdvisor = QuestionAnswerAdvisor.builder(vectorStore)
-                .searchRequest(request) // todo also return these
+
+        QuestionAnswerAdvisor qaAdvisor = QuestionAnswerAdvisor.builder(vectorStore)
                 .promptTemplate(customPromptTemplate)
+                .searchRequest(request)
                 .build();
 
+        ChatClientResponse clientResponse = chatClient.prompt(query)
+                .advisors(qaAdvisor)
+                .call().chatClientResponse();
 
-        String responseContent = chatClient.prompt()
-                .user(query)
-                .advisors(questionAnswerAdvisor)
-                .call()
-                .content();
+        String answer = clientResponse.chatResponse().getResults().getFirst().getOutput().getText();
+        Set<String> sources = extractSources(clientResponse);
 
-        return responseContent;
+        Object[] results = new Object[]{answer, clientResponse};
+        return results;
     }
+
+    private Set<String> extractSources(ChatClientResponse response) {
+        Object documentsObj = response.context().get("qa_retrieved_documents");
+        if (documentsObj instanceof List) {
+            return ((List<?>) documentsObj).stream()
+                    .filter(doc -> doc instanceof Map)
+                    .map(doc -> extractSourceFromDocument((Map<?, ?>) doc))
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toSet());
+        }
+        return Collections.emptySet();
+    }
+
+    private String extractSourceFromDocument(Map<?, ?> document) {
+        Object metadataObj = document.get("metadata");
+        if (metadataObj instanceof Map) {
+            Object sourceObj = ((Map<?, ?>) metadataObj).get("source");
+            return sourceObj instanceof String ? (String) sourceObj : null;
+        }
+        return null;
+    }
+
 
     public void addDoc(String path, long workspace) { // todo make return boolean
         System.out.println(path);

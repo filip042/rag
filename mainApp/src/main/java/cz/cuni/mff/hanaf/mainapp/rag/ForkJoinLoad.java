@@ -43,22 +43,25 @@ public class ForkJoinLoad extends RecursiveTask<Void>{ // todo runnable instead 
         String fileName = f.getFileName().toString();
         String p = f.toString();
         OverlapTextSplitter splitter = new OverlapTextSplitter(2000, 300, 50, 10000, true, 100);
+        List<Document> splitDocuments;
         if (p.endsWith(".md")) {
             MarkdownDocumentReader reader = new MarkdownDocumentReader("file:" + p, config);
-            vectorStore.add(splitter.apply(reader.get()));
-            // System.out.println("test"); // todo remove
+            splitDocuments = splitter.apply(reader.get());
         } else if (formats.stream().anyMatch(p::endsWith)) {
             TikaDocumentReader reader = new TikaDocumentReader("file:" + p);
-            List<Document> splitDocuments = splitter.apply(reader.get());
+            splitDocuments = splitter.apply(reader.get());
             for (Document document : splitDocuments) {
                 document.getMetadata().put("workSpace", workspace);
                 document.getMetadata().put("lastReadTime", finalThisTime.getEpochSecond());
             }
-            if (!splitDocuments.isEmpty()) {
-                vectorStore.add(splitDocuments);
-            } else {
-                System.out.println(fileName + " is empty");
-            }
+        } else {
+            splitDocuments = new ArrayList<>();
+        }
+
+        if (!splitDocuments.isEmpty()) {
+            vectorStore.add(splitDocuments);
+        } else {
+            System.out.println(fileName + " is empty");
         }
         FilterExpressionBuilder b = new FilterExpressionBuilder();
         Filter.Expression filterExpression = b.and(b.and(b.eq("workSpace", workspace), b.lt("lastReadTime", finalThisTime.getEpochSecond())), b.eq("source", fileName)).build();
