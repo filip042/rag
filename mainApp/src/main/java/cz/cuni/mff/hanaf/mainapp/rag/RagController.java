@@ -1,7 +1,5 @@
 package cz.cuni.mff.hanaf.mainapp.rag;
 
-import cz.cuni.mff.hanaf.mainapp.data.Project;
-import org.springframework.ai.chat.client.ChatClientResponse;
 import org.springframework.ai.document.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;

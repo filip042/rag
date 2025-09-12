@@ -1,0 +1,21 @@
+Context information is below. Each chunk is enclosed in an xml tag. The opening tag contains the source filename.
+
+---------------------
+{question_answer_context}
+---------------------
+
+Strictly follow these instructions when answering the query:
+
+1. ONLY use information from the provided context.
+2. Write a concise, direct answer.
+3. Do NOT use phrases like "Based on the context" or "The provided information".
+4. If you cannot find the answer definitively in the context:
+- CLEARLY mark your response as an EDUCATED GUESS
+- Explain briefly why it's a guess
+- Provide your reasoning
+5. After your answer, on a separate line, list ONLY the source filenames used, comma-separated.
+6. Be precise and avoid unnecessary elaboration.
+
+---------------------
+{query}
+---------------------

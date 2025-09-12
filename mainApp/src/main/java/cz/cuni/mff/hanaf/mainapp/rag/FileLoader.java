@@ -7,17 +7,18 @@ import org.springframework.ai.chat.client.ChatClientResponse;
 import org.springframework.ai.chat.messages.AbstractMessage;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.model.Generation;
-import org.springframework.ai.chat.prompt.PromptTemplate;
+import org.springframework.ai.chat.prompt.Prompt;
+import org.springframework.ai.chat.prompt.SystemPromptTemplate;
 import org.springframework.ai.document.Document;
 //import org.springframework.ai.ollama.OllamaChatModel;
 import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.openai.OpenAiChatOptions;
-import org.springframework.ai.reader.markdown.config.MarkdownDocumentReaderConfig;
-import org.springframework.ai.template.st.StTemplateRenderer;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.ai.vectorstore.filter.Filter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.ai.chat.client.advisor.vectorstore.QuestionAnswerAdvisor;
 
@@ -30,7 +31,6 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -45,6 +45,9 @@ public class FileLoader {
 
     @Autowired
     private ProjectRepository projectRepository;
+
+    @Value("classpath:prompts/ask-template.txt")
+    private Resource askTemplateResource;
 
     private Instant lastModifiedTime = Instant.MIN;
     private final Map<Long, CompletableFuture<Void>> indexingTasks = new ConcurrentHashMap<>();
@@ -77,36 +80,10 @@ public class FileLoader {
 
         System.out.println(query);
 
-        PromptTemplate customPromptTemplate = PromptTemplate.builder() // todo clarify that ids are in brackets, cross-reference these with the retrieved ones
-                .renderer(StTemplateRenderer.builder().startDelimiterToken('<').endDelimiterToken('>').build())
-                .template("""
-                        Context information is below. Each chunk is enclosed in an xml tag. The opening tag contains the source filename.
-            
-                        ---------------------
-                        <question_answer_context>
-                        ---------------------
-            
-                        Strictly follow these instructions when answering the query:
-            
-                        1. ONLY use information from the provided context.
-                        2. Write a concise, direct answer.
-                        3. Do NOT use phrases like "Based on the context" or "The provided information".
-                        4. If you cannot find the answer definitively in the context:
-                           - CLEARLY mark your response as an EDUCATED GUESS
-                           - Explain briefly why it's a guess
-                           - Provide your reasoning
-                        5. After your answer, on a separate line, list ONLY the source filenames used, comma-separated.
-                        6. Be precise and avoid unnecessary elaboration.
-                                    
-                        ---------------------
-                        <query>
-                        ---------------------
-                        
-            """)
-                .build();
+        SystemPromptTemplate systemPromptTemplate = new SystemPromptTemplate(askTemplateResource);
 
         QuestionAnswerAdvisor qaAdvisor = QuestionAnswerAdvisor.builder(vectorStore)
-                .promptTemplate(customPromptTemplate)
+                .promptTemplate(systemPromptTemplate)
                 .searchRequest(request)
                 .build();
 
@@ -146,25 +123,14 @@ public class FileLoader {
 
     public void addDoc(String path, long workspace) { // doesn't remove files that don't exist
         System.out.println(path);
-        Path directory = Path.of(URI.create("file:///C:/Users/filip/Java/2025-hana/mainApp/testDocuments")); // testing, todo replace with path string
-        Instant thisTime = Instant.now();
-
-        MarkdownDocumentReaderConfig config = MarkdownDocumentReaderConfig.builder()
-                .withHorizontalRuleCreateDocument(true)
-                .withIncludeCodeBlock(false)
-                .withIncludeBlockquote(false)
-                .withAdditionalMetadata("workSpace", workspace)
-                .withAdditionalMetadata("lastReadTime", thisTime.getEpochSecond()) // todo also language
-                .build();
-
+        Path directory = Path.of(path);
 
         if (!isDir(directory)) {
             return;
         }
 
         try (Stream<Path> paths = Files.walk(directory)) {
-            thisTime = Instant.now();
-            Instant finalThisTime = thisTime;
+            Instant finalThisTime = Instant.now();
             ConcurrentLinkedQueue<String> finishedQueue = new ConcurrentLinkedQueue<>();
             finishedFiles.put(workspace, finishedQueue);
 
@@ -185,21 +151,18 @@ public class FileLoader {
                             throw new RuntimeException(e);
                         }
                     })
-                    .map(f -> {
-                        System.out.println("Submitting: " + f);
-                        ForkJoinLoad task = new ForkJoinLoad(f, workspace, finalThisTime, config, vectorStore, chatModel);
-                        return CompletableFuture.runAsync(() -> {
-                            System.out.println("Running task for: " + f);
-                            try {
-                                ForkJoinPool.commonPool().invoke(task);
-                                finishedFilesSet.add(f.toString());
-                                finishedQueue.add(f.toString());
-                                System.out.println("Finished task for: " + f);
-                            } catch (Exception e) {
-                                System.err.println("Failed processing " + f + ": " + e.getMessage());
-                            }
-                        });
-                    })
+                    .map(f -> CompletableFuture.runAsync(() -> {
+                System.out.println("Processing: " + f);
+                try {
+                    DocumentLoader loader = new DocumentLoader(f, workspace, finalThisTime, vectorStore, chatModel);
+                    loader.load();
+                    finishedFilesSet.add(f.toString());
+                    finishedQueue.add(f.toString());
+                    System.out.println("Finished processing: " + f);
+                } catch (Exception e) {
+                    System.err.println("Failed processing " + f + ": " + e.getMessage());
+                }
+            }))
                     .toList();
 
             CompletableFuture<Void> allDone = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
@@ -235,5 +198,14 @@ public class FileLoader {
         );
         vectorStore.delete(filterExpression);
         System.out.println("Deleted " + fileName);
+    }
+
+    public void testNoThink() {
+        OpenAiChatOptions options = new OpenAiChatOptions();
+        options.setModel("qwen3");
+        options.setTemperature(0.3);
+        Prompt prompt = new Prompt("Who is Jon Snow? Be as brief as possible. /no_think", options);
+
+        System.out.println(((chatModel.call(prompt).getResult().getOutput().getText())));
     }
 }

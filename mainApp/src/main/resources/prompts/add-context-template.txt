@@ -1,0 +1,12 @@
+Take the following three texts, and update the second one to make sense without the first and last.
+Make as few changes as possible in order to preserve the original meaning.
+Don't include any introductory or closing statements in your answer, only the modified second text.
+
+Text 1:
+{previous}
+
+Text 2 (The one to modify)
+{current}
+
+Text 3:
+{next}
