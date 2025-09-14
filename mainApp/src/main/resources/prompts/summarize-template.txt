@@ -1,0 +1,5 @@
+Briefly summarize the following document in one to three sentences:
+
+{document}
+
+/no_think

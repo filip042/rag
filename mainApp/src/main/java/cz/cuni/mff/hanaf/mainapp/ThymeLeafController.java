@@ -105,9 +105,9 @@ public class ThymeLeafController {
         String apiUrl = "http://localhost:8080/app/ask?query=" + question + "&workSpace=" + project.getId(); // todo temp
         String data = restTemplate.getForObject(apiUrl, String.class); // todo temp type
 
-        data = Utils.removeThinking(data);
-
         System.out.println(data); // todo test remove
+
+        data = Utils.removeThinking(data);
 
         String[] lines = data.strip().split("\\R");
         Set<String> sources = new HashSet<>();

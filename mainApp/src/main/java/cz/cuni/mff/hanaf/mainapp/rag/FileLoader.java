@@ -23,7 +23,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.ai.chat.client.advisor.vectorstore.QuestionAnswerAdvisor;
 
 import java.io.IOException;
-import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
@@ -53,6 +52,12 @@ public class FileLoader {
     private final Map<Long, CompletableFuture<Void>> indexingTasks = new ConcurrentHashMap<>();
     private final Map<Long, ConcurrentLinkedQueue<String>> finishedFiles = new ConcurrentHashMap<>();
 
+    /**
+     * Checks if a given path is a directory
+     *
+     * @param path The path to check
+     * @return True if the path is a directory, false otherwise
+     */
     private Boolean isDir(Path path) { // todo move to own class
         if (path == null || !Files.exists(path)) return false;
         else return Files.isDirectory(path);
@@ -69,6 +74,13 @@ public class FileLoader {
         return vectorStore.similaritySearch(SearchRequest.builder().query(query).filterExpression(filterExpression).topK(topK).build());
     }
 
+    /**
+     * Get an answer to a question from the LLM using the documents in the workspace
+     *
+     * @param query The query to be answered
+     * @param workSpace The id of the workspace with the source documents
+     * @return The answer as a string, alongside comma-delimited sources on the last line
+     */
     public String ask(String query, long workSpace) {
         Filter.Expression filterExpression = new Filter.Expression(
                 Filter.ExpressionType.EQ,
@@ -100,7 +112,13 @@ public class FileLoader {
         return answer;
     }
 
-    private Set<String> extractSources(ChatClientResponse response) { // todo probably unnecessary
+    /**
+     * Extract all source document names from the given chat response
+     *
+     * @param response The ChatClientResponse to extract the source documents from
+     * @return A set of all the source document names
+     */
+    private Set<String> extractSources(ChatClientResponse response) { // todo check against list in answer
         Object documentsObj = response.context().get("qa_retrieved_documents");
         if (documentsObj instanceof List) {
             return ((List<?>) documentsObj).stream()
@@ -112,6 +130,12 @@ public class FileLoader {
         return Collections.emptySet();
     }
 
+    /**
+     * Gets the source metadata value from a document
+     *
+     * @param document The document to extract the source from
+     * @return The source document name as a string
+     */
     private String extractSourceFromDocument(Map<?, ?> document) {
         Object metadataObj = document.get("metadata");
         if (metadataObj instanceof Map) {
@@ -121,6 +145,12 @@ public class FileLoader {
         return null;
     }
 
+    /**
+     * Adds the documents in the given directory to the database
+     *
+     * @param path The path to the directory with the documents as a string
+     * @param workspace The id of the workspace the documents are being added to as a long
+     */
     public void addDoc(String path, long workspace) { // doesn't remove files that don't exist
         System.out.println(path);
         Path directory = Path.of(path);
@@ -177,8 +207,16 @@ public class FileLoader {
         }
     }
 
+    /**
+     * Returns the status and list of files processed for the given workspace.
+     *
+     * @param workspace The id of the workspace to check
+     * @return A map with two key-value pairs:
+     *         - "done": A boolean indicating whether all indexing tasks for the workspace are complete, false if no indexing took place since the app was started
+     *         - "finishedFiles": A list of file paths that have been successfully processed
+     */
     public Map<String, Object> allAdded(long workspace) { // todo add endpoint
-        CompletableFuture<Void> future = indexingTasks.get(workspace);
+        CompletableFuture<Void> future = indexingTasks.get(workspace); // todo doesn't return indexed stuff, only stuff that has been indexed after addDoc was called last
         boolean done = (future != null && future.isDone());
         ConcurrentLinkedQueue<String> finishedQueue = finishedFiles.get(workspace);
         List<String> finishedList = finishedQueue != null ? new ArrayList<>(finishedQueue) : Collections.emptyList();
@@ -190,16 +228,24 @@ public class FileLoader {
         return result;
     }
 
-    public void deleteWorkspace(long fileName) {
+    /**
+     * Removes all documents in the given workspace from the database
+     *
+     * @param workspace The id of the workspace that is being deleted
+     */
+    public void deleteWorkspace(long workspace) {
         Filter.Expression filterExpression = new Filter.Expression(
                 Filter.ExpressionType.EQ,
                 new Filter.Key("workSpace"),
-                new Filter.Value(fileName)
+                new Filter.Value(workspace)
         );
         vectorStore.delete(filterExpression);
-        System.out.println("Deleted " + fileName);
+        System.out.println("Deleted workspace " + workspace);
     }
 
+    /**
+     * A temporary method for testing the LLM's no_think mode
+     */
     public void testNoThink() {
         OpenAiChatOptions options = new OpenAiChatOptions();
         options.setModel("qwen3");

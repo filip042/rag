@@ -17,7 +17,7 @@ import org.springframework.ai.vectorstore.filter.FilterExpressionBuilder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 
-public class DocumentLoader{ // todo remove async functionality from here, called from the outside
+public class DocumentLoader{
     private final Path f;
     private final long workspace;
     private final Instant finalThisTime;
@@ -28,6 +28,9 @@ public class DocumentLoader{ // todo remove async functionality from here, calle
 
     @Value("classpath:/prompts/add-context-template.txt")
     private Resource systemResource;
+
+    @Value("classpath:prompts/summarize-template.txt")
+    private Resource summarizeResource;
 
     public DocumentLoader(Path f, long workspace, Instant finalThisTime, VectorStore vectorStore, ChatModel chatModel) {
         this.f = f;
@@ -112,6 +115,14 @@ public class DocumentLoader{ // todo remove async functionality from here, calle
                 "current", Optional.ofNullable(current).map(Document::getText).orElse("This document doesn't exist"),
                 "next", Optional.ofNullable(next).map(Document::getText).orElse("No next document exists.")));
         return new Document(Utils.removeThinking(chatModel.call(prompt))); // todo check if works
+    }
+
+    private String summarizeDocument(Document document) {
+        SystemPromptTemplate promptTemplate = new SystemPromptTemplate(summarizeResource);
+
+        assert document.getText() != null;
+        String prompt = promptTemplate.render(Map.of("document", document.getText()));
+        return Utils.removeThinking(chatModel.call(prompt));
     }
 }
 
