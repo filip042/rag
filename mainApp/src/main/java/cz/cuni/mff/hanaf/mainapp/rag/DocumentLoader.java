@@ -107,7 +107,6 @@ public class DocumentLoader{
     }
 
     private Document addContext(Document previous, Document current, Document next) {
-        // todo maybe remove or rework to summarize document instead
         SystemPromptTemplate promptTemplate = new SystemPromptTemplate(systemResource);
 
         String prompt = promptTemplate.render(Map.of(
@@ -117,7 +116,7 @@ public class DocumentLoader{
         return new Document(Utils.removeThinking(chatModel.call(prompt))); // todo check if works
     }
 
-    private String summarizeDocument(Document document) {
+    private String summarizeDocument(Document document) { // todo check if using systemMessage is better
         SystemPromptTemplate promptTemplate = new SystemPromptTemplate(summarizeResource);
 
         assert document.getText() != null;
