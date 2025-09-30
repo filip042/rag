@@ -21,11 +21,13 @@ import java.util.stream.Collectors;
 @RequestMapping("/user")
 public class ThymeLeafController {
 
+    private final AppConfig appConfig;
     private final RestTemplate restTemplate;
     private final UserRepository userRepository;
     private final ProjectRepository projectRepository;
 
-    public ThymeLeafController(RestTemplate restTemplate, UserRepository userRepository, ProjectRepository projectRepository) {
+    public ThymeLeafController(AppConfig appConfig, RestTemplate restTemplate, UserRepository userRepository, ProjectRepository projectRepository) {
+        this.appConfig = appConfig;
         this.restTemplate = restTemplate;
         this.userRepository = userRepository;
         this.projectRepository = projectRepository;
@@ -122,11 +124,9 @@ public class ThymeLeafController {
         } else {
             model.addAttribute("error", "Invalid username or password");
 
-            List<String> userNames = userRepository.findAll().stream()
-                    .map(User::getUsername)
-                    .collect(Collectors.toList());
+            List<User> users = userRepository.findAll();
 
-            model.addAttribute("availableUsers", userNames);
+            model.addAttribute("availableUsers", users);
             return "chooseUser";
         }
     }
@@ -154,8 +154,12 @@ public class ThymeLeafController {
     @PostMapping("/answer")
     public String myPage(@RequestParam(name = "question") String question, Model model, HttpSession session) {
         Project project = (Project) session.getAttribute("project");
-        String apiUrl = "http://localhost:8080/app/ask?query=" + question + "&workSpace=" + project.getId(); // todo temp
-        String data = restTemplate.getForObject(apiUrl, String.class); // todo temp type
+        String apiUrl = appConfig.getBaseUrl() + appConfig.getApiUrls().getBase() + appConfig.getApiUrls().getAsk();
+        Map<String, Object> params = new HashMap<>();
+        params.put("query", question);
+        params.put("workSpace", project.getId());
+
+        String data = restTemplate.postForObject(apiUrl, params, String.class);
 
         System.out.println(data); // todo test remove
 
@@ -195,7 +199,7 @@ public class ThymeLeafController {
      */
     @PostMapping("/load")
     public String loadDir(@RequestParam(name = "directory") String directory, HttpSession session) {
-        String apiUrl = "http://localhost:8080/app/add";
+        String apiUrl = appConfig.getBaseUrl() + appConfig.getApiUrls().getBase() + appConfig.getApiUrls().getAdd();
         Map<String, Object> params = new HashMap<>();
         Project project = (Project) session.getAttribute("project");
         params.put("path", directory);
@@ -294,7 +298,8 @@ public class ThymeLeafController {
         }
         try {
             projectRepository.save(project);
-            return "redirect:/user/dashboard";
+            String url = appConfig.getFrontendUrls().getBase() + appConfig.getFrontendUrls().getDashboard();
+            return "redirect:" + url;
         } catch (Exception e) {
             model.addAttribute("error", "Error creating user");
             return "newProject";
@@ -311,12 +316,12 @@ public class ThymeLeafController {
     public String deleteProject(HttpSession session) {
         Project project = (Project) session.getAttribute("project");
         projectRepository.deleteById(project.getId());
-        String apiUrl = "http://localhost:8080/app/delete";
+        String apiUrl = appConfig.getBaseUrl() + appConfig.getApiUrls().getBase() + appConfig.getApiUrls().getDelete();
         Map<String, Long> params = new HashMap<>();
         params.put("workSpace", project.getId());
 
         restTemplate.postForObject(apiUrl, params, Void.class);
-        return "redirect:/user/dashboard";
+        String url = appConfig.getFrontendUrls().getBase() + appConfig.getFrontendUrls().getDashboard();
+        return "redirect:" + url;
     }
 }
-

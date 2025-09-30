@@ -16,21 +16,47 @@ public class RagController {
     @Autowired
     private FileLoader fileLoader;
 
+    /**
+     * Performs a similaritySearch given the query and the documents in the workspace
+     *
+     * @param query The query being searched for
+     * @param workSpace The id of the workspace with the context being searched
+     * @param topK The amount of results to display
+     * @return A list of documents that are most similar to the query
+     */
     @GetMapping("/search")
     public List<Document> search(@RequestParam String query, @RequestParam long workSpace, @RequestParam int topK) {
         return fileLoader.searchSimilarDocuments(query, workSpace, topK);
     }
 
-    @GetMapping("/ask")
-    public String search(@RequestParam String query, long workSpace) {
+    /**
+     * Passes the given query on to the LLM, which uses context from the given workspace to answer the question
+     *
+     * @param payload The map containing the query to be passed to the LLM under 'query' and the id of the workspace with the context being used under 'workSpace'
+     * @return The answer as a string, followed by comma-delimited sources on the last line
+     */
+    @PostMapping("/ask")
+    public String search(@RequestBody Map<String, Object> payload) {
+        String query = (String) payload.get("query");
+        long workSpace = ((Number) payload.get("workSpace")).longValue();
         return fileLoader.ask(query, workSpace);
     }
 
+    /**
+     * Gets the status of the documents being added to the given workspace
+     * @param workSpace The id of the workspace being added toi
+     * @return A map containing a list of indexed files under "finishedFiles" and a boolean value for if all files have been indexed under "done"
+     */
     @GetMapping("/status")
     public Map<String, Object> getIndexStatus(@RequestParam long workSpace) {
         return fileLoader.allAdded(workSpace);
     }
 
+    /**
+     * Adds the documents in the given directory to the given workspace
+     *
+     * @param payload A map containing the path to the directory and the id of the workspace the documents will be added to
+     */
     @PostMapping("/add")
     public void md(@RequestBody Map<String, Object> payload) {
         String path = (String) payload.get("path");
@@ -38,6 +64,11 @@ public class RagController {
         fileLoader.addDoc(path, workSpace);
     }
 
+    /**
+     * Deletes the workspace set in the payload
+     *
+     * @param payload The map containing the id of the workspace to be deleted
+     */
     @PostMapping("/delete")
     public void deleteDocuments(@RequestBody Map<String, Long> payload) {
         long workSpace = payload.get("workSpace");
