@@ -41,10 +41,13 @@ public class ThymeLeafController {
      * @return The template name of the form
      */
     @PostMapping("/chat")
-    public String loadForm(@RequestParam(value = "projectId", required = false) Long projectId, HttpSession session) {
+    public String loadForm(@RequestParam(value = "projectId", required = false) Long projectId, HttpSession session, Model model) {
         if (projectId != null) {
             projectRepository.findById(projectId).ifPresent(project -> session.setAttribute("project", project));
         }
+        String url = appConfig.getBaseUrl() + appConfig.getApiUrls().getBase() + appConfig.getApiUrls().getStatus();
+        String parameter = "?workSpace=" + ((Project)session.getAttribute("project")).getId();
+        model.addAttribute("articleCountEndpoint", url.concat(parameter));
         return "load";  // todo redirect if projectId doesn't exist
     }
 

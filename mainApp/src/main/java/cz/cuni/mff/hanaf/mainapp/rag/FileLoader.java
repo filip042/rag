@@ -51,6 +51,7 @@ public class FileLoader {
     private Instant lastModifiedTime = Instant.MIN;
     private final Map<Long, CompletableFuture<Void>> indexingTasks = new ConcurrentHashMap<>();
     private final Map<Long, ConcurrentLinkedQueue<String>> finishedFiles = new ConcurrentHashMap<>();
+    private final Map<Long, List<Path>> allFilesToIndex = new ConcurrentHashMap<>();
 
     /**
      * Checks if a given path is a directory
@@ -167,13 +168,14 @@ public class FileLoader {
             Project project = projectRepository.getReferenceById(workspace);
             Set<String> existingFiles = Optional.ofNullable(project.getFiles()).orElseGet(HashSet::new);
 
-            Set<String> finishedFilesSet = ConcurrentHashMap.newKeySet();
+            List<Path> toIndex = paths.filter(Files::isRegularFile).toList();
+            allFilesToIndex.put(workspace, toIndex);
 
-            List<CompletableFuture<Void>> futures = paths
-                    .filter(Files::isRegularFile).filter(f -> {
+            List<CompletableFuture<Void>> futures = toIndex.stream()
+                    .filter(f -> {
                         try {
                             if (existingFiles.contains(f.toString()) && !Files.getLastModifiedTime(f).toInstant().isAfter(lastModifiedTime)) {
-                                finishedFilesSet.add(f.toString());
+                                finishedQueue.add(f.toString());
                                 return false;
                             }
                             return true;
@@ -186,7 +188,6 @@ public class FileLoader {
                 try {
                     DocumentLoader loader = new DocumentLoader(f, workspace, finalThisTime, vectorStore, chatModel);
                     loader.load();
-                    finishedFilesSet.add(f.toString());
                     finishedQueue.add(f.toString());
                     System.out.println("Finished processing: " + f);
                 } catch (Exception e) {
@@ -198,7 +199,7 @@ public class FileLoader {
             CompletableFuture<Void> allDone = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
             indexingTasks.put(workspace, allDone);
             allDone.thenRun(() -> {
-                project.addFiles(finishedFilesSet);
+                project.addFiles(finishedQueue);
                 projectRepository.save(project);
             });
             lastModifiedTime = finalThisTime;
@@ -220,9 +221,11 @@ public class FileLoader {
         boolean done = (future != null && future.isDone());
         ConcurrentLinkedQueue<String> finishedQueue = finishedFiles.get(workspace);
         List<String> finishedList = finishedQueue != null ? new ArrayList<>(finishedQueue) : Collections.emptyList();
+        int total = (allFilesToIndex.get(workspace) != null) ? allFilesToIndex.get(workspace).size() : 0;
 
         Map<String, Object> result = new HashMap<>();
         result.put("done", done);
+        result.put("todo", total);
         result.put("finishedFiles", finishedList);
 
         return result;

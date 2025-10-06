@@ -15,6 +15,11 @@
       <label for="directory">Directory:</label><br>
       <input type="text" id="directory" name="directory" required><br>
       <button type="submit">Upload Directory</button>
+      <div id="article-count">0/0 articles indexed</div>
+      <script th:inline="javascript">
+          const articleCountEndpoint = /*[[${articleCountEndpoint}]]*/ '';
+      </script>
+      <script src="/js/articleCount.js"></script>
   </form>
 
   <br>
