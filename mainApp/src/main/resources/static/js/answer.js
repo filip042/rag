@@ -2,8 +2,6 @@ const refresh_rate = 5000;
 
 async function checkAnswer(taskId) {
     try {
-        console.log(taskId);
-        console.log("HUGS!");
         const response = await fetch(answerUrl, {
             method: "POST",
             headers: { "Content-Type": "application/json" },

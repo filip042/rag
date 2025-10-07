@@ -14,6 +14,8 @@ Strictly follow these instructions when answering the query:
 - Explain briefly why it's a guess
 - Provide your reasoning
 5. After your answer, on a separate line, list ONLY the source filenames used, comma-separated.
+    - Always return source filenames exactly as they appear in the "source" attribute of the <chunk> tag.
+    - Do NOT invent filenames from text.
 6. Be precise and avoid unnecessary elaboration.
 
 ---------------------

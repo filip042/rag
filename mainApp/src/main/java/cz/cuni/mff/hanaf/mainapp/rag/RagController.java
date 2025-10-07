@@ -58,7 +58,6 @@ public class RagController {
     public ResponseEntity<?> getAskStatus(@RequestBody Map<String, String> payload) {
         String taskId = payload.get("taskId");
         CompletableFuture<Map<String, Object>> future = tasks.get(taskId);
-        System.out.println("boomers");
         if (future == null) {
             return ResponseEntity.notFound().build();
         }
