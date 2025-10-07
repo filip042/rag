@@ -2,6 +2,7 @@ package cz.cuni.mff.hanaf.mainapp.rag;
 
 import cz.cuni.mff.hanaf.mainapp.data.Project;
 import cz.cuni.mff.hanaf.mainapp.data.ProjectRepository;
+import cz.cuni.mff.hanaf.mainapp.llm.LlmMethods;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.ChatClientResponse;
 import org.springframework.ai.chat.messages.AbstractMessage;
@@ -17,6 +18,7 @@ import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.ai.vectorstore.filter.Filter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
@@ -30,20 +32,26 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service
 public class FileLoader {
 
-    @Autowired
-    private VectorStore vectorStore; // maybe map instead of metadata
+    private final VectorStore vectorStore; // maybe map instead of metadata
+    private final OpenAiChatModel chatModel;
+    private final ProjectRepository projectRepository;
+    private final LlmMethods llmMethods;
+    private final Executor llmExecutor;
 
-    @Autowired
-    private OpenAiChatModel chatModel;
-
-    @Autowired
-    private ProjectRepository projectRepository;
+    public FileLoader(VectorStore vectorStore, OpenAiChatModel chatModel, ProjectRepository projectRepository, LlmMethods llmMethods, @Qualifier("llmExecutor") Executor llmExecutor) {
+        this.vectorStore = vectorStore;
+        this.chatModel = chatModel;
+        this.projectRepository = projectRepository;
+        this.llmMethods = llmMethods;
+        this.llmExecutor = llmExecutor;
+    }
 
     @Value("classpath:prompts/ask-template.txt")
     private Resource askTemplateResource;
@@ -64,6 +72,14 @@ public class FileLoader {
         else return Files.isDirectory(path);
     }
 
+    /**
+     * Return the given amount of documents most similar to the qiven query from the given workspace
+     *
+     * @param query The query being searched for
+     * @param workSpace The id of the workspace to search
+     * @param topK The number of documents to return
+     * @return A list of documents most similar to the query
+     */
     public List<Document> searchSimilarDocuments(String query, long workSpace, int topK) {
         OpenAiChatOptions options = (OpenAiChatOptions) chatModel.getDefaultOptions();
         options.getHttpHeaders().keySet().forEach(System.out::println);
@@ -80,37 +96,40 @@ public class FileLoader {
      *
      * @param query The query to be answered
      * @param workSpace The id of the workspace with the source documents
-     * @return The answer as a string, alongside comma-delimited sources on the last line
+     * @return The answer as a string, alongside comma-delimited sources on the last line // todo
      */
-    public String ask(String query, long workSpace) {
-        Filter.Expression filterExpression = new Filter.Expression(
-                Filter.ExpressionType.EQ,
-                new Filter.Key("workSpace"),
-                new Filter.Value(workSpace)
-        );
-        SearchRequest request = SearchRequest.builder().filterExpression(filterExpression).topK(10).build();
-        ChatClient chatClient = ChatClient.builder(chatModel).build();
+    public CompletableFuture<Map<String, Object>> ask(String query, long workSpace) {
+        return CompletableFuture.supplyAsync(() -> {
+            Filter.Expression filterExpression = new Filter.Expression(
+                    Filter.ExpressionType.EQ,
+                    new Filter.Key("workSpace"),
+                    new Filter.Value(workSpace)
+            );
+            SearchRequest request = SearchRequest.builder().filterExpression(filterExpression).topK(10).build();
+            ChatClient chatClient = ChatClient.builder(chatModel).build();
 
-        System.out.println(query);
+            System.out.println(query);
 
-        SystemPromptTemplate systemPromptTemplate = new SystemPromptTemplate(askTemplateResource);
+            SystemPromptTemplate systemPromptTemplate = new SystemPromptTemplate(askTemplateResource);
 
-        QuestionAnswerAdvisor qaAdvisor = QuestionAnswerAdvisor.builder(vectorStore)
-                .promptTemplate(systemPromptTemplate)
-                .searchRequest(request)
-                .build();
+            QuestionAnswerAdvisor qaAdvisor = QuestionAnswerAdvisor.builder(vectorStore)
+                    .promptTemplate(systemPromptTemplate)
+                    .searchRequest(request)
+                    .build();
 
-        ChatClientResponse clientResponse = chatClient.prompt(query)
-                .advisors(qaAdvisor)
-                .call().chatClientResponse();
+            ChatClientResponse clientResponse = chatClient.prompt(query)
+                    .advisors(qaAdvisor)
+                    .call().chatClientResponse();
 
-        String answer = Optional.ofNullable(clientResponse.chatResponse())
-                .map(ChatResponse::getResult)
-                .map(Generation::getOutput)
-                .map(AbstractMessage::getText)
-                .orElse( null);
+            String answer = Optional.ofNullable(clientResponse.chatResponse())
+                    .map(ChatResponse::getResult)
+                    .map(Generation::getOutput)
+                    .map(AbstractMessage::getText)
+                    .orElse(null);
 
-        return answer;
+            Map<String, Object> structuredAnswer = llmMethods.prepareAnswer(answer);
+            return structuredAnswer;
+        }, llmExecutor);
     }
 
     /**
@@ -213,19 +232,17 @@ public class FileLoader {
      *
      * @param workspace The id of the workspace to check
      * @return A map with two key-value pairs:
-     *         - "done": A boolean indicating whether all indexing tasks for the workspace are complete, false if no indexing took place since the app was started
+     *         - "todo": The number of documents that are being indexed
      *         - "finishedFiles": A list of file paths that have been successfully processed
      */
-    public Map<String, Object> allAdded(long workspace) { // todo add endpoint
+    public Map<String, Object> allAdded(long workspace) {
         CompletableFuture<Void> future = indexingTasks.get(workspace); // todo doesn't return indexed stuff, only stuff that has been indexed after addDoc was called last
-        boolean done = (future != null && future.isDone());
         ConcurrentLinkedQueue<String> finishedQueue = finishedFiles.get(workspace);
         List<String> finishedList = finishedQueue != null ? new ArrayList<>(finishedQueue) : Collections.emptyList();
         int total = (allFilesToIndex.get(workspace) != null) ? allFilesToIndex.get(workspace).size() : 0;
 
         Map<String, Object> result = new HashMap<>();
-        result.put("done", done);
-        result.put("todo", total);
+        result.put("todo", total); // todo think these through a bit more
         result.put("finishedFiles", finishedList);
 
         return result;

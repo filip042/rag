@@ -2,16 +2,28 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
   <title>Answer</title>
-  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <meta charset="UTF-8" />
+
+  <script th:inline="javascript">
+    const answerUrl = /*[[${answerUrl}]]*/ '';
+    const askUrl = /*[[${askUrl}]]*/ '';
+    const question = /*[[${question}]]*/ '';
+    const workSpace = /*[[${workSpace}]]*/ 0;
+  </script>
+
+<!--  <link rel="stylesheet" href="/css/answer.css">-->
 </head>
 <body>
-<p th:text="${data}"></p>
-
-<div th:if="${sources != null and !sources.isEmpty()}">
-  <h3>Sources:</h3>
-  <ul>
-    <li th:each="src : ${sources}" th:text="${src}"></li>
-  </ul>
+<div id="answer-area">
+  <p id="answer-text">Loading answer. This may take several minutes.</p>
+  <div class="spinner" id="spinner"></div>
 </div>
+
+<div id="sources" style="display:none;">
+  <h3>Sources:</h3>
+  <ul id="sources-list"></ul>
+</div>
+
+<script src="/js/answer.js"></script>
 </body>
 </html>

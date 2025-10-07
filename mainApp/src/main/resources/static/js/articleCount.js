@@ -1,3 +1,5 @@
+const refresh_rate = 5000;
+
 function fetchArticleCount() {
     fetch(articleCountEndpoint)
         .then(response => {
@@ -17,5 +19,5 @@ function fetchArticleCount() {
             document.getElementById('article-count').textContent = 'Error loading count';
         });
 }
-setInterval(fetchArticleCount, 5000);
+setInterval(fetchArticleCount, refresh_rate);
 fetchArticleCount();

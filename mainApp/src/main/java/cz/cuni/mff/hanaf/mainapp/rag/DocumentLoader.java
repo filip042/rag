@@ -117,6 +117,7 @@ public class DocumentLoader{
     }
 
     private String summarizeDocument(Document document) { // todo check if using systemMessage is better
+        // todo might be better to have in LLM-specific class
         SystemPromptTemplate promptTemplate = new SystemPromptTemplate(summarizeResource);
 
         assert document.getText() != null;

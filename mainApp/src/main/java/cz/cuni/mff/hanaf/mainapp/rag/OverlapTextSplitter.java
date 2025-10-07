@@ -13,13 +13,6 @@ import java.util.Objects;
 import org.springframework.util.Assert;
 
 public class OverlapTextSplitter extends TextSplitter {
-    private static final int DEFAULT_CHUNK_SIZE = 800;
-    private static final int MIN_CHUNK_SIZE_CHARS = 350;
-    private static final int MIN_CHUNK_LENGTH_TO_EMBED = 5;
-    private static final int MAX_NUM_CHUNKS = 10000;
-    private static final boolean KEEP_SEPARATOR = true;
-    private static final int OVERLAP_TOKENS = 5;
-    private final EncodingRegistry registry;
     private final Encoding encoding;
     private final int chunkSize;
     private final int minChunkSizeChars;
@@ -28,27 +21,15 @@ public class OverlapTextSplitter extends TextSplitter {
     private final boolean keepSeparator;
     private final int overlapTokens;
 
-    public OverlapTextSplitter() {
-        this(DEFAULT_CHUNK_SIZE, MIN_CHUNK_SIZE_CHARS, MIN_CHUNK_LENGTH_TO_EMBED, MAX_NUM_CHUNKS, KEEP_SEPARATOR, OVERLAP_TOKENS);
-    }
-
-    public OverlapTextSplitter(boolean keepSeparator) {
-        this(DEFAULT_CHUNK_SIZE, MIN_CHUNK_SIZE_CHARS, MIN_CHUNK_LENGTH_TO_EMBED, MAX_NUM_CHUNKS, keepSeparator, OVERLAP_TOKENS);
-    }
-
     public OverlapTextSplitter(int chunkSize, int minChunkSizeChars, int minChunkLengthToEmbed, int maxNumChunks, boolean keepSeparator, int overlapTokens) {
-        this.registry = Encodings.newLazyEncodingRegistry();
-        this.encoding = this.registry.getEncoding(EncodingType.CL100K_BASE);
+        EncodingRegistry registry = Encodings.newLazyEncodingRegistry();
+        this.encoding = registry.getEncoding(EncodingType.CL100K_BASE);
         this.chunkSize = chunkSize;
         this.minChunkSizeChars = minChunkSizeChars;
         this.minChunkLengthToEmbed = minChunkLengthToEmbed;
         this.maxNumChunks = maxNumChunks;
         this.keepSeparator = keepSeparator;
         this.overlapTokens = overlapTokens;
-    }
-
-    public static Builder builder() {
-        return new Builder();
     }
 
     protected List<String> splitText(String text) {
@@ -116,51 +97,5 @@ public class OverlapTextSplitter extends TextSplitter {
         Objects.requireNonNull(tokensIntArray);
         tokens.forEach(tokensIntArray::add);
         return this.encoding.decode(tokensIntArray);
-    }
-
-    public static final class Builder {
-        private int chunkSize = 800;
-        private int minChunkSizeChars = 350;
-        private int minChunkLengthToEmbed = 5;
-        private int maxNumChunks = 10000;
-        private boolean keepSeparator = true;
-        private int overlapTokens = 5;
-
-        private Builder() {
-        }
-
-        public Builder withChunkSize(int chunkSize) {
-            this.chunkSize = chunkSize;
-            return this;
-        }
-
-        public Builder withMinChunkSizeChars(int minChunkSizeChars) {
-            this.minChunkSizeChars = minChunkSizeChars;
-            return this;
-        }
-
-        public Builder withMinChunkLengthToEmbed(int minChunkLengthToEmbed) {
-            this.minChunkLengthToEmbed = minChunkLengthToEmbed;
-            return this;
-        }
-
-        public Builder withMaxNumChunks(int maxNumChunks) {
-            this.maxNumChunks = maxNumChunks;
-            return this;
-        }
-
-        public Builder withKeepSeparator(boolean keepSeparator) {
-            this.keepSeparator = keepSeparator;
-            return this;
-        }
-
-        public Builder withOverlapTokens(int overlapTokens) {
-            this.overlapTokens = overlapTokens;
-            return this;
-        }
-
-        public OverlapTextSplitter build() {
-            return new OverlapTextSplitter(this.chunkSize, this.minChunkSizeChars, this.minChunkLengthToEmbed, this.maxNumChunks, this.keepSeparator, this.overlapTokens);
-        }
     }
 }

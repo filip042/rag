@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -157,39 +158,13 @@ public class ThymeLeafController {
     @PostMapping("/answer")
     public String myPage(@RequestParam(name = "question") String question, Model model, HttpSession session) {
         Project project = (Project) session.getAttribute("project");
-        String apiUrl = appConfig.getBaseUrl() + appConfig.getApiUrls().getBase() + appConfig.getApiUrls().getAsk();
-        Map<String, Object> params = new HashMap<>();
-        params.put("query", question);
-        params.put("workSpace", project.getId());
+        String askUrl = appConfig.getBaseUrl() + appConfig.getApiUrls().getBase() + appConfig.getApiUrls().getAsk();
+        String answerUrl = appConfig.getBaseUrl() + appConfig.getApiUrls().getBase() + appConfig.getApiUrls().getAnswer();
+        model.addAttribute("question", question);
+        model.addAttribute("workSpace", project.getId());
+        model.addAttribute("askUrl", askUrl);
+        model.addAttribute("answerUrl", answerUrl);
 
-        String data = restTemplate.postForObject(apiUrl, params, String.class);
-
-        System.out.println(data); // todo test remove
-
-        data = Utils.removeThinking(data);
-
-        String[] lines = data.strip().split("\\R");
-        Set<String> sources = new HashSet<>();
-
-        if (lines.length > 0) {
-            String lastLine = lines[lines.length - 1].trim();
-            if (!lastLine.isEmpty()) {
-                Pattern p = Pattern.compile("[^,]+?\\.[A-Za-z0-9]+"); // e.g., "file-name.md"
-                Matcher m = p.matcher(lastLine);
-                while (m.find()) {
-                    sources.add(m.group().trim());
-                }
-            }
-            data = Arrays.stream(lines)
-                    .limit(lines.length - 1)
-                    .collect(Collectors.joining("\n"));
-        }
-
-        System.out.println("sources: " + sources); // todo cross-reference with actual files
-        System.out.println(data);
-
-        model.addAttribute("data", data);
-        model.addAttribute("sources", sources);
         return "answer";
     }
 

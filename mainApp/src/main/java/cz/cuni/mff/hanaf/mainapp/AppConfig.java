@@ -37,6 +37,7 @@ public class AppConfig {
     public static class ApiUrls {
         private String base;
         private String ask;
+        private String answer;
         private String add;
         private String delete;
         private String status;
@@ -55,6 +56,14 @@ public class AppConfig {
 
         public void setAsk(String ask) {
             this.ask = ask;
+        }
+
+        public String getAnswer() {
+            return answer;
+        }
+
+        public void setAnswer(String answer) {
+            this.answer = answer;
         }
 
         public String getAdd() {
