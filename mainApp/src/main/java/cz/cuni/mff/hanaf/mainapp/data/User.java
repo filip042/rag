@@ -17,6 +17,9 @@ public class User { // todo temp for testing thymeleaf, will add database soon
     @ManyToMany(mappedBy = "accessibleUsers")
     private Set<Project> accessibleProjects;
 
+    @ManyToMany(mappedBy = "adminUsers")
+    private Set<Project> adminProjects;
+
     public User() {
 
     }
@@ -43,5 +46,9 @@ public class User { // todo temp for testing thymeleaf, will add database soon
 
     public Set<Project> getAccessibleProjects() {
         return accessibleProjects;
+    }
+
+    public Set<Project> getAdminProjects() {
+        return adminProjects;
     }
 }

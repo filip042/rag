@@ -40,6 +40,9 @@ public class DocumentLoader{
         this.chatModel = chatModel;
     }
 
+    /**
+     * Adds the document from the path to the database
+     */
     protected void load() {
         String fileName = f.getFileName().toString();
         String p = f.toString();
@@ -55,6 +58,12 @@ public class DocumentLoader{
         this.deleteOldDocuments(workspace, finalThisTime, fileName);
     }
 
+    /**
+     * Splits the document on the given path into chunks
+     *
+     * @param filePath The path to the given document
+     * @return A list of chunks created from the given document
+     */
     private List<Document> readAndSplitDocument(String filePath) {
         OverlapTextSplitter splitter = new OverlapTextSplitter(2000, 300, 50, 10000, true, 100);
 
@@ -75,6 +84,14 @@ public class DocumentLoader{
         return new ArrayList<>();
     }
 
+    /** todo
+     *
+     * @param fileName
+     * @param workspace
+     * @param processingTime
+     * @param splitDocuments
+     * @return
+     */
     private List<Document> prepareDocumentsWithSource(String fileName, long workspace, Instant processingTime, List<Document> splitDocuments) {
         return splitDocuments.stream()
                 .map(document -> {
@@ -93,6 +110,12 @@ public class DocumentLoader{
                 .collect(Collectors.toList());
     }
 
+    /**
+     * todo
+     * @param workspace
+     * @param processingTime
+     * @param fileName
+     */
     private void deleteOldDocuments(long workspace, Instant processingTime, String fileName) {
         FilterExpressionBuilder b = new FilterExpressionBuilder();
         Filter.Expression filterExpression = b.and(
@@ -106,6 +129,14 @@ public class DocumentLoader{
         vectorStore.delete(filterExpression);
     }
 
+    /**
+     * Adds context to the current chunk for indexing using information from the previous and next ones
+     *
+     * @param previous The previous chunk
+     * @param current The current chunk
+     * @param next The next chunk
+     * @return The current document with context added
+     */
     private Document addContext(Document previous, Document current, Document next) {
         SystemPromptTemplate promptTemplate = new SystemPromptTemplate(systemResource);
 
@@ -116,6 +147,12 @@ public class DocumentLoader{
         return new Document(Utils.removeThinking(chatModel.call(prompt))); // todo check if works
     }
 
+    /**
+     * Summarizes the given document using an LLM so it can be added to indexed chunks as context
+     *
+     * @param document The document being summarized
+     * @return The summarized document
+     */
     private String summarizeDocument(Document document) { // todo check if using systemMessage is better
         // todo might be better to have in LLM-specific class
         SystemPromptTemplate promptTemplate = new SystemPromptTemplate(summarizeResource);

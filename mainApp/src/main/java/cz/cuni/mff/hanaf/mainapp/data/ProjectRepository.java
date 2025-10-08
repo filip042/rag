@@ -6,4 +6,5 @@ import java.util.List;
 
 public interface ProjectRepository extends JpaRepository<Project, Long> {
     List<Project> findByAccessibleUsers_Username(String username);
+    List<Project> findByAdminUsers_Username(String username);
 }

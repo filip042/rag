@@ -26,6 +26,14 @@ public class Project {
     )
     private Set<User> accessibleUsers;
 
+    @ManyToMany
+    @JoinTable(
+            name = "project_user_admin",
+            joinColumns = @JoinColumn(name = "project_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
+    private Set<User> adminUsers;
+
     public Project() {
         this.files = new HashSet<>();
         this.accessibleUsers = new HashSet<>();
@@ -73,5 +81,21 @@ public class Project {
 
     public void removeAccessibleUser(User user) {
         this.accessibleUsers.remove(user);
+    }
+
+    public Set<User> getAdminUsers() {
+        return adminUsers;
+    }
+
+    public void setAdminUsers(Set<User> adminUsers) {
+        this.adminUsers = adminUsers;
+    }
+
+    public void addAdminUser(User user) {
+        this.adminUsers.add(user);
+    }
+
+    public void removeAdminUser(User user) {
+        this.adminUsers.remove(user);
     }
 }

@@ -44,11 +44,18 @@ public class ThymeLeafController {
     @PostMapping("/chat")
     public String loadForm(@RequestParam(value = "projectId", required = false) Long projectId, HttpSession session, Model model) {
         if (projectId != null) {
-            projectRepository.findById(projectId).ifPresent(project -> session.setAttribute("project", project));
+            projectRepository.findById(projectId).ifPresent(project -> {
+                session.setAttribute("project", project);
+                String username = ((User) session.getAttribute("authenticatedUser")).getUsername();
+                if (projectRepository.findByAdminUsers_Username(username).contains(project)) {
+                    session.setAttribute("admin", true);
+                }
+            });
         }
         String url = appConfig.getBaseUrl() + appConfig.getApiUrls().getBase() + appConfig.getApiUrls().getStatus();
         String parameter = "?workSpace=" + ((Project)session.getAttribute("project")).getId();
         model.addAttribute("articleCountEndpoint", url.concat(parameter));
+        model.addAttribute("admin", session.getAttribute("admin"));
         return "load";  // todo redirect if projectId doesn't exist
     }
 
@@ -95,6 +102,8 @@ public class ThymeLeafController {
         }
 
         List<Project> projects = projectRepository.findByAccessibleUsers_Username(user.getUsername());
+        List<Project> adminProjects = projectRepository.findByAdminUsers_Username(user.getUsername());
+        projects.addAll(adminProjects);
         model.addAttribute("project", new Project());
         model.addAttribute("availableProjects", projects);
 
@@ -269,7 +278,7 @@ public class ThymeLeafController {
             HttpSession session,
             Model model
     ) {
-        project.addAccessibleUser((User)session.getAttribute("authenticatedUser"));
+        project.addAdminUser((User)session.getAttribute("authenticatedUser"));
         if (project.getName() == null || project.getName().trim().isEmpty()) {
             model.addAttribute("error", "Name cannot be empty");
             return "newProject";
