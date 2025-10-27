@@ -114,7 +114,7 @@ public class FileLoader {
 
             SystemPromptTemplate systemPromptTemplate = new SystemPromptTemplate(askTemplateResource);
 
-            QuestionAnswerAdvisor qaAdvisor = QuestionAnswerAdvisor.builder(vectorStore)
+            VerifyingQuestionAnswerAdvisor qaAdvisor = VerifyingQuestionAnswerAdvisor.builder(vectorStore)
                     .promptTemplate(systemPromptTemplate)
                     .searchRequest(request)
                     .build();
