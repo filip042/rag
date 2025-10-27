@@ -46,8 +46,8 @@ public class ThymeLeafController {
         if (projectId != null) {
             projectRepository.findById(projectId).ifPresent(project -> {
                 session.setAttribute("project", project);
-                String username = ((User) session.getAttribute("authenticatedUser")).getUsername();
-                if (projectRepository.findByAdminUsers_Username(username).contains(project)) {
+                long id = ((User) session.getAttribute("authenticatedUser")).getId();
+                if (projectRepository.findByAdminUsers_Id(id).contains(project)) {
                     session.setAttribute("admin", true);
                 }
             });
@@ -101,8 +101,8 @@ public class ThymeLeafController {
             return "redirect:/user/login";
         }
 
-        List<Project> projects = projectRepository.findByAccessibleUsers_Username(user.getUsername());
-        List<Project> adminProjects = projectRepository.findByAdminUsers_Username(user.getUsername());
+        List<Project> projects = projectRepository.findByAccessibleUsers_Id(user.getId());
+        List<Project> adminProjects = projectRepository.findByAdminUsers_Id(user.getId());
         projects.addAll(adminProjects);
         model.addAttribute("project", new Project());
         model.addAttribute("availableProjects", projects);

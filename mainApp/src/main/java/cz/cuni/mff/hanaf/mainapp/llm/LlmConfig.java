@@ -8,8 +8,8 @@ import org.springframework.context.annotation.Configuration;
 public class LlmConfig {
     @Bean
     @ConditionalOnProperty(
-            name = "spring.ai.openai.chat.options.model",
-            havingValue = "qwen3:latest"
+            name = "spring.ai.ollama.chat.options.model",
+            havingValue = "deepseek-r1:1.5b"// "qwen3:latest"
 //            matchIfMissing = true
     )
     public LlmMethods qwen3Methods() {

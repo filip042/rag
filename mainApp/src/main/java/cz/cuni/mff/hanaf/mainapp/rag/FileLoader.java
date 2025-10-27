@@ -3,6 +3,7 @@ package cz.cuni.mff.hanaf.mainapp.rag;
 import cz.cuni.mff.hanaf.mainapp.data.Project;
 import cz.cuni.mff.hanaf.mainapp.data.ProjectRepository;
 import cz.cuni.mff.hanaf.mainapp.llm.LlmMethods;
+//import cz.cuni.mff.hanaf.mainapp.llm.OllamaConfig;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.ChatClientResponse;
 import org.springframework.ai.chat.messages.AbstractMessage;
@@ -12,12 +13,12 @@ import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.chat.prompt.SystemPromptTemplate;
 import org.springframework.ai.document.Document;
 //import org.springframework.ai.ollama.OllamaChatModel;
-import org.springframework.ai.openai.OpenAiChatModel;
-import org.springframework.ai.openai.OpenAiChatOptions;
+import org.springframework.ai.ollama.OllamaChatModel;
+import org.springframework.ai.ollama.api.OllamaApi;
+import org.springframework.ai.ollama.api.OllamaOptions;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.ai.vectorstore.filter.Filter;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
@@ -40,14 +41,16 @@ import java.util.stream.Stream;
 public class FileLoader {
 
     private final VectorStore vectorStore; // maybe map instead of metadata
-    private final OpenAiChatModel chatModel;
+    private final OllamaChatModel chatModel;
+    private final OllamaApi ollamaApi;
     private final ProjectRepository projectRepository;
     private final LlmMethods llmMethods;
     private final Executor llmExecutor;
 
-    public FileLoader(VectorStore vectorStore, OpenAiChatModel chatModel, ProjectRepository projectRepository, LlmMethods llmMethods, @Qualifier("llmExecutor") Executor llmExecutor) {
+    public FileLoader(VectorStore vectorStore, OllamaChatModel chatModel, OllamaApi ollamaApi, ProjectRepository projectRepository, LlmMethods llmMethods, @Qualifier("llmExecutor") Executor llmExecutor) {
         this.vectorStore = vectorStore;
         this.chatModel = chatModel;
+        this.ollamaApi = ollamaApi;
         this.projectRepository = projectRepository;
         this.llmMethods = llmMethods;
         this.llmExecutor = llmExecutor;
@@ -81,8 +84,7 @@ public class FileLoader {
      * @return A list of documents most similar to the query
      */
     public List<Document> searchSimilarDocuments(String query, long workSpace, int topK) {
-        OpenAiChatOptions options = (OpenAiChatOptions) chatModel.getDefaultOptions();
-        options.getHttpHeaders().keySet().forEach(System.out::println);
+        OllamaOptions options = (OllamaOptions) chatModel.getDefaultOptions();
         Filter.Expression filterExpression = new Filter.Expression(
                 Filter.ExpressionType.EQ,
                 new Filter.Key("workSpace"),
@@ -267,11 +269,32 @@ public class FileLoader {
      * A temporary method for testing the LLM's no_think mode
      */
     public void testNoThink() {
-        OpenAiChatOptions options = new OpenAiChatOptions();
+        OllamaOptions options = new OllamaOptions();
         options.setModel("qwen3");
         options.setTemperature(0.3);
         Prompt prompt = new Prompt("Who is Jon Snow? Be as brief as possible. /no_think", options);
 
         System.out.println(((chatModel.call(prompt).getResult().getOutput().getText())));
+    }
+
+    public void callWithoutThinking(String prompt) {
+        Map<String, Object> options = OllamaOptions.builder()
+                .model("deepseek-r1:1.5b")
+                .temperature(0.7)
+                .build()
+                .toMap();
+
+        options.put("think", false);
+
+        OllamaApi.ChatRequest request = OllamaApi.ChatRequest.builder("deepseek-r1:1.5b")
+                .stream(false)
+                .messages(List.of(
+                        OllamaApi.Message.builder(OllamaApi.Message.Role.USER)
+                                .content(prompt)
+                                .build()))
+                .options(options)
+                .build();
+
+        System.out.println(ollamaApi.chat(request).message().content());
     }
 }

@@ -24,6 +24,10 @@ public class User { // todo temp for testing thymeleaf, will add database soon
 
     }
 
+    /**
+     * Returns the user's id number
+     * @return the user's id
+     */
     public Long getId() {
         return id;
     }
