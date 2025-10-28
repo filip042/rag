@@ -67,7 +67,7 @@ public class RagController {
                 Map<String, Object> result = future.get();
                 tasks.remove(taskId);
                 return ResponseEntity.ok(result);
-            } catch (Exception e) {
+            } catch (java.lang.InterruptedException | java.util.concurrent.ExecutionException e) {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                         .body(Map.of("error", e.getMessage()));
             }
