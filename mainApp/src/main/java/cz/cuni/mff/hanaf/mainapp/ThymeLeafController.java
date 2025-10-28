@@ -12,10 +12,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/user")
@@ -151,7 +147,7 @@ public class ThymeLeafController {
      */
     @GetMapping("/logout")
     public String logout(HttpSession session) {
-        session.removeAttribute("authenticatedUser");
+        session.invalidate();
         return "redirect:/user/login";
     }
 
