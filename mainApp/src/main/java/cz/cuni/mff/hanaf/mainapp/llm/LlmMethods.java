@@ -9,4 +9,12 @@ public interface LlmMethods {
      * @return The information from the answer in a map with the answer, sources, and done keys
      */
     Map<String, Object> prepareAnswer(String answer);
+
+    /**
+     * Checks if the given document is relevant to the query
+     * @param document The document to check
+     * @param query The query the document is meant to answer
+     * @return True if the query is relevant, false otherwise
+     */
+    boolean verifySource(String document, String query);
 }

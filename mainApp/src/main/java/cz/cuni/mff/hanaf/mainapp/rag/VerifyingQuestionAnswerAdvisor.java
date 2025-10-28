@@ -34,21 +34,20 @@ public class VerifyingQuestionAnswerAdvisor implements BaseAdvisor {
     private final SearchRequest searchRequest;
     private final Scheduler scheduler;
     private final int order;
+    private final LlmMethods llmMethods;
 
-    private List<Document> verifiedDocuments = List.of();
+    private List<Document> verifiedDocuments = List.of(); // todo maybe unnecessary
 
-    public VerifyingQuestionAnswerAdvisor(VectorStore vectorStore) {
-        this(vectorStore, SearchRequest.builder().build(), DEFAULT_PROMPT_TEMPLATE, BaseAdvisor.DEFAULT_SCHEDULER, 0);
-    }
-
-    VerifyingQuestionAnswerAdvisor(VectorStore vectorStore, SearchRequest searchRequest, @Nullable PromptTemplate promptTemplate, @Nullable Scheduler scheduler, int order) {
+    VerifyingQuestionAnswerAdvisor(VectorStore vectorStore, SearchRequest searchRequest, @Nullable PromptTemplate promptTemplate, @Nullable Scheduler scheduler, int order, LlmMethods llmMethods) {
         Assert.notNull(vectorStore, "vectorStore cannot be null");
         Assert.notNull(searchRequest, "searchRequest cannot be null");
+        Assert.notNull(llmMethods, "llmMethods cannot be null");
         this.vectorStore = vectorStore;
         this.searchRequest = searchRequest;
         this.promptTemplate = promptTemplate != null ? promptTemplate : DEFAULT_PROMPT_TEMPLATE;
         this.scheduler = scheduler != null ? scheduler : BaseAdvisor.DEFAULT_SCHEDULER;
         this.order = order;
+        this.llmMethods = llmMethods;
     }
 
     public static Builder builder(VectorStore vectorStore) {
@@ -64,7 +63,7 @@ public class VerifyingQuestionAnswerAdvisor implements BaseAdvisor {
         SearchRequest searchRequestToUse = SearchRequest.from(this.searchRequest).query(query).filterExpression(this.doGetFilterExpression(chatClientRequest.context())).build();
         List<Document> documents = this.vectorStore.similaritySearch(searchRequestToUse);
         verifiedDocuments = documents.stream()
-                .filter(doc -> llmMethods.verifySource(doc.getText(), query)) // todo implement
+                .filter(doc -> llmMethods.verifySource(doc.getText(), query))
                 .toList();
         Map<String, Object> context = new HashMap(chatClientRequest.context());
         context.put("qa_retrieved_documents", documents);
@@ -104,6 +103,7 @@ public class VerifyingQuestionAnswerAdvisor implements BaseAdvisor {
         private PromptTemplate promptTemplate;
         private Scheduler scheduler;
         private int order = 0;
+        private LlmMethods llmMethods;
 
         private Builder(VectorStore vectorStore) {
             Assert.notNull(vectorStore, "The vectorStore must not be null!");
@@ -137,8 +137,13 @@ public class VerifyingQuestionAnswerAdvisor implements BaseAdvisor {
             return this;
         }
 
+        public Builder llmMethods(LlmMethods llmMethods) {
+            this.llmMethods = llmMethods;
+            return this;
+        }
+
         public VerifyingQuestionAnswerAdvisor build() {
-            return new VerifyingQuestionAnswerAdvisor(this.vectorStore, this.searchRequest, this.promptTemplate, this.scheduler, this.order);
+            return new VerifyingQuestionAnswerAdvisor(this.vectorStore, this.searchRequest, this.promptTemplate, this.scheduler, this.order, this.llmMethods);
         }
     }
 }

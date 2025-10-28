@@ -12,7 +12,6 @@ import org.springframework.ai.chat.model.Generation;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.chat.prompt.SystemPromptTemplate;
 import org.springframework.ai.document.Document;
-//import org.springframework.ai.ollama.OllamaChatModel;
 import org.springframework.ai.ollama.OllamaChatModel;
 import org.springframework.ai.ollama.api.OllamaApi;
 import org.springframework.ai.ollama.api.OllamaOptions;
@@ -23,7 +22,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
-import org.springframework.ai.chat.client.advisor.vectorstore.QuestionAnswerAdvisor;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -34,6 +32,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executor;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -107,7 +107,7 @@ public class FileLoader {
                     new Filter.Key("workSpace"),
                     new Filter.Value(workSpace)
             );
-            SearchRequest request = SearchRequest.builder().filterExpression(filterExpression).topK(10).build();
+            SearchRequest request = SearchRequest.builder().filterExpression(filterExpression).topK(5).build();
             ChatClient chatClient = ChatClient.builder(chatModel).build();
 
             System.out.println(query);
@@ -117,6 +117,7 @@ public class FileLoader {
             VerifyingQuestionAnswerAdvisor qaAdvisor = VerifyingQuestionAnswerAdvisor.builder(vectorStore)
                     .promptTemplate(systemPromptTemplate)
                     .searchRequest(request)
+                    .llmMethods(llmMethods)
                     .build();
 
             ChatClientResponse clientResponse = chatClient.prompt(query)
@@ -129,7 +130,12 @@ public class FileLoader {
                     .map(AbstractMessage::getText)
                     .orElse(null);
 
+            Set<String> sources = qaAdvisor.getVerifiedDocuments().stream()
+                    .map(this::extractDocumentName)
+                    .collect(Collectors.toSet());
+
             Map<String, Object> structuredAnswer = llmMethods.prepareAnswer(answer);
+            structuredAnswer.put("sources", sources);
             return structuredAnswer;
         }, llmExecutor);
     }
@@ -296,5 +302,17 @@ public class FileLoader {
                 .build();
 
         System.out.println(ollamaApi.chat(request).message().content());
+    }
+
+    private String extractDocumentName(Document document) {
+        Pattern pattern = Pattern.compile("<chunk source=\"([^\"]+)\">\\s*(.*?)\\s*</chunk>", Pattern.DOTALL);
+
+        Matcher matcher = pattern.matcher(document.getText());
+        String fileName = "";
+        if (matcher.find()) {
+            fileName = matcher.group(1);
+        }
+
+        return fileName;
     }
 }

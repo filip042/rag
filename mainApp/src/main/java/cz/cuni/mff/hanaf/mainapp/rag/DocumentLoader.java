@@ -84,13 +84,14 @@ public class DocumentLoader{
         return new ArrayList<>();
     }
 
-    /** todo
+    /**
+     * Adds an xml source tag and metadata for each chunk
      *
-     * @param fileName
-     * @param workspace
-     * @param processingTime
-     * @param splitDocuments
-     * @return
+     * @param fileName The name of the chunk source file
+     * @param workspace The current workspace
+     * @param processingTime The current time
+     * @param splitDocuments A list of chunks created by splitting documents
+     * @return A list of modified Documents
      */
     private List<Document> prepareDocumentsWithSource(String fileName, long workspace, Instant processingTime, List<Document> splitDocuments) {
         return splitDocuments.stream()
@@ -111,10 +112,11 @@ public class DocumentLoader{
     }
 
     /**
-     * todo
-     * @param workspace
-     * @param processingTime
-     * @param fileName
+     * Deletes all documents with newer versions in the database
+     *
+     * @param workspace The current workspace ID
+     * @param processingTime The current time
+     * @param fileName The name of the file with a new version
      */
     private void deleteOldDocuments(long workspace, Instant processingTime, String fileName) {
         FilterExpressionBuilder b = new FilterExpressionBuilder();
