@@ -11,7 +11,11 @@ async function checkAnswer(taskId) {
         });
 
         if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
+            throw {
+                status: response.status,
+                statusText: response.statusText,
+                response: response
+            };
         }
 
         const data = await response.json();
