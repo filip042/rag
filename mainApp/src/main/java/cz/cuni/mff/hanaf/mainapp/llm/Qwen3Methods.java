@@ -2,7 +2,11 @@ package cz.cuni.mff.hanaf.mainapp.llm;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.ai.chat.prompt.SystemPromptTemplate;
 import org.springframework.ai.ollama.api.OllamaApi;
+import org.springframework.ai.ollama.api.OllamaOptions;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -12,7 +16,9 @@ import java.util.stream.Collectors;
 public class Qwen3Methods implements LlmMethods {
     private final OllamaApi ollamaApi;
 
-    // Constructor injection
+    @Value("classpath:/prompts/check-relevance.txt")
+    private Resource systemResource;
+
     public Qwen3Methods(OllamaApi ollamaApi) {
         this.ollamaApi = ollamaApi;
     }
@@ -68,7 +74,15 @@ public class Qwen3Methods implements LlmMethods {
      */
     @Override
     public boolean verifySource(String document, String query) {
-        return false;
+        SystemPromptTemplate promptTemplate = new SystemPromptTemplate(systemResource);
+
+        String prompt = promptTemplate.render(Map.of(
+                "query", query,
+                "document", document));
+        String result = callWithoutThinking(prompt);
+        System.out.println(result + " done");
+        return result != null && result.trim().equalsIgnoreCase("yes");
+
     }
 
     /**
@@ -81,5 +95,26 @@ public class Qwen3Methods implements LlmMethods {
         Pattern pattern = Pattern.compile("<think>.*?</think>", Pattern.DOTALL);
         Matcher matcher = pattern.matcher(withThinking);
         return matcher.replaceFirst("");
+    }
+
+    private String callWithoutThinking(String prompt) {
+        Map<String, Object> options = OllamaOptions.builder()
+                .model("qwen3:0.6b")
+                .temperature(0.7)
+                .build()
+                .toMap();
+
+        options.put("think", false);
+
+        OllamaApi.ChatRequest request = OllamaApi.ChatRequest.builder("qwen3:0.6b")
+                .stream(false)
+                .messages(List.of(
+                        OllamaApi.Message.builder(OllamaApi.Message.Role.USER)
+                                .content(prompt)
+                                .build()))
+                .options(options)
+                .build();
+
+        return ollamaApi.chat(request).message().content();
     }
 }

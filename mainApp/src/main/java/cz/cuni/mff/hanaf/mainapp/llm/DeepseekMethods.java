@@ -9,8 +9,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class DeepseekMethods implements LlmMethods {
     private final OllamaApi ollamaApi;
@@ -74,9 +72,12 @@ public class DeepseekMethods implements LlmMethods {
      * @return The output of the LLM without the thought process
      */
     private String removeThinking(String withThinking) {
-        Pattern pattern = Pattern.compile("<think>.*?</think>", Pattern.DOTALL);
-        Matcher matcher = pattern.matcher(withThinking);
-        return matcher.replaceFirst("");
+        String cleaned = withThinking.replaceAll("(?s)<think>.*?</think>", "");
+        cleaned = cleaned.replaceAll("(?is)^.*?\\banswer\\s*[:\\-–]\\s*", "");
+        cleaned = cleaned.replaceAll("\\bdone\\b", "");
+        cleaned = cleaned.replaceAll("\\*+", "");
+        cleaned = cleaned.replaceAll("\\s+", " ").trim();
+        return cleaned;
     }
 
     private String callWithoutThinking(String prompt) {

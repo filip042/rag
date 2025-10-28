@@ -139,14 +139,14 @@ public class DocumentLoader{
      * @param next The next chunk
      * @return The current document with context added
      */
-    private Document addContext(Document previous, Document current, Document next) {
+    private Document addContext(Document previous, Document current, Document next) { // todo add removeThinking here
         SystemPromptTemplate promptTemplate = new SystemPromptTemplate(systemResource);
 
         String prompt = promptTemplate.render(Map.of(
                 "previous", Optional.ofNullable(previous).map(Document::getText).orElse("No previous document exists."),
                 "current", Optional.ofNullable(current).map(Document::getText).orElse("This document doesn't exist"),
                 "next", Optional.ofNullable(next).map(Document::getText).orElse("No next document exists.")));
-        return new Document(Utils.removeThinking(chatModel.call(prompt))); // todo check if works
+        return new Document(chatModel.call(prompt)); // todo check if works
     }
 
     /**
@@ -161,7 +161,7 @@ public class DocumentLoader{
 
         assert document.getText() != null;
         String prompt = promptTemplate.render(Map.of("document", document.getText()));
-        return Utils.removeThinking(chatModel.call(prompt));
+        return chatModel.call(prompt);
     }
 }
 

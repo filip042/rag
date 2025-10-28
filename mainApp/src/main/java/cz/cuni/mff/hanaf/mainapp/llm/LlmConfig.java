@@ -20,8 +20,9 @@ public class LlmConfig {
     @Bean
     @ConditionalOnProperty(
             name = "spring.ai.ollama.chat.options.model",
-            havingValue = "qwen3:latest"
+            havingValue = "qwen3:0.6b"
     )
+
     public LlmMethods qwen3Methods(OllamaApi ollamaApi) {
         return new Qwen3Methods(ollamaApi);
     }

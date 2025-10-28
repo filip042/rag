@@ -13,10 +13,7 @@ Strictly follow these instructions when answering the query:
     - CLEARLY mark your response as an EDUCATED GUESS
     - Explain briefly why it's a guess
     - Provide your reasoning
-5. Identify which source filenames (from the <chunk> tags) support your answer.
-    - Always return source filenames exactly as they appear in the "source" attribute of the <chunk> tag.
-    - Do NOT invent filenames from text.
-6. Be precise and avoid unnecessary elaboration.
+5. Be precise and avoid unnecessary elaboration.
 
 ---------------------
 {query}
