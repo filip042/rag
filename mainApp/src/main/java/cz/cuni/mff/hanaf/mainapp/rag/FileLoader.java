@@ -32,6 +32,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executor;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -100,24 +102,33 @@ public class FileLoader {
      * @param workSpace The id of the workspace with the source documents
      * @return The answer as a string, alongside comma-delimited sources on the last line // todo
      */
-    public CompletableFuture<Map<String, Object>> ask(String query, long workSpace) {
+    public CompletableFuture<Void> ask(String query, long workSpace, Map<String, Object> progress) {
         return CompletableFuture.supplyAsync(() -> {
             Filter.Expression filterExpression = new Filter.Expression(
                     Filter.ExpressionType.EQ,
                     new Filter.Key("workSpace"),
                     new Filter.Value(workSpace)
             );
-            SearchRequest request = SearchRequest.builder().filterExpression(filterExpression).topK(5).build();
+            int size = 5;
+            progress.put("total", size);
+            SearchRequest request = SearchRequest.builder().filterExpression(filterExpression).topK(size).build();
             ChatClient chatClient = ChatClient.builder(chatModel).build();
 
             System.out.println(query);
 
             SystemPromptTemplate systemPromptTemplate = new SystemPromptTemplate(askTemplateResource);
 
+            AtomicInteger count =  new AtomicInteger(0);
+            AtomicBoolean verified = new AtomicBoolean(false);
+            progress.put("checked", count);
+            progress.put("checked_all", verified);
+
             VerifyingQuestionAnswerAdvisor qaAdvisor = VerifyingQuestionAnswerAdvisor.builder(vectorStore)
                     .promptTemplate(systemPromptTemplate)
                     .searchRequest(request)
                     .llmMethods(llmMethods)
+                    .counter(count)
+                    .verified(verified)
                     .build();
 
             ChatClientResponse clientResponse = chatClient.prompt(query)
@@ -134,9 +145,16 @@ public class FileLoader {
                     .map(this::extractDocumentName)
                     .collect(Collectors.toSet());
 
+//            Set<String> sources2 = extractSources(clientResponse);
+//            for(String source : sources2) {
+//                System.out.println(source);
+//            }
+
             Map<String, Object> structuredAnswer = llmMethods.prepareAnswer(answer);
-            structuredAnswer.put("sources", sources);
-            return structuredAnswer;
+            progress.put("answer", structuredAnswer.get("answer"));
+            progress.put("sources", sources);
+            progress.put("status", "done");
+            return null;
         }, llmExecutor);
     }
 
@@ -269,39 +287,6 @@ public class FileLoader {
         );
         vectorStore.delete(filterExpression);
         System.out.println("Deleted workspace " + workspace);
-    }
-
-    /**
-     * A temporary method for testing the LLM's no_think mode
-     */
-    public void testNoThink() {
-        OllamaOptions options = new OllamaOptions();
-        options.setModel("qwen3");
-        options.setTemperature(0.3);
-        Prompt prompt = new Prompt("Who is Jon Snow? Be as brief as possible. /no_think", options);
-
-        System.out.println(((chatModel.call(prompt).getResult().getOutput().getText())));
-    }
-
-    public void callWithoutThinking(String prompt) {
-        Map<String, Object> options = OllamaOptions.builder()
-                .model("deepseek-r1:1.5b")
-                .temperature(0.7)
-                .build()
-                .toMap();
-
-        options.put("think", false);
-
-        OllamaApi.ChatRequest request = OllamaApi.ChatRequest.builder("deepseek-r1:1.5b")
-                .stream(false)
-                .messages(List.of(
-                        OllamaApi.Message.builder(OllamaApi.Message.Role.USER)
-                                .content(prompt)
-                                .build()))
-                .options(options)
-                .build();
-
-        System.out.println(ollamaApi.chat(request).message().content());
     }
 
     private String extractDocumentName(Document document) {

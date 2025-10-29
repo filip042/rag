@@ -11,32 +11,51 @@ async function checkAnswer(taskId) {
         });
 
         if (!response.ok) {
-            throw {
-                status: response.status,
-                statusText: response.statusText,
-                response: response
-            };
+            throw new Error(`HTTP ${response.status}`);
         }
 
         const data = await response.json();
+        const status = data.status;
+        const checked = data.checked || 0;
+        const total = data.total || 0;
+        const checkedAll = data.checked_all === true;
 
-        if (!data.done) {
+        const spinner = document.getElementById("spinner");
+        const answerText = document.getElementById("answer-text");
+        const sourcesList = document.getElementById("sources-list");
+        const sourcesDiv = document.getElementById("sources");
+
+        if (status === "checking" && !checkedAll) {
+            answerText.textContent = `Checking sources: ${checked}/${total}`;
             setTimeout(() => checkAnswer(taskId), refresh_rate);
             return;
         }
 
-        document.getElementById("spinner").style.display = "none";
-        document.getElementById("answer-text").textContent = data.answer || "No answer found.";
-
-        if (data.sources && data.sources.length > 0) {
-            const ul = document.getElementById("sources-list");
-            data.sources.forEach(src => {
-                const li = document.createElement("li");
-                li.textContent = src;
-                ul.appendChild(li);
-            });
-            document.getElementById("sources").style.display = "block";
+        if (status === "checking" && checkedAll) {
+            answerText.textContent = "All sources checked, generating answer...";
+            setTimeout(() => checkAnswer(taskId), refresh_rate);
+            return;
         }
+
+        if (status === "done") {
+            spinner.style.display = "none";
+            answerText.textContent = data.answer || "No answer found.";
+
+            if (data.sources && data.sources.length > 0) {
+                sourcesList.innerHTML = "";
+                data.sources.forEach(src => {
+                    const li = document.createElement("li");
+                    li.textContent = src;
+                    sourcesList.appendChild(li);
+                });
+                sourcesDiv.style.display = "block";
+            }
+            return;
+        }
+
+        // Fallback if status not recognized
+        answerText.textContent = "Working...";
+        setTimeout(() => checkAnswer(taskId), refresh_rate);
 
     } catch (err) {
         console.error("Error fetching answer:", err);

@@ -3,6 +3,8 @@ package cz.cuni.mff.hanaf.mainapp.rag;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import cz.cuni.mff.hanaf.mainapp.llm.LlmMethods;
@@ -37,8 +39,10 @@ public class VerifyingQuestionAnswerAdvisor implements BaseAdvisor {
     private final LlmMethods llmMethods;
 
     private List<Document> verifiedDocuments = List.of(); // todo maybe unnecessary
+    private AtomicInteger counter;
+    private AtomicBoolean verified;
 
-    VerifyingQuestionAnswerAdvisor(VectorStore vectorStore, SearchRequest searchRequest, @Nullable PromptTemplate promptTemplate, @Nullable Scheduler scheduler, int order, LlmMethods llmMethods) {
+    VerifyingQuestionAnswerAdvisor(VectorStore vectorStore, SearchRequest searchRequest, @Nullable PromptTemplate promptTemplate, @Nullable Scheduler scheduler, int order, LlmMethods llmMethods, AtomicInteger verifiedCounter, AtomicBoolean verified) {
         Assert.notNull(vectorStore, "vectorStore cannot be null");
         Assert.notNull(searchRequest, "searchRequest cannot be null");
         Assert.notNull(llmMethods, "llmMethods cannot be null");
@@ -48,6 +52,8 @@ public class VerifyingQuestionAnswerAdvisor implements BaseAdvisor {
         this.scheduler = scheduler != null ? scheduler : BaseAdvisor.DEFAULT_SCHEDULER;
         this.order = order;
         this.llmMethods = llmMethods;
+        this.counter = verifiedCounter;
+        this.verified = verified;
     }
 
     public static Builder builder(VectorStore vectorStore) {
@@ -63,8 +69,13 @@ public class VerifyingQuestionAnswerAdvisor implements BaseAdvisor {
         SearchRequest searchRequestToUse = SearchRequest.from(this.searchRequest).query(query).filterExpression(this.doGetFilterExpression(chatClientRequest.context())).build();
         List<Document> documents = this.vectorStore.similaritySearch(searchRequestToUse);
         verifiedDocuments = documents.stream()
-                .filter(doc -> llmMethods.verifySource(doc.getText(), query))
+                .filter(doc -> {
+                    boolean ok = llmMethods.verifySource(doc.getText(), query);
+                    counter.incrementAndGet();
+                    return ok;
+                })
                 .toList();
+        verified.set(true);
         Map<String, Object> context = new HashMap(chatClientRequest.context());
         context.put("qa_retrieved_documents", documents);
         String documentContext = documents == null ? "" : (String)documents.stream().map(Document::getText).collect(Collectors.joining(System.lineSeparator()));
@@ -104,6 +115,8 @@ public class VerifyingQuestionAnswerAdvisor implements BaseAdvisor {
         private Scheduler scheduler;
         private int order = 0;
         private LlmMethods llmMethods;
+        private AtomicInteger counter;
+        private AtomicBoolean verified;
 
         private Builder(VectorStore vectorStore) {
             Assert.notNull(vectorStore, "The vectorStore must not be null!");
@@ -142,8 +155,18 @@ public class VerifyingQuestionAnswerAdvisor implements BaseAdvisor {
             return this;
         }
 
+        public Builder counter(AtomicInteger counter) {
+            this.counter = counter;
+            return this;
+        }
+
+        public Builder verified(AtomicBoolean verified) {
+            this.verified = verified;
+            return this;
+        }
+
         public VerifyingQuestionAnswerAdvisor build() {
-            return new VerifyingQuestionAnswerAdvisor(this.vectorStore, this.searchRequest, this.promptTemplate, this.scheduler, this.order, this.llmMethods);
+            return new VerifyingQuestionAnswerAdvisor(this.vectorStore, this.searchRequest, this.promptTemplate, this.scheduler, this.order, this.llmMethods, this.counter, this.verified);
         }
     }
 }

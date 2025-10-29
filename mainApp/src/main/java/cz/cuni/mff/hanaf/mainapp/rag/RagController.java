@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -22,6 +23,7 @@ public class RagController {
     private FileLoader fileLoader;
 
     private final Map<String, CompletableFuture<Map<String, Object>>> tasks = new ConcurrentHashMap<>();
+    private final Map<String, Map<String, Object>> taskProgress = new ConcurrentHashMap<>();
 
 
     /**
@@ -48,8 +50,15 @@ public class RagController {
         String query = (String) payload.get("query");
         long workSpace = ((Number) payload.get("workSpace")).longValue();
         String taskId = UUID.randomUUID().toString();
-        CompletableFuture<Map<String, Object>> future = fileLoader.ask(query, workSpace);
-        tasks.put(taskId, future);
+        Map<String, Object> progress = new ConcurrentHashMap<>();
+        progress.put("status", "checking");
+        progress.put("checked", 0);
+        progress.put("total", 0);
+        progress.put("checked_all", false);
+        progress.put("answer", "");
+        progress.put("sources", new ArrayList<String>());
+        taskProgress.put(taskId, progress);
+        fileLoader.ask(query, workSpace, progress);
         return Map.of("taskId", taskId);
     }
 
@@ -57,23 +66,17 @@ public class RagController {
     @PostMapping("/answer")
     public ResponseEntity<?> getAskStatus(@RequestBody Map<String, String> payload) {
         String taskId = payload.get("taskId");
-        CompletableFuture<Map<String, Object>> future = tasks.get(taskId);
-        if (future == null) {
+        Map<String, Object> progress = taskProgress.get(taskId);
+        if (progress == null) {
             return ResponseEntity.notFound().build();
         }
 
-        if (future.isDone()) {
-            try {
-                Map<String, Object> result = future.get();
-                tasks.remove(taskId);
-                return ResponseEntity.ok(result);
-            } catch (java.lang.InterruptedException | java.util.concurrent.ExecutionException e) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body(Map.of("error", e.getMessage()));
-            }
+        String status = (String) progress.get("status");
+        if (status.equals("done")) {
+            taskProgress.remove(taskId);
+            return ResponseEntity.ok(progress);
         } else {
-            return ResponseEntity.status(HttpStatus.ACCEPTED)
-                    .body(Map.of("status", "processing"));
+            return ResponseEntity.status(HttpStatus.ACCEPTED).body(progress);
         }
     }
 

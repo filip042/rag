@@ -29,29 +29,13 @@ public class Qwen3Methods implements LlmMethods {
      */
     @Override
     public Map<String, Object> prepareAnswer(String answer) {
+        System.out.println("temp");
         System.out.println(answer); // todo test remove in future
+        System.out.println("endTemp");
 
         answer = this.removeThinking(answer);
-
-        String[] lines = answer.strip().split("\\R");
-        Set<String> sources = new HashSet<>();
-
-        if (lines.length > 0) {
-            String lastLine = lines[lines.length - 1].trim();
-            if (!lastLine.isEmpty()) {
-                Pattern p = Pattern.compile("[^,]+?\\.[A-Za-z0-9]+");
-                Matcher m = p.matcher(lastLine);
-                while (m.find()) {
-                    sources.add(m.group().trim());
-                }
-            }
-            answer = Arrays.stream(lines)
-                    .limit(lines.length - 1)
-                    .collect(Collectors.joining("\n"));
-        }
         Map<String, Object> result = new HashMap<>();
         result.put("answer", answer);
-        result.put("sources", sources);
         result.put("done", true);
 
         try {
