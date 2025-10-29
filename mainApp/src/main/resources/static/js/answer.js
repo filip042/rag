@@ -30,13 +30,11 @@ async function checkAnswer(taskId) {
             setTimeout(() => checkAnswer(taskId), refresh_rate);
             return;
         }
-
         if (status === "checking" && checkedAll) {
             answerText.textContent = "All sources checked, generating answer...";
             setTimeout(() => checkAnswer(taskId), refresh_rate);
             return;
         }
-
         if (status === "done") {
             spinner.style.display = "none";
             answerText.textContent = data.answer || "No answer found.";
@@ -50,13 +48,7 @@ async function checkAnswer(taskId) {
                 });
                 sourcesDiv.style.display = "block";
             }
-            return;
         }
-
-        // Fallback if status not recognized
-        answerText.textContent = "Working...";
-        setTimeout(() => checkAnswer(taskId), refresh_rate);
-
     } catch (err) {
         console.error("Error fetching answer:", err);
         document.getElementById("answer-text").textContent = "Error fetching answer.";

@@ -10,11 +10,10 @@ public class LlmConfig {
     @Bean
     @ConditionalOnProperty(
             name = "spring.ai.ollama.chat.options.model",
-            havingValue = "deepseek-r1:1.5b"// "qwen3:latest"
-//            matchIfMissing = true
+            havingValue = "deepseek-r1:1.5b"
     )
     public LlmMethods deepseekMethods(OllamaApi ollamaApi) {
-        return new DeepseekMethods(ollamaApi);
+        return new DeepseekMethods(ollamaApi, "deepseek-r1:1.5b");
     }
 
     @Bean
@@ -24,6 +23,6 @@ public class LlmConfig {
     )
 
     public LlmMethods qwen3Methods(OllamaApi ollamaApi) {
-        return new Qwen3Methods(ollamaApi);
+        return new Qwen3Methods(ollamaApi, "qwen3:0.6b");
     }
 }
