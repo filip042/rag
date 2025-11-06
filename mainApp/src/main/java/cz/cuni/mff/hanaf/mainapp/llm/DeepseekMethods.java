@@ -1,26 +1,20 @@
 package cz.cuni.mff.hanaf.mainapp.llm;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.ai.chat.prompt.SystemPromptTemplate;
 import org.springframework.ai.ollama.api.OllamaApi;
 import org.springframework.ai.ollama.api.OllamaOptions;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
-public class Qwen3Methods implements LlmMethods {
+public class DeepseekMethods implements LlmMethods {
     private final OllamaApi ollamaApi;
     private final String model;
 
     @Value("classpath:/prompts/check-relevance.txt")
     private Resource systemResource;
 
-    public Qwen3Methods(OllamaApi ollamaApi, String model) {
+    public DeepseekMethods(OllamaApi ollamaApi, String model) {
         this.ollamaApi = ollamaApi;
         this.model = model;
     }
@@ -42,21 +36,24 @@ public class Qwen3Methods implements LlmMethods {
      * @return The output of the LLM without the thought process
      */
     public String removeThinking(String withThinking) {
-        Pattern pattern = Pattern.compile("<think>.*?</think>", Pattern.DOTALL);
-        Matcher matcher = pattern.matcher(withThinking);
-        return matcher.replaceFirst("");
+        String cleaned = withThinking.replaceAll("(?s)<think>.*?</think>", "");
+        cleaned = cleaned.replaceAll("(?is)^.*?\\banswer\\s*[:\\-–]\\s*", "");
+        cleaned = cleaned.replaceAll("\\bdone\\b", "");
+        cleaned = cleaned.replaceAll("\\*+", "");
+        cleaned = cleaned.replaceAll("\\s+", " ").trim();
+        return cleaned;
     }
 
     public String callWithoutThinking(String prompt) {
         Map<String, Object> options = OllamaOptions.builder()
-                .model("qwen3:0.6b")
+                .model("deepseek-r1:1.5b")
                 .temperature(0.7)
                 .build()
                 .toMap();
 
         options.put("think", false);
 
-        OllamaApi.ChatRequest request = OllamaApi.ChatRequest.builder("qwen3:0.6b")
+        OllamaApi.ChatRequest request = OllamaApi.ChatRequest.builder(model)
                 .stream(false)
                 .messages(List.of(
                         OllamaApi.Message.builder(OllamaApi.Message.Role.USER)

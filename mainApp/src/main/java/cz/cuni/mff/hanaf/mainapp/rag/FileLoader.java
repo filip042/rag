@@ -3,6 +3,7 @@ package cz.cuni.mff.hanaf.mainapp.rag;
 import cz.cuni.mff.hanaf.mainapp.data.Project;
 import cz.cuni.mff.hanaf.mainapp.data.ProjectRepository;
 import cz.cuni.mff.hanaf.mainapp.llm.LlmMethods;
+//import cz.cuni.mff.hanaf.mainapp.llm.OllamaConfig;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.ChatClientResponse;
 import org.springframework.ai.chat.messages.AbstractMessage;
@@ -11,18 +12,16 @@ import org.springframework.ai.chat.model.Generation;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.chat.prompt.SystemPromptTemplate;
 import org.springframework.ai.document.Document;
-//import org.springframework.ai.ollama.OllamaChatModel;
-import org.springframework.ai.openai.OpenAiChatModel;
-import org.springframework.ai.openai.OpenAiChatOptions;
+import org.springframework.ai.ollama.OllamaChatModel;
+import org.springframework.ai.ollama.api.OllamaApi;
+import org.springframework.ai.ollama.api.OllamaOptions;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.ai.vectorstore.filter.Filter;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
-import org.springframework.ai.chat.client.advisor.vectorstore.QuestionAnswerAdvisor;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -33,6 +32,10 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executor;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -40,14 +43,16 @@ import java.util.stream.Stream;
 public class FileLoader {
 
     private final VectorStore vectorStore; // maybe map instead of metadata
-    private final OpenAiChatModel chatModel;
+    private final OllamaChatModel chatModel;
+    private final OllamaApi ollamaApi;
     private final ProjectRepository projectRepository;
     private final LlmMethods llmMethods;
     private final Executor llmExecutor;
 
-    public FileLoader(VectorStore vectorStore, OpenAiChatModel chatModel, ProjectRepository projectRepository, LlmMethods llmMethods, @Qualifier("llmExecutor") Executor llmExecutor) {
+    public FileLoader(VectorStore vectorStore, OllamaChatModel chatModel, OllamaApi ollamaApi, ProjectRepository projectRepository, LlmMethods llmMethods, @Qualifier("llmExecutor") Executor llmExecutor) {
         this.vectorStore = vectorStore;
         this.chatModel = chatModel;
+        this.ollamaApi = ollamaApi;
         this.projectRepository = projectRepository;
         this.llmMethods = llmMethods;
         this.llmExecutor = llmExecutor;
@@ -81,8 +86,7 @@ public class FileLoader {
      * @return A list of documents most similar to the query
      */
     public List<Document> searchSimilarDocuments(String query, long workSpace, int topK) {
-        OpenAiChatOptions options = (OpenAiChatOptions) chatModel.getDefaultOptions();
-        options.getHttpHeaders().keySet().forEach(System.out::println);
+        OllamaOptions options = (OllamaOptions) chatModel.getDefaultOptions();
         Filter.Expression filterExpression = new Filter.Expression(
                 Filter.ExpressionType.EQ,
                 new Filter.Key("workSpace"),
@@ -98,23 +102,33 @@ public class FileLoader {
      * @param workSpace The id of the workspace with the source documents
      * @return The answer as a string, alongside comma-delimited sources on the last line // todo
      */
-    public CompletableFuture<Map<String, Object>> ask(String query, long workSpace) {
+    public CompletableFuture<Void> ask(String query, long workSpace, Map<String, Object> progress) {
         return CompletableFuture.supplyAsync(() -> {
             Filter.Expression filterExpression = new Filter.Expression(
                     Filter.ExpressionType.EQ,
                     new Filter.Key("workSpace"),
                     new Filter.Value(workSpace)
             );
-            SearchRequest request = SearchRequest.builder().filterExpression(filterExpression).topK(10).build();
+            int size = 5;
+            progress.put("total", size);
+            SearchRequest request = SearchRequest.builder().filterExpression(filterExpression).topK(size).build();
             ChatClient chatClient = ChatClient.builder(chatModel).build();
 
             System.out.println(query);
 
             SystemPromptTemplate systemPromptTemplate = new SystemPromptTemplate(askTemplateResource);
 
-            QuestionAnswerAdvisor qaAdvisor = QuestionAnswerAdvisor.builder(vectorStore)
+            AtomicInteger count =  new AtomicInteger(0);
+            AtomicBoolean verified = new AtomicBoolean(false);
+            progress.put("checked", count);
+            progress.put("checked_all", verified);
+
+            VerifyingQuestionAnswerAdvisor qaAdvisor = VerifyingQuestionAnswerAdvisor.builder(vectorStore)
                     .promptTemplate(systemPromptTemplate)
                     .searchRequest(request)
+                    .llmMethods(llmMethods)
+                    .counter(count)
+                    .verified(verified)
                     .build();
 
             ChatClientResponse clientResponse = chatClient.prompt(query)
@@ -127,8 +141,20 @@ public class FileLoader {
                     .map(AbstractMessage::getText)
                     .orElse(null);
 
+            Set<String> sources = qaAdvisor.getVerifiedDocuments().stream()
+                    .map(this::extractDocumentName)
+                    .collect(Collectors.toSet());
+
+//            Set<String> sources2 = extractSources(clientResponse);
+//            for(String source : sources2) {
+//                System.out.println(source);
+//            }
+
             Map<String, Object> structuredAnswer = llmMethods.prepareAnswer(answer);
-            return structuredAnswer;
+            progress.put("answer", structuredAnswer.get("answer"));
+            progress.put("sources", sources);
+            progress.put("status", "done");
+            return null;
         }, llmExecutor);
     }
 
@@ -263,15 +289,15 @@ public class FileLoader {
         System.out.println("Deleted workspace " + workspace);
     }
 
-    /**
-     * A temporary method for testing the LLM's no_think mode
-     */
-    public void testNoThink() {
-        OpenAiChatOptions options = new OpenAiChatOptions();
-        options.setModel("qwen3");
-        options.setTemperature(0.3);
-        Prompt prompt = new Prompt("Who is Jon Snow? Be as brief as possible. /no_think", options);
+    private String extractDocumentName(Document document) {
+        Pattern pattern = Pattern.compile("<chunk source=\"([^\"]+)\">\\s*(.*?)\\s*</chunk>", Pattern.DOTALL);
 
-        System.out.println(((chatModel.call(prompt).getResult().getOutput().getText())));
+        Matcher matcher = pattern.matcher(document.getText());
+        String fileName = "";
+        if (matcher.find()) {
+            fileName = matcher.group(1);
+        }
+
+        return fileName;
     }
 }

@@ -84,13 +84,14 @@ public class DocumentLoader{
         return new ArrayList<>();
     }
 
-    /** todo
+    /**
+     * Adds an xml source tag and metadata for each chunk
      *
-     * @param fileName
-     * @param workspace
-     * @param processingTime
-     * @param splitDocuments
-     * @return
+     * @param fileName The name of the chunk source file
+     * @param workspace The current workspace
+     * @param processingTime The current time
+     * @param splitDocuments A list of chunks created by splitting documents
+     * @return A list of modified Documents
      */
     private List<Document> prepareDocumentsWithSource(String fileName, long workspace, Instant processingTime, List<Document> splitDocuments) {
         return splitDocuments.stream()
@@ -111,10 +112,11 @@ public class DocumentLoader{
     }
 
     /**
-     * todo
-     * @param workspace
-     * @param processingTime
-     * @param fileName
+     * Deletes all documents with newer versions in the database
+     *
+     * @param workspace The current workspace ID
+     * @param processingTime The current time
+     * @param fileName The name of the file with a new version
      */
     private void deleteOldDocuments(long workspace, Instant processingTime, String fileName) {
         FilterExpressionBuilder b = new FilterExpressionBuilder();
@@ -137,14 +139,14 @@ public class DocumentLoader{
      * @param next The next chunk
      * @return The current document with context added
      */
-    private Document addContext(Document previous, Document current, Document next) {
+    private Document addContext(Document previous, Document current, Document next) { // todo add removeThinking here
         SystemPromptTemplate promptTemplate = new SystemPromptTemplate(systemResource);
 
         String prompt = promptTemplate.render(Map.of(
                 "previous", Optional.ofNullable(previous).map(Document::getText).orElse("No previous document exists."),
                 "current", Optional.ofNullable(current).map(Document::getText).orElse("This document doesn't exist"),
                 "next", Optional.ofNullable(next).map(Document::getText).orElse("No next document exists.")));
-        return new Document(Utils.removeThinking(chatModel.call(prompt))); // todo check if works
+        return new Document(chatModel.call(prompt)); // todo check if works
     }
 
     /**
@@ -159,7 +161,7 @@ public class DocumentLoader{
 
         assert document.getText() != null;
         String prompt = promptTemplate.render(Map.of("document", document.getText()));
-        return Utils.removeThinking(chatModel.call(prompt));
+        return chatModel.call(prompt);
     }
 }
 
