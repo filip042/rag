@@ -2,22 +2,21 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
     <title>Login</title>
+    <link rel="stylesheet" href="/css/default.css">
 </head>
 <body>
 
-<div th:if="${error}" style="color: red;">
+<div th:if="${error}" class="error">
     <p th:text="${error}"></p>
 </div>
 
 <form action="#" th:action="@{/user/login}" method="post">
     <label for="users">Available Users:</label>
-    <br>
     <select id="users" name="userId" required>
         <option th:each="option : ${availableUsers}" th:value="${option.id}" th:text="${option.username}"/>
     </select>
     <br>
     <label for="password">Password:</label>
-    <br>
     <input type="password" id="password" name="password" required>
     <br>
     <input type="submit" value="Submit">
@@ -26,7 +25,7 @@
 <br>
 
 <form action="#" th:action="@{/user/newUser}" method="get">
-    <label>New User:</label><br>
+    <label>New User:</label>
     <input type="submit" value="Create">
 </form>
 

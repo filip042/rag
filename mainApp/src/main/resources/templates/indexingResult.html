@@ -3,10 +3,11 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <title>Form</title>
+    <link rel="stylesheet" href="/css/default.css">
 </head>
 <body>
-<p th:text="|The indexing has started|" />
 <form action="#" th:action="@{/user/chat}" method="post">
+    <label>The indexing has started</label>
     <input type="submit" value="Return">
 </form>
 </body>

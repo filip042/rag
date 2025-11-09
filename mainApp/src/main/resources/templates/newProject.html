@@ -2,11 +2,12 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
     <title>Create New Project</title>
+    <link rel="stylesheet" href="/css/default.css">
 </head>
 <body>
 <h2>Create New Project</h2>
 
-<div th:if="${error}" style="color: red;">
+<div th:if="${error}" class="error">
     <p th:text="${error}"></p>
 </div>
 
@@ -23,8 +24,8 @@
 
 <br>
 
-<div>
-    <a href="/user/dashboard">Back to Dashboard</a>
-</div>
+<form action="#" th:action="@{/user/dashboard}" method="get">
+    <input type="submit" value="Back to Dashboard">
+</form>
 </body>
 </html>
