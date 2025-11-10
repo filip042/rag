@@ -3,9 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <title>Error</title>
+    <link rel="stylesheet" href="/css/default.css">
 </head>
 <body>
-<h1>Something went wrong</h1>
+<h1 th:text="'Error ' + ${statusCode}">Something went wrong</h1>
+
+<p th:switch="${statusCode}">
+    <span th:case="400">Bad Request – The server could not understand your request.</span>
+    <span th:case="401">Unauthorized – You are not logged in or your session has expired.</span>
+    <span th:case="403">Forbidden – You do not have permission to access this resource.</span>
+    <span th:case="404">Not Found – The requested page does not exist.</span>
+    <span th:case="500">Internal Server Error – Something went wrong on the server.</span>
+    <span th:case="*">An unexpected error occurred.</span>
+</p>
 <form action="#" th:action="@{/user/logout}" method="get">
     <input type="submit" value="Return">
 </form>

@@ -6,10 +6,12 @@ import cz.cuni.mff.hanaf.mainapp.data.ProjectRepository;
 import cz.cuni.mff.hanaf.mainapp.data.User;
 import cz.cuni.mff.hanaf.mainapp.data.UserRepository;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.*;
 
@@ -162,6 +164,9 @@ public class ThymeLeafController {
     @PostMapping("/answer")
     public String myPage(@RequestParam(name = "question") String question, Model model, HttpSession session) {
         Project project = (Project) session.getAttribute("project");
+        if (project == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You must log in to access this page");
+        }
         String askUrl = appConfig.getBaseUrl() + appConfig.getApiUrls().getBase() + appConfig.getApiUrls().getAsk();
         String answerUrl = appConfig.getBaseUrl() + appConfig.getApiUrls().getBase() + appConfig.getApiUrls().getAnswer();
         model.addAttribute("question", question);
@@ -184,12 +189,15 @@ public class ThymeLeafController {
         String apiUrl = appConfig.getBaseUrl() + appConfig.getApiUrls().getBase() + appConfig.getApiUrls().getAdd();
         Map<String, Object> params = new HashMap<>();
         Project project = (Project) session.getAttribute("project");
+        if (project == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You must log in to access this page");
+        }
         params.put("path", directory);
         params.put("workSpace", project.getId());
 
         restTemplate.postForObject(apiUrl, params, Void.class);
 
-        return "indexingResult"; // todo temp, show notification or something
+        return "indexingResult";
     }
 
     /**
