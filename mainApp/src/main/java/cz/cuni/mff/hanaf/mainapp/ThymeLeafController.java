@@ -41,7 +41,7 @@ public class ThymeLeafController {
     @PostMapping("/chat")
     public String loadForm(@RequestParam(value = "projectId", required = false) Long projectId, HttpSession session, Model model) {
         String logoutUrl = appConfig.getFrontendUrls().getBase() + appConfig.getFrontendUrls().getLogout();
-        if (projectId == null) {
+        if (projectId == null || session.getAttribute("authenticatedUser") == null) {
             return "redirect:" + logoutUrl;
         }
         projectRepository.findById(projectId).ifPresent(project -> {

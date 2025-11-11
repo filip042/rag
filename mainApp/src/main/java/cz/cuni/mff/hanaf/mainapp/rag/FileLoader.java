@@ -9,11 +9,9 @@ import org.springframework.ai.chat.client.ChatClientResponse;
 import org.springframework.ai.chat.messages.AbstractMessage;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.model.Generation;
-import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.chat.prompt.SystemPromptTemplate;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.ollama.OllamaChatModel;
-import org.springframework.ai.ollama.api.OllamaApi;
 import org.springframework.ai.ollama.api.OllamaOptions;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
@@ -44,15 +42,13 @@ public class FileLoader {
 
     private final VectorStore vectorStore; // maybe map instead of metadata
     private final OllamaChatModel chatModel;
-    private final OllamaApi ollamaApi;
     private final ProjectRepository projectRepository;
     private final LlmMethods llmMethods;
     private final Executor llmExecutor;
 
-    public FileLoader(VectorStore vectorStore, OllamaChatModel chatModel, OllamaApi ollamaApi, ProjectRepository projectRepository, LlmMethods llmMethods, @Qualifier("llmExecutor") Executor llmExecutor) {
+    public FileLoader(VectorStore vectorStore, OllamaChatModel chatModel, ProjectRepository projectRepository, LlmMethods llmMethods, @Qualifier("llmExecutor") Executor llmExecutor) {
         this.vectorStore = vectorStore;
         this.chatModel = chatModel;
-        this.ollamaApi = ollamaApi;
         this.projectRepository = projectRepository;
         this.llmMethods = llmMethods;
         this.llmExecutor = llmExecutor;
@@ -86,7 +82,6 @@ public class FileLoader {
      * @return A list of documents most similar to the query
      */
     public List<Document> searchSimilarDocuments(String query, long workSpace, int topK) {
-        OllamaOptions options = (OllamaOptions) chatModel.getDefaultOptions();
         Filter.Expression filterExpression = new Filter.Expression(
                 Filter.ExpressionType.EQ,
                 new Filter.Key("workSpace"),
@@ -141,7 +136,9 @@ public class FileLoader {
                     .map(AbstractMessage::getText)
                     .orElse(null);
 
-            Set<String> sources = qaAdvisor.getVerifiedDocuments().stream()
+            List<Document> documents = qaAdvisor.getVerifiedDocuments();
+
+            Set<String> sources = documents.stream()
                     .map(this::extractDocumentName)
                     .collect(Collectors.toSet());
 
@@ -153,6 +150,7 @@ public class FileLoader {
             Map<String, Object> structuredAnswer = llmMethods.prepareAnswer(answer);
             progress.put("answer", structuredAnswer.get("answer"));
             progress.put("sources", sources);
+            progress.put("documents", documents);
             progress.put("status", "done");
             return null;
         }, llmExecutor);

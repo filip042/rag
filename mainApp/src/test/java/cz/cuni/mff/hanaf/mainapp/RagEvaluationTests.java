@@ -8,6 +8,7 @@ import org.springframework.ai.chat.evaluation.FactCheckingEvaluator;
 import org.springframework.ai.chat.evaluation.RelevancyEvaluator;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.evaluation.EvaluationRequest;
+import org.springframework.ai.evaluation.EvaluationResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
@@ -42,12 +43,14 @@ class RagEvaluationTests {
         Map<String, Object> progress = new HashMap<>();
         fileLoader.ask(query, workspace, progress).join();
 
-        String answer = (String) progress.get("answer");
-        List<Document> context = fileLoader.searchSimilarDocuments(query, workspace, 5);
 
-        EvaluationRequest req = new EvaluationRequest(query, context, answer);
-        boolean relevant = relevancyEvaluator.evaluate(req).isPass();
-        boolean factual = factCheckingEvaluator.evaluate(req).isPass();
+        String answer = (String) progress.get("answer");
+        List<Document> context = (List<Document>) progress.get("documents");
+        System.out.println("Answer: " + answer);
+
+        EvaluationRequest relevancyReq = new EvaluationRequest(query, context, answer);
+        boolean relevant = relevancyEvaluator.evaluate(relevancyReq).isPass();
+        boolean factual = factCheckPerDocument(answer, context);
 
         writeResult(id, query, relevant, factual);
     }
@@ -62,5 +65,16 @@ class RagEvaluationTests {
         try (BufferedWriter writer = Files.newBufferedWriter(RESULT_PATH, StandardOpenOption.APPEND)) {
             writer.write("%s,%s,%b,%b%n".formatted(id, query.replace(",", " "), relevant, factual));
         }
+    }
+
+    private boolean factCheckPerDocument(String answer, List<Document> context) {
+        for (Document doc : context) {
+            EvaluationRequest req = new EvaluationRequest(List.of(doc), answer);
+            EvaluationResponse resp = factCheckingEvaluator.evaluate(req);
+            if (!resp.isPass()) { // maybe print here
+                return false;
+            }
+        }
+        return true;
     }
 }

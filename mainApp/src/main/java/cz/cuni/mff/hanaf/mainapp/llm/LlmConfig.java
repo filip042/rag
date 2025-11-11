@@ -10,8 +10,8 @@ public class LlmConfig {
     @Bean
     public LlmMethods llmMethods(OllamaApi ollamaApi, @Value("${spring.ai.ollama.chat.options.model}") String modelName) {
         return switch (modelName) {
-            case "deepseek-r1:1.5b" -> new DeepseekMethods(ollamaApi, modelName);
-            case "qwen3:0.6b", "qwen3:1.7b" -> new Qwen3Methods(ollamaApi, modelName);
+            case String s when s.startsWith("deepseek-r1:") -> new DeepseekMethods(ollamaApi, modelName);
+            case String s when s.startsWith("qwen3:") -> new Qwen3Methods(ollamaApi, modelName);
             default -> throw new IllegalArgumentException("Unknown model: " + modelName);
         };
     }
