@@ -6,12 +6,10 @@ import cz.cuni.mff.hanaf.mainapp.data.ProjectRepository;
 import cz.cuni.mff.hanaf.mainapp.data.User;
 import cz.cuni.mff.hanaf.mainapp.data.UserRepository;
 import jakarta.servlet.http.HttpSession;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.*;
 
@@ -36,24 +34,28 @@ public class ThymeLeafController {
      *
      * @param projectId The ID of the current project
      * @param session The http session with the current project, if such a project exists
-     * @return The template name of the form
+     * @return a view name or redirect string:
+     *         - The template name of the form if the project id is valid
+     *         - "redirect:/user/logout" otherwise
      */
     @PostMapping("/chat")
     public String loadForm(@RequestParam(value = "projectId", required = false) Long projectId, HttpSession session, Model model) {
-        if (projectId != null) {
-            projectRepository.findById(projectId).ifPresent(project -> {
-                session.setAttribute("project", project);
-                long id = ((User) session.getAttribute("authenticatedUser")).getId();
-                if (projectRepository.findByAdminUsers_Id(id).contains(project)) {
-                    session.setAttribute("admin", true);
-                }
-            });
+        String logoutUrl = appConfig.getFrontendUrls().getBase() + appConfig.getFrontendUrls().getLogout();
+        if (projectId == null) {
+            return "redirect:" + logoutUrl;
         }
+        projectRepository.findById(projectId).ifPresent(project -> {
+            session.setAttribute("project", project);
+            long id = ((User) session.getAttribute("authenticatedUser")).getId();
+            if (projectRepository.findByAdminUsers_Id(id).contains(project)) {
+                session.setAttribute("admin", true);
+            }
+        });
         String url = appConfig.getBaseUrl() + appConfig.getApiUrls().getBase() + appConfig.getApiUrls().getStatus();
         String parameter = "?workSpace=" + ((Project)session.getAttribute("project")).getId();
         model.addAttribute("articleCountEndpoint", url.concat(parameter));
         model.addAttribute("admin", session.getAttribute("admin"));
-        return "load";  // todo redirect if projectId doesn't exist
+        return "load";
     }
 
     /**
@@ -87,7 +89,7 @@ public class ThymeLeafController {
      * @param session The http session with the authenticated user
      * @param model The model to add project form data to
      * @return a view name or redirect string:
-     *         - "redirect:/user/login" if the authenticated user is not set
+     *         - "redirect:/user/logout" if the authenticated user is not set
      *         - "dashboard" if the authenticated user is set
      */
     @GetMapping("/dashboard")
@@ -95,7 +97,8 @@ public class ThymeLeafController {
         session.removeAttribute("project");
         User user = (User) session.getAttribute("authenticatedUser");
         if (user == null) {
-            return "redirect:/user/login";
+            String logoutUrl = appConfig.getFrontendUrls().getBase() + appConfig.getFrontendUrls().getLogout();
+            return "redirect:" + logoutUrl;
         }
 
         List<Project> projects = projectRepository.findByAccessibleUsers_Id(user.getId());
@@ -130,7 +133,8 @@ public class ThymeLeafController {
 
         if (existingUser != null && passwordMatches(existingUser, password)) {
             session.setAttribute("authenticatedUser", existingUser);
-            return "redirect:/user/dashboard";
+            String dashboardUrl = appConfig.getFrontendUrls().getBase() + appConfig.getFrontendUrls().getDashboard();
+            return "redirect:" + dashboardUrl;
         } else {
             model.addAttribute("error", "Invalid username or password");
 
@@ -150,7 +154,8 @@ public class ThymeLeafController {
     @GetMapping("/logout")
     public String logout(HttpSession session) {
         session.invalidate();
-        return "redirect:/user/login";
+        String loginUrl = appConfig.getFrontendUrls().getBase() + appConfig.getFrontendUrls().getLogin();
+        return "redirect:" + loginUrl;
     }
 
     /**
@@ -159,13 +164,16 @@ public class ThymeLeafController {
      * @param question The question to be answered by the LLM
      * @param model The model to add the answer and sources to
      * @param session The current http session with the current project // todo standardize workspace/project naming
-     * @return The answer display view
+     * @return a view name or redirect string:
+     *         - The answer display view if the session has a valid project
+     *         - "redirect:/user/dashboard" otherwise
      */
     @PostMapping("/answer")
     public String myPage(@RequestParam(name = "question") String question, Model model, HttpSession session) {
         Project project = (Project) session.getAttribute("project");
         if (project == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You must log in to access this page");
+            String dashboardUrl = appConfig.getFrontendUrls().getBase() + appConfig.getFrontendUrls().getDashboard();
+            return "redirect:" + dashboardUrl;
         }
         String askUrl = appConfig.getBaseUrl() + appConfig.getApiUrls().getBase() + appConfig.getApiUrls().getAsk();
         String answerUrl = appConfig.getBaseUrl() + appConfig.getApiUrls().getBase() + appConfig.getApiUrls().getAnswer();
@@ -182,7 +190,9 @@ public class ThymeLeafController {
      *
      * @param directory The directory with the documents to be added
      * @param session The current http session with the current workspace
-     * @return The view name for the results page
+     * @return a view name or redirect string:
+     *         - The view name for the results page if the session has a valid project
+     *         - "redirect:/user/dashboard" otherwise
      */
     @PostMapping("/load")
     public String loadDir(@RequestParam(name = "directory") String directory, HttpSession session) {
@@ -190,7 +200,8 @@ public class ThymeLeafController {
         Map<String, Object> params = new HashMap<>();
         Project project = (Project) session.getAttribute("project");
         if (project == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You must log in to access this page");
+            String dashboardUrl = appConfig.getFrontendUrls().getBase() + appConfig.getFrontendUrls().getDashboard();
+            return "redirect:" + dashboardUrl;
         }
         params.put("path", directory);
         params.put("workSpace", project.getId());
@@ -246,7 +257,8 @@ public class ThymeLeafController {
         }
         try {
             userRepository.save(user);
-            return "redirect:/user/login";
+            String loginUrl = appConfig.getFrontendUrls().getBase() + appConfig.getFrontendUrls().getLogin();
+            return "redirect:" + loginUrl;
         } catch (Exception e) {
             model.addAttribute("error", "Error creating user");
             return "newUser";
@@ -300,18 +312,23 @@ public class ThymeLeafController {
      * Deletes the project open in the current session
      *
      * @param session The current http session
-     * @return a redirect string to the user's dashboard page
+     * @return a view name or redirect string:
+     *         - The template name of the form if the project id is valid
+     *         - "redirect:/user/logout" otherwise
      */
     @PostMapping("/deleteProject")
     public String deleteProject(HttpSession session) {
         Project project = (Project) session.getAttribute("project");
+        String url = appConfig.getFrontendUrls().getBase() + appConfig.getFrontendUrls().getDashboard();
+        if (project == null) {
+            return "redirect:" + url;
+        }
         projectRepository.deleteById(project.getId());
         String apiUrl = appConfig.getBaseUrl() + appConfig.getApiUrls().getBase() + appConfig.getApiUrls().getDelete();
         Map<String, Long> params = new HashMap<>();
         params.put("workSpace", project.getId());
 
         restTemplate.postForObject(apiUrl, params, Void.class);
-        String url = appConfig.getFrontendUrls().getBase() + appConfig.getFrontendUrls().getDashboard();
         return "redirect:" + url;
     }
 }

@@ -13,6 +13,7 @@
     <span th:case="401">Unauthorized – You are not logged in or your session has expired.</span>
     <span th:case="403">Forbidden – You do not have permission to access this resource.</span>
     <span th:case="404">Not Found – The requested page does not exist.</span>
+    <span th:case="405">Not Found – The requested page does not support the used HTTP method.</span>
     <span th:case="500">Internal Server Error – Something went wrong on the server.</span>
     <span th:case="*">An unexpected error occurred.</span>
 </p>
