@@ -39,23 +39,27 @@ class RagEvaluationTests {
 
     @ParameterizedTest
     @CsvFileSource(resources = "/rag-testcases.csv", numLinesToSkip = 1)
-    void evaluateRagResponse(String id, String query, long workspace) throws Exception {
-        Map<String, Object> progress = new HashMap<>();
-        fileLoader.ask(query, workspace, progress).join();
+    void evaluateRagResponse(String id, String query, long workspace, int repetitions) throws Exception {
+        int relevant = 0;
+        int factual = 0;
+        for (int i = 0; i < repetitions; i++) {
+            Map<String, Object> progress = new HashMap<>();
+            fileLoader.ask(query, workspace, progress).join();
 
 
-        String answer = (String) progress.get("answer");
-        List<Document> context = (List<Document>) progress.get("documents");
-        System.out.println("Answer: " + answer);
+            String answer = (String) progress.get("answer");
+            List<Document> context = (List<Document>) progress.get("documents");
+            System.out.println("Answer: " + answer);
 
-        EvaluationRequest relevancyReq = new EvaluationRequest(query, context, answer);
-        boolean relevant = relevancyEvaluator.evaluate(relevancyReq).isPass();
-        boolean factual = factCheckPerDocument(answer, context);
+            EvaluationRequest relevancyReq = new EvaluationRequest(query, context, answer);
+            relevant += relevancyEvaluator.evaluate(relevancyReq).isPass() ? 1 : 0;
+            factual += factCheckPerDocument(answer, context) ? 1 : 0;
+        }
 
-        writeResult(id, query, relevant, factual);
+        writeResult(id, query, relevant, factual, repetitions);
     }
 
-    private synchronized void writeResult(String id, String query, boolean relevant, boolean factual) throws Exception {
+    private synchronized void writeResult(String id, String query, int relevant, int factual, int repetitions) throws Exception {
         if (!Files.exists(RESULT_PATH)) {
             Files.createDirectories(RESULT_PATH.getParent());
             try (BufferedWriter writer = Files.newBufferedWriter(RESULT_PATH)) {
@@ -63,7 +67,7 @@ class RagEvaluationTests {
             }
         }
         try (BufferedWriter writer = Files.newBufferedWriter(RESULT_PATH, StandardOpenOption.APPEND)) {
-            writer.write("%s,%s,%b,%b%n".formatted(id, query.replace(",", " "), relevant, factual));
+            writer.write("%s,%s,%d/%d,%d/%d%n".formatted(id, query.replace(",", " "), relevant, repetitions, factual, repetitions));
         }
     }
 
