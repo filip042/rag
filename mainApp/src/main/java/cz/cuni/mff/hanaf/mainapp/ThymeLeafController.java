@@ -6,6 +6,7 @@ import cz.cuni.mff.hanaf.mainapp.data.ProjectRepository;
 import cz.cuni.mff.hanaf.mainapp.data.User;
 import cz.cuni.mff.hanaf.mainapp.data.UserRepository;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -21,12 +22,14 @@ public class ThymeLeafController {
     private final RestTemplate restTemplate;
     private final UserRepository userRepository;
     private final ProjectRepository projectRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public ThymeLeafController(AppConfig appConfig, RestTemplate restTemplate, UserRepository userRepository, ProjectRepository projectRepository) {
+    public ThymeLeafController(AppConfig appConfig, RestTemplate restTemplate, UserRepository userRepository, ProjectRepository projectRepository, PasswordEncoder passwordEncoder) {
         this.appConfig = appConfig;
         this.restTemplate = restTemplate;
         this.userRepository = userRepository;
         this.projectRepository = projectRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     /**
@@ -80,7 +83,7 @@ public class ThymeLeafController {
      * @return True if the user's password matches the entered password, false otherwise
      */
     private boolean passwordMatches(User user, String rawPassword) {
-        return user.getPassword().equals(rawPassword);  // todo temp
+        return passwordEncoder.matches(rawPassword, user.getPassword());
     }
 
     /**
@@ -256,6 +259,7 @@ public class ThymeLeafController {
             return "newUser";
         }
         try {
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
             userRepository.save(user);
             String loginUrl = appConfig.getFrontendUrls().getBase() + appConfig.getFrontendUrls().getLogin();
             return "redirect:" + loginUrl;

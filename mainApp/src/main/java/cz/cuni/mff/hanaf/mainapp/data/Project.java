@@ -37,6 +37,7 @@ public class Project {
     public Project() {
         this.files = new HashSet<>();
         this.accessibleUsers = new HashSet<>();
+        this.adminUsers = new HashSet<>();
     }
 
     /**
