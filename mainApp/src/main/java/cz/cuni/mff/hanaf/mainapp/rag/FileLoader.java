@@ -231,11 +231,11 @@ public class FileLoader {
                 try {
                     DocumentLoader loader = new DocumentLoader(f, workspace, finalThisTime, vectorStore, chatModel);
                     loader.load();
-                    finishedQueue.add(f.toString());
                     System.out.println("Finished processing: " + f);
                 } catch (Exception e) {
                     System.err.println("Failed processing " + f + ": " + e.getMessage());
                 }
+                finishedQueue.add(f.toString());
             }))
                     .toList();
 

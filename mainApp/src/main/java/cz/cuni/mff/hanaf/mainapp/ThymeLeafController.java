@@ -59,8 +59,10 @@ public class ThymeLeafController {
             });
         }
         String url = appConfig.getBaseUrl() + appConfig.getApiUrls().getBase() + appConfig.getApiUrls().getStatus();
-        String parameter = "?workSpace=" + ((Project)session.getAttribute("project")).getId();
+        String loadUrl = appConfig.getBaseUrl() + appConfig.getFrontendUrls().getBase() + appConfig.getFrontendUrls().getLoad();
+        String parameter = "?workSpace=" + ((Project)session.getAttribute("project")).getId(); // todo probably make this post
         model.addAttribute("articleCountEndpoint", url.concat(parameter));
+        model.addAttribute("loadEndpoint", loadUrl);
         model.addAttribute("admin", session.getAttribute("admin"));
         return "load";
     }
@@ -202,20 +204,20 @@ public class ThymeLeafController {
      *         - "redirect:/user/dashboard" otherwise
      */
     @PostMapping("/load")
+    @ResponseBody
     public String loadDir(@RequestParam(name = "directory") String directory, HttpSession session) {
         String apiUrl = appConfig.getBaseUrl() + appConfig.getApiUrls().getBase() + appConfig.getApiUrls().getAdd();
         Map<String, Object> params = new HashMap<>();
         Project project = (Project) session.getAttribute("project");
         if (project == null) {
-            String dashboardUrl = appConfig.getFrontendUrls().getBase() + appConfig.getFrontendUrls().getDashboard();
-            return "redirect:" + dashboardUrl;
+            return "NO_PROJECT";
         }
         params.put("path", directory);
         params.put("workSpace", project.getId());
 
         restTemplate.postForObject(apiUrl, params, Void.class);
 
-        return "indexingResult";
+        return "OK";
     }
 
     /**

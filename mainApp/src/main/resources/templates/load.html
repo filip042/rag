@@ -12,15 +12,17 @@
     <input type="submit" value="Submit">
   </form>
 
-  <form action="#" th:action="@{/user/load}" method="post" th:if="${admin}">
+  <form id="loadForm" th:if="${admin}">
       <label for="directory">Directory:</label>
       <input type="text" id="directory" name="directory" required><br>
       <button type="submit">Upload Directory</button>
       <div id="article-count">0/0 articles indexed</div>
       <script th:inline="javascript">
           const articleCountEndpoint = /*[[${articleCountEndpoint}]]*/ '';
+          const loadEndpoint = /*[[${loadEndpoint}]]*/ '';
       </script>
       <script src="/js/articleCount.js"></script>
+      <script src="/js/loadDirectory.js"></script>
   </form>
 
   <br>
