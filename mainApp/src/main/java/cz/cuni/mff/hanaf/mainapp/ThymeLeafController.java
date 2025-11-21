@@ -44,16 +44,20 @@ public class ThymeLeafController {
     @PostMapping("/chat")
     public String loadForm(@RequestParam(value = "projectId", required = false) Long projectId, HttpSession session, Model model) {
         String logoutUrl = appConfig.getFrontendUrls().getBase() + appConfig.getFrontendUrls().getLogout();
-        if (projectId == null || session.getAttribute("authenticatedUser") == null) {
+        if ((projectId == null && session.getAttribute("project") == null) || session.getAttribute("authenticatedUser") == null) {
+            System.out.println(projectId);
+            System.out.println(session.getAttribute("authenticatedUser"));
             return "redirect:" + logoutUrl;
         }
-        projectRepository.findById(projectId).ifPresent(project -> {
-            session.setAttribute("project", project);
-            long id = ((User) session.getAttribute("authenticatedUser")).getId();
-            if (projectRepository.findByAdminUsers_Id(id).contains(project)) {
-                session.setAttribute("admin", true);
-            }
-        });
+        if (projectId != null) {
+            projectRepository.findById(projectId).ifPresent(project -> {
+                session.setAttribute("project", project);
+                long id = ((User) session.getAttribute("authenticatedUser")).getId();
+                if (projectRepository.findByAdminUsers_Id(id).contains(project)) {
+                    session.setAttribute("admin", true);
+                }
+            });
+        }
         String url = appConfig.getBaseUrl() + appConfig.getApiUrls().getBase() + appConfig.getApiUrls().getStatus();
         String parameter = "?workSpace=" + ((Project)session.getAttribute("project")).getId();
         model.addAttribute("articleCountEndpoint", url.concat(parameter));
@@ -313,12 +317,30 @@ public class ThymeLeafController {
     }
 
     /**
+     * Deletes the logged-in user
+     *
+     * @param session The current http session
+     * @return a redirect string to the logout page
+     */
+    @PostMapping("/deleteUser")
+    public String deleteUser(HttpSession session) {
+        User user = (User) session.getAttribute("authenticatedUser");
+        String url = appConfig.getFrontendUrls().getBase() + appConfig.getFrontendUrls().getLogout();
+        if (user == null) {
+            return "redirect:" + url;
+        }
+        List<Project> adminProjects = projectRepository.findByAdminUsers_Id(user.getId());
+        adminProjects.stream().filter(project -> project.getAdminUsers().size() == 1)
+                .forEach(projectRepository::delete);
+        userRepository.deleteById(user.getId());
+        return "redirect:" + url;
+    }
+
+    /**
      * Deletes the project open in the current session
      *
      * @param session The current http session
-     * @return a view name or redirect string:
-     *         - The template name of the form if the project id is valid
-     *         - "redirect:/user/logout" otherwise
+     * @return a redirect string to the dashboard view
      */
     @PostMapping("/deleteProject")
     public String deleteProject(HttpSession session) {

@@ -147,7 +147,7 @@ public class FileLoader {
 //                System.out.println(source);
 //            }
 
-            Map<String, Object> structuredAnswer = llmMethods.prepareAnswer(answer);
+            Map<String, Object> structuredAnswer = llmMethods.prepareAnswer(answer); // todo
             progress.put("answer", structuredAnswer.get("answer"));
             progress.put("sources", sources);
             progress.put("documents", documents);

@@ -1,4 +1,4 @@
-id,query,workspace,repetitions
-t1,Who is J.R.R. Tolkien?,1,1
-t2,Briefly summarize H.P. Lovecraft's early work.,1,1
-t3,What is Lord Dunsany best known for?,1,1
+id,query,expected,workspace,repetitions
+t1,Who is J.R.R. Tolkien?,J._R._R._Tolkien.txt;1,1
+t2,Briefly summarize H.P. Lovecraft's early work.,H._P._Lovecraft.txt,1,1
+t3,What is Lord Dunsany best known for?,Edward_Plunkett.txt;The_King_of_Elfland's_Daughter_(Novel).txt,1,1

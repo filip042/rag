@@ -20,6 +20,8 @@ import java.nio.file.StandardOpenOption;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @SpringBootTest
 @ActiveProfiles("openai")
@@ -39,17 +41,22 @@ class RagEvaluationTests {
 
     @ParameterizedTest
     @CsvFileSource(resources = "/rag-testcases.csv", numLinesToSkip = 1)
-    void evaluateRagResponse(String id, String query, long workspace, int repetitions) throws Exception {
+    void evaluateRagResponse(String id, String query, String expected, long workspace, int repetitions) throws Exception {
+        Set<String> expectedSet = Set.of(expected.split(";"));
         int relevant = 0;
         int factual = 0;
         for (int i = 0; i < repetitions; i++) {
             Map<String, Object> progress = new HashMap<>();
             fileLoader.ask(query, workspace, progress).join();
 
-
             String answer = (String) progress.get("answer");
             List<Document> context = (List<Document>) progress.get("documents");
-            System.out.println("Answer: " + answer);
+            Set<String> contextSources = context.stream()
+                    .map(document -> (String) document.getMetadata().get("source"))
+                    .collect(Collectors.toSet());
+            Set<String> tp = expectedSet.stream().filter(contextSources::contains).collect(Collectors.toSet());
+            Set<String> fp = contextSources.stream().filter(source -> !expectedSet.contains(source)).collect(Collectors.toSet());
+            Set<String> fn = expectedSet.stream().filter(source -> !contextSources.contains(source)).collect(Collectors.toSet());
 
             EvaluationRequest relevancyReq = new EvaluationRequest(query, context, answer);
             relevant += relevancyEvaluator.evaluate(relevancyReq).isPass() ? 1 : 0;
