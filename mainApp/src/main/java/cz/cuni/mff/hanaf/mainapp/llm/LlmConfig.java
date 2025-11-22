@@ -1,18 +1,19 @@
 package cz.cuni.mff.hanaf.mainapp.llm;
 
-import org.springframework.ai.ollama.api.OllamaApi;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import java.util.List;
 
 @Configuration
 public class LlmConfig {
     @Bean
-    public LlmMethods llmMethods(OllamaApi ollamaApi, @Value("${spring.ai.ollama.chat.options.model}") String modelName) {
-        return switch (modelName) {
-            case String s when s.startsWith("deepseek-r1:") -> new DeepseekMethods(ollamaApi, modelName);
-            case String s when s.startsWith("qwen3:") -> new Qwen3Methods(ollamaApi, modelName);
-            default -> throw new IllegalArgumentException("Unknown model: " + modelName);
-        };
+    public LlmMethods llmMethods(LlmProperties llmProperties, List<LlmMethodsFactory> factories) {
+        String modelName = llmProperties.getChat().getModel();
+        return factories.stream()
+                .filter(f -> f.supports(modelName))
+                .findFirst()
+                .map(f -> f.create(modelName))
+                .orElseThrow(() -> new IllegalArgumentException("Unknown model: " + modelName));
     }
 }
