@@ -3,16 +3,14 @@ package cz.cuni.mff.hanaf.mainapp.rag;
 import cz.cuni.mff.hanaf.mainapp.data.Project;
 import cz.cuni.mff.hanaf.mainapp.data.ProjectRepository;
 import cz.cuni.mff.hanaf.mainapp.llm.LlmMethods;
-//import cz.cuni.mff.hanaf.mainapp.llm.OllamaConfig;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.ChatClientResponse;
 import org.springframework.ai.chat.messages.AbstractMessage;
+import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.model.Generation;
 import org.springframework.ai.chat.prompt.SystemPromptTemplate;
 import org.springframework.ai.document.Document;
-import org.springframework.ai.ollama.OllamaChatModel;
-import org.springframework.ai.ollama.api.OllamaOptions;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.ai.vectorstore.filter.Filter;
@@ -41,12 +39,12 @@ import java.util.stream.Stream;
 public class FileLoader {
 
     private final VectorStore vectorStore; // maybe map instead of metadata
-    private final OllamaChatModel chatModel;
+    private final ChatModel chatModel;
     private final ProjectRepository projectRepository;
     private final LlmMethods llmMethods;
     private final Executor llmExecutor;
 
-    public FileLoader(VectorStore vectorStore, OllamaChatModel chatModel, ProjectRepository projectRepository, LlmMethods llmMethods, @Qualifier("llmExecutor") Executor llmExecutor) {
+    public FileLoader(VectorStore vectorStore, ChatModel chatModel, ProjectRepository projectRepository, LlmMethods llmMethods, @Qualifier("llmExecutor") Executor llmExecutor) {
         this.vectorStore = vectorStore;
         this.chatModel = chatModel;
         this.projectRepository = projectRepository;
@@ -74,7 +72,7 @@ public class FileLoader {
     }
 
     /**
-     * Return the given amount of documents most similar to the qiven query from the given workspace
+     * Return the given amount of documents most similar to the given query from the given workspace
      *
      * @param query The query being searched for
      * @param workSpace The id of the workspace to search
@@ -142,13 +140,9 @@ public class FileLoader {
                     .map(this::extractDocumentName)
                     .collect(Collectors.toSet());
 
-//            Set<String> sources2 = extractSources(clientResponse);
-//            for(String source : sources2) {
-//                System.out.println(source);
-//            }
+            String formattedAnswer = llmMethods.prepareAnswer(answer);
 
-            Map<String, Object> structuredAnswer = llmMethods.prepareAnswer(answer); // todo
-            progress.put("answer", structuredAnswer.get("answer"));
+            progress.put("answer", formattedAnswer);
             progress.put("sources", sources);
             progress.put("documents", documents);
             progress.put("status", "done");

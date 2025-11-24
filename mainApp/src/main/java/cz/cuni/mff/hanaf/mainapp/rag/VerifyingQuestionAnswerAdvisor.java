@@ -84,6 +84,9 @@ public class VerifyingQuestionAnswerAdvisor implements BaseAdvisor {
         context.put("qa_retrieved_documents", verifiedDocuments);
         String documentContext = verifiedDocuments.stream().map(Document::getText).collect(Collectors.joining(System.lineSeparator()));
         String augmentedUserText = this.promptTemplate.render(Map.of("query", query, "question_answer_context", documentContext));
+        if (verifiedDocuments.isEmpty()) {
+            augmentedUserText = "Print out the following with no additional text of any kind: \"There isn't enough information to answer that question.\"";
+        }
         return chatClientRequest.mutate().prompt(chatClientRequest.prompt().augmentUserMessage(augmentedUserText)).context(context).build();
     }
 

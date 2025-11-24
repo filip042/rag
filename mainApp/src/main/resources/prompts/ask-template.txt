@@ -6,9 +6,6 @@ Context information is below. Each chunk is enclosed in an xml tag. The opening 
 </context>
 ---------------------
 
-If the context is empty, you MUST NOT generate an answer or guess.
-You MUST respond: "There is not enough information to answer that question."
-
 Strictly follow these instructions when answering the query:
 
 1. ONLY use information from the provided context.
