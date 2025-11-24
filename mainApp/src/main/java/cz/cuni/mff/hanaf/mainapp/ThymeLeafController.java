@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
+import java.util.stream.Stream;
 
 @Controller
 @RequestMapping("/user")
@@ -57,11 +58,6 @@ public class ThymeLeafController {
                 }
             });
         }
-        String url = appConfig.getBaseUrl() + appConfig.getApiUrls().getBase() + appConfig.getApiUrls().getStatus();
-        String loadUrl = appConfig.getBaseUrl() + appConfig.getFrontendUrls().getBase() + appConfig.getFrontendUrls().getLoad();
-        String parameter = "?workSpace=" + ((Project)session.getAttribute("project")).getId(); // todo probably make this post
-        model.addAttribute("articleCountEndpoint", url.concat(parameter));
-        model.addAttribute("loadEndpoint", loadUrl);
         model.addAttribute("admin", session.getAttribute("admin"));
         return "load";
     }
@@ -357,5 +353,56 @@ public class ThymeLeafController {
 
         restTemplate.postForObject(apiUrl, params, Void.class);
         return "redirect:" + url;
+    }
+
+    @PostMapping("/admin")
+    public String adminSettings(HttpSession session, Model model) {
+        Project sessionProject = (Project) session.getAttribute("project");
+        if (sessionProject == null) {
+            String logoutUrl = appConfig.getFrontendUrls().getBase() + appConfig.getFrontendUrls().getLogout();
+            return "redirect:" + logoutUrl;
+        }
+
+        Project project = projectRepository.findByIdWithUsers(sessionProject.getId())
+                .orElseThrow(() -> new IllegalStateException("Project not found"));
+
+        Set<User> admins = project.getAdminUsers();
+        Set<User> accessible = project.getAccessibleUsers();
+
+        List<Map<String, Object>> usersList = Stream.concat(
+                mapUsers(admins, true).stream(),
+                mapUsers(accessible, false).stream()
+        ).toList();
+
+        Set<User> projectUsers = new HashSet<>();
+        projectUsers.addAll(admins);
+        projectUsers.addAll(accessible);
+
+        List<User> usersNotInProject = userRepository.findAll().stream()
+                .filter(u -> !projectUsers.contains(u))
+                .toList();
+
+        model.addAttribute("user", new User());
+        model.addAttribute("unadded", usersNotInProject);
+        model.addAttribute("users", usersList);
+
+        String url = appConfig.getBaseUrl() + appConfig.getApiUrls().getBase() + appConfig.getApiUrls().getStatus();
+        String loadUrl = appConfig.getBaseUrl() + appConfig.getFrontendUrls().getBase() + appConfig.getFrontendUrls().getLoad();
+        String parameter = "?workSpace=" + sessionProject.getId();
+        model.addAttribute("articleCountEndpoint", url.concat(parameter));
+        model.addAttribute("loadEndpoint", loadUrl);
+        model.addAttribute("admin", session.getAttribute("admin"));
+
+        return "adminSettings";
+    }
+
+    private List<Map<String, Object>> mapUsers(Set<User> users, boolean isAdmin) {
+        return users.stream().map(u -> {
+            Map<String, Object> row = new HashMap<>();
+            row.put("id", u.getId());
+            row.put("username", u.getUsername());
+            row.put("admin", isAdmin);
+            return row;
+        }).toList();
     }
 }

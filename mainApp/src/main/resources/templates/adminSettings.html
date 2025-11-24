@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Admin Settings</title>
+    <link rel="stylesheet" href="/css/default.css">
+</head>
+<body>
+
+<h1>Project Administration</h1>
+
+<form id="loadForm" th:if="${admin}">
+    <h2>Upload Directory</h2>
+
+    <label for="directory">Directory:</label>
+    <input type="text" id="directory" name="directory" required><br>
+
+    <button type="submit">Upload Directory</button>
+
+    <div id="article-count">0/0 articles indexed</div>
+
+    <script th:inline="javascript">
+        const articleCountEndpoint = /*[[${articleCountEndpoint}]]*/ '';
+        const loadEndpoint = /*[[${loadEndpoint}]]*/ '';
+    </script>
+
+    <script src="/js/articleCount.js"></script>
+    <script src="/js/loadDirectory.js"></script>
+</form>
+
+<br>
+
+<h2>Add User to Project</h2>
+
+<form th:action="@{/admin/users/add}" method="post">
+    <label for="users">Username:</label>
+    <select id="users" name="userId" required>
+        <option th:each="option : ${unadded}" th:value="${option.id}" th:text="${option.username}"/>
+    </select>
+
+        <button type="submit">Add User</button>
+
+    <p th:if="${addUserError}"
+       th:text="${addUserError}"
+       style="color: red; margin-top: 5px;">
+    </p>
+</form>
+
+<br>
+
+<h2>Current Project Users</h2>
+
+<table>
+    <thead>
+    <tr>
+        <th>Username</th>
+        <th>Role</th>
+        <th>Actions</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    <tr th:each="user : ${users}">
+        <td th:text="${user.username}"></td>
+
+        <td th:text="${user.admin ? 'Admin' : 'User'}"></td>
+
+        <td>
+
+            <form th:if="${!user.admin}"
+                  th:action="@{/admin/users/promote}" method="post" style="display:inline;">
+                <input type="hidden" name="userId" th:value="${user.id}">
+                <button type="submit">Promote</button>
+            </form>
+
+            <form th:if="${user.admin}"
+                  th:action="@{/admin/users/demote}" method="post" style="display:inline;">
+                <input type="hidden" name="userId" th:value="${user.id}">
+                <button type="submit">Demote</button>
+            </form>
+
+            <form th:action="@{/admin/users/remove}" method="post" style="display:inline;">
+                <input type="hidden" name="userId" th:value="${user.id}">
+                <button type="submit"
+                        onclick="return confirm('Remove this user from the project?');">
+                    Remove
+                </button>
+            </form>
+
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<br><br>
+
+<form th:action="@{/user/dashboard}" method="get">
+    <button type="submit">Return to Dashboard</button>
+</form>
+
+</body>
+</html>
