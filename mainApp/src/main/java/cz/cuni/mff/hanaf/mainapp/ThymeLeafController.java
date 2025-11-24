@@ -53,9 +53,7 @@ public class ThymeLeafController {
             projectRepository.findById(projectId).ifPresent(project -> {
                 session.setAttribute("project", project);
                 long id = ((User) session.getAttribute("authenticatedUser")).getId();
-                if (projectRepository.findByAdminUsers_Id(id).contains(project)) {
-                    session.setAttribute("admin", true);
-                }
+                session.setAttribute("admin", projectRepository.findByAdminUsers_Id(id).contains(project));
             });
         }
         model.addAttribute("admin", session.getAttribute("admin"));
@@ -352,6 +350,20 @@ public class ThymeLeafController {
         params.put("workSpace", project.getId());
 
         restTemplate.postForObject(apiUrl, params, Void.class);
+        return "redirect:" + url;
+    }
+
+    @PostMapping("/exitProject")
+    public String exitProject(HttpSession session) {
+        Project project = (Project) session.getAttribute("project");
+        User user = (User) session.getAttribute("authenticatedUser");
+        String url = appConfig.getFrontendUrls().getBase() + appConfig.getFrontendUrls().getDashboard();
+        if (project == null || user == null) {
+            return "redirect:" + url;
+        }
+        Project realProject = projectRepository.findByIdWithUsers(project.getId())
+                .orElseThrow(() -> new IllegalStateException("Project not found"));
+        realProject.removeAccessibleUser(user);
         return "redirect:" + url;
     }
 

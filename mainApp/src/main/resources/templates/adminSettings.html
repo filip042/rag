@@ -32,18 +32,18 @@
 
 <h2>Add User to Project</h2>
 
-<form th:action="@{/admin/users/add}" method="post">
+<p th:if="${addUserError}"
+   th:text="${addUserError}"
+   style="color: red; margin-top: 5px;">
+</p>
+
+<form class="ajax-form add-user" th:action="@{/admin/add}" method="post">
     <label for="users">Username:</label>
     <select id="users" name="userId" required>
         <option th:each="option : ${unadded}" th:value="${option.id}" th:text="${option.username}"/>
     </select>
 
-        <button type="submit">Add User</button>
-
-    <p th:if="${addUserError}"
-       th:text="${addUserError}"
-       style="color: red; margin-top: 5px;">
-    </p>
+    <button type="submit">Add User</button>
 </form>
 
 <br>
@@ -67,21 +67,15 @@
 
         <td>
 
-            <form th:if="${!user.admin}"
-                  th:action="@{/admin/users/promote}" method="post" style="display:inline;">
+            <form class="ajax-form promote-user" th:if="${!user.admin}"
+                  th:action="@{/admin/promote}" method="post" style="display:inline;">
                 <input type="hidden" name="userId" th:value="${user.id}">
                 <button type="submit">Promote</button>
             </form>
 
-            <form th:if="${user.admin}"
-                  th:action="@{/admin/users/demote}" method="post" style="display:inline;">
+            <form class="ajax-form remove-user" th:if="${!user.admin}" id="delete" th:action="@{/admin/remove}" method="post" style="display:inline;">
                 <input type="hidden" name="userId" th:value="${user.id}">
-                <button type="submit">Demote</button>
-            </form>
-
-            <form th:action="@{/admin/users/remove}" method="post" style="display:inline;">
-                <input type="hidden" name="userId" th:value="${user.id}">
-                <button type="submit"
+                <button type="submit" class="delete"
                         onclick="return confirm('Remove this user from the project?');">
                     Remove
                 </button>
@@ -97,6 +91,8 @@
 <form th:action="@{/user/dashboard}" method="get">
     <button type="submit">Return to Dashboard</button>
 </form>
+
+<script src="/js/admin.js"></script>
 
 </body>
 </html>

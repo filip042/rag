@@ -2,7 +2,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const loadForm = document.getElementById("loadForm");
 
     loadForm.addEventListener("submit", function(event) {
-        event.preventDefault(); // prevent redirect on Enter or button click
+        event.preventDefault();
 
         const directory = document.getElementById("directory").value;
 

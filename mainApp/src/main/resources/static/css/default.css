@@ -1,11 +1,51 @@
 body {
     font-family: Arial, sans-serif;
-    max-width: 500px;
+    max-width: 900px;
     margin: 40px auto;
     padding: 20px;
     background-color: #f4f4f4;
     line-height: 1.6;
     color: #333;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    background-color: white;
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    table-layout: fixed;
+}
+
+table th, table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #ddd;
+}
+
+table th {
+    background-color: #4CAF50;
+    color: white;
+    text-align: left;
+}
+
+table tr:hover td {
+    background-color: #f9f9f9;
+}
+
+table tr:last-child td {
+    border-bottom: none;
+}
+
+table button {
+    padding: 6px 12px;
+    font-size: 0.9em;
+}
+
+table td form {
+    all: unset;
+    display: inline;
 }
 
 h2 {
