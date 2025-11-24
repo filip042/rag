@@ -68,17 +68,21 @@ public class VerifyingQuestionAnswerAdvisor implements BaseAdvisor {
         String query = chatClientRequest.prompt().getUserMessage().getText();
         SearchRequest searchRequestToUse = SearchRequest.from(this.searchRequest).query(query).filterExpression(this.doGetFilterExpression(chatClientRequest.context())).build();
         List<Document> documents = this.vectorStore.similaritySearch(searchRequestToUse);
-        verifiedDocuments = documents.stream()
-                .filter(doc -> {
-                    boolean ok = llmMethods.verifySource(doc.getText(), query);
-                    counter.incrementAndGet();
-                    return ok;
-                })
-                .toList();
+        if (documents != null) {
+            verifiedDocuments = documents.stream()
+                    .filter(doc -> {
+                        boolean ok = llmMethods.verifySource(doc.getText(), query);
+                        counter.incrementAndGet();
+                        return ok;
+                    })
+                    .toList();
+        } else {
+            verifiedDocuments = List.of();
+        }
         verified.set(true);
         Map<String, Object> context = new HashMap(chatClientRequest.context());
-        context.put("qa_retrieved_documents", documents);
-        String documentContext = documents == null ? "" : (String)documents.stream().map(Document::getText).collect(Collectors.joining(System.lineSeparator()));
+        context.put("qa_retrieved_documents", verifiedDocuments);
+        String documentContext = verifiedDocuments.stream().map(Document::getText).collect(Collectors.joining(System.lineSeparator()));
         String augmentedUserText = this.promptTemplate.render(Map.of("query", query, "question_answer_context", documentContext));
         return chatClientRequest.mutate().prompt(chatClientRequest.prompt().augmentUserMessage(augmentedUserText)).context(context).build();
     }
