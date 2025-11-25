@@ -208,6 +208,7 @@ public class FileLoader {
             List<Path> toIndex = paths.filter(Files::isRegularFile).toList();
             allFilesToIndex.put(workspace, toIndex);
 
+            DocumentLoader loader = new DocumentLoader(vectorStore, chatModel);
             List<CompletableFuture<Void>> futures = toIndex.stream()
                     .filter(f -> {
                         try {
@@ -223,8 +224,7 @@ public class FileLoader {
                     .map(f -> CompletableFuture.runAsync(() -> {
                 System.out.println("Processing: " + f);
                 try {
-                    DocumentLoader loader = new DocumentLoader(f, workspace, finalThisTime, vectorStore, chatModel);
-                    loader.load();
+                    loader.load(f, workspace, finalThisTime);
                     System.out.println("Finished processing: " + f);
                 } catch (Exception e) {
                     System.err.println("Failed processing " + f + ": " + e.getMessage());

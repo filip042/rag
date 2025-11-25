@@ -196,7 +196,7 @@ public class ThymeLeafController {
      *         - The view name for the results page if the session has a valid project
      *         - "redirect:/user/dashboard" otherwise
      */
-    @PostMapping("/load")
+    @PostMapping("/load") // todo remove, use version in admin controller
     @ResponseBody
     public String loadDir(@RequestParam(name = "directory") String directory, HttpSession session) {
         String apiUrl = appConfig.getBaseUrl() + appConfig.getApiUrls().getBase() + appConfig.getApiUrls().getAdd();
