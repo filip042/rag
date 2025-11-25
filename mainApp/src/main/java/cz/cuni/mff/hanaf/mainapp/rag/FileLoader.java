@@ -11,6 +11,7 @@ import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.model.Generation;
 import org.springframework.ai.chat.prompt.SystemPromptTemplate;
 import org.springframework.ai.document.Document;
+import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.ai.vectorstore.filter.Filter;
@@ -20,6 +21,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
@@ -54,6 +56,9 @@ public class FileLoader {
 
     @Value("classpath:prompts/ask-template.txt")
     private Resource askTemplateResource;
+
+    @Value("classpath:prompts/do-not-know-prompt.txt")
+    private Resource doNotKnowPromptResource;
 
     private Instant lastModifiedTime = Instant.MIN;
     private final Map<Long, CompletableFuture<Void>> indexingTasks = new ConcurrentHashMap<>();
@@ -116,13 +121,19 @@ public class FileLoader {
             progress.put("checked", count);
             progress.put("checked_all", verified);
 
-            VerifyingQuestionAnswerAdvisor qaAdvisor = VerifyingQuestionAnswerAdvisor.builder(vectorStore)
-                    .promptTemplate(systemPromptTemplate)
-                    .searchRequest(request)
-                    .llmMethods(llmMethods)
-                    .counter(count)
-                    .verified(verified)
-                    .build();
+            VerifyingQuestionAnswerAdvisor qaAdvisor;
+            try {
+                qaAdvisor = VerifyingQuestionAnswerAdvisor.builder(vectorStore)
+                        .promptTemplate(systemPromptTemplate)
+                        .doNotKnowPrompt(doNotKnowPromptResource.getContentAsString(StandardCharsets.UTF_8))
+                        .searchRequest(request)
+                        .llmMethods(llmMethods)
+                        .counter(count)
+                        .verified(verified)
+                        .build();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
 
             ChatClientResponse clientResponse = chatClient.prompt(query)
                     .advisors(qaAdvisor)
@@ -148,39 +159,6 @@ public class FileLoader {
             progress.put("status", "done");
             return null;
         }, llmExecutor);
-    }
-
-    /**
-     * Extract all source document names from the given chat response
-     *
-     * @param response The ChatClientResponse to extract the source documents from
-     * @return A set of all the source document names
-     */
-    private Set<String> extractSources(ChatClientResponse response) { // todo check against list in answer
-        Object documentsObj = response.context().get("qa_retrieved_documents");
-        if (documentsObj instanceof List) {
-            return ((List<?>) documentsObj).stream()
-                    .filter(doc -> doc instanceof Map)
-                    .map(doc -> extractSourceFromDocument((Map<?, ?>) doc))
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toSet());
-        }
-        return Collections.emptySet();
-    }
-
-    /**
-     * Gets the source metadata value from a document
-     *
-     * @param document The document to extract the source from
-     * @return The source document name as a string
-     */
-    private String extractSourceFromDocument(Map<?, ?> document) {
-        Object metadataObj = document.get("metadata");
-        if (metadataObj instanceof Map) {
-            Object sourceObj = ((Map<?, ?>) metadataObj).get("source");
-            return sourceObj instanceof String ? (String) sourceObj : null;
-        }
-        return null;
     }
 
     /**

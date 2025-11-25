@@ -12,7 +12,6 @@ import org.springframework.ai.chat.client.ChatClientRequest;
 import org.springframework.ai.chat.client.ChatClientResponse;
 import org.springframework.ai.chat.client.advisor.api.AdvisorChain;
 import org.springframework.ai.chat.client.advisor.api.BaseAdvisor;
-import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.PromptTemplate;
 import org.springframework.ai.document.Document;
@@ -37,12 +36,13 @@ public class VerifyingQuestionAnswerAdvisor implements BaseAdvisor {
     private final Scheduler scheduler;
     private final int order;
     private final LlmMethods llmMethods;
+    private final String doNotKnowPrompt;
 
     private List<Document> verifiedDocuments = List.of(); // todo maybe unnecessary
     private AtomicInteger counter;
     private AtomicBoolean verified;
 
-    VerifyingQuestionAnswerAdvisor(VectorStore vectorStore, SearchRequest searchRequest, @Nullable PromptTemplate promptTemplate, @Nullable Scheduler scheduler, int order, LlmMethods llmMethods, AtomicInteger verifiedCounter, AtomicBoolean verified) {
+    VerifyingQuestionAnswerAdvisor(VectorStore vectorStore, SearchRequest searchRequest, @Nullable PromptTemplate promptTemplate, @Nullable String doNotKnowPrompt, @Nullable Scheduler scheduler, int order, LlmMethods llmMethods, AtomicInteger verifiedCounter, AtomicBoolean verified) {
         Assert.notNull(vectorStore, "vectorStore cannot be null");
         Assert.notNull(searchRequest, "searchRequest cannot be null");
         Assert.notNull(llmMethods, "llmMethods cannot be null");
@@ -52,6 +52,7 @@ public class VerifyingQuestionAnswerAdvisor implements BaseAdvisor {
         this.scheduler = scheduler != null ? scheduler : BaseAdvisor.DEFAULT_SCHEDULER;
         this.order = order;
         this.llmMethods = llmMethods;
+        this.doNotKnowPrompt = doNotKnowPrompt;
         this.counter = verifiedCounter;
         this.verified = verified;
     }
@@ -85,7 +86,7 @@ public class VerifyingQuestionAnswerAdvisor implements BaseAdvisor {
         String documentContext = verifiedDocuments.stream().map(Document::getText).collect(Collectors.joining(System.lineSeparator()));
         String augmentedUserText = this.promptTemplate.render(Map.of("query", query, "question_answer_context", documentContext));
         if (verifiedDocuments.isEmpty()) {
-            augmentedUserText = "Print out the following with no additional text of any kind: \"There isn't enough information to answer that question.\"";
+            augmentedUserText = doNotKnowPrompt;
         }
         return chatClientRequest.mutate().prompt(chatClientRequest.prompt().augmentUserMessage(augmentedUserText)).context(context).build();
     }
@@ -119,6 +120,7 @@ public class VerifyingQuestionAnswerAdvisor implements BaseAdvisor {
         private final VectorStore vectorStore;
         private SearchRequest searchRequest = SearchRequest.builder().build();
         private PromptTemplate promptTemplate;
+        private String doNotKnowPrompt;
         private Scheduler scheduler;
         private int order = 0;
         private LlmMethods llmMethods;
@@ -133,6 +135,12 @@ public class VerifyingQuestionAnswerAdvisor implements BaseAdvisor {
         public Builder promptTemplate(PromptTemplate promptTemplate) {
             Assert.notNull(promptTemplate, "promptTemplate cannot be null");
             this.promptTemplate = promptTemplate;
+            return this;
+        }
+
+        public Builder doNotKnowPrompt(String prompt) {
+            Assert.notNull(prompt, "prompt cannot be null");
+            this.doNotKnowPrompt = prompt;
             return this;
         }
 
@@ -173,7 +181,7 @@ public class VerifyingQuestionAnswerAdvisor implements BaseAdvisor {
         }
 
         public VerifyingQuestionAnswerAdvisor build() {
-            return new VerifyingQuestionAnswerAdvisor(this.vectorStore, this.searchRequest, this.promptTemplate, this.scheduler, this.order, this.llmMethods, this.counter, this.verified);
+            return new VerifyingQuestionAnswerAdvisor(this.vectorStore, this.searchRequest, this.promptTemplate, this.doNotKnowPrompt, this.scheduler, this.order, this.llmMethods, this.counter, this.verified);
         }
     }
 }

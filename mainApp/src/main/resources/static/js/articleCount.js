@@ -11,7 +11,7 @@ function fetchArticleCount() {
         .then(data => {
             const todo = data.todo;
             const done = data.finishedFiles.length;
-            const percent = todo === 0 ? 100 : (100 * done) / todo;
+            const percent = todo === 0 ? 100 : Math.round((100 * done) / todo);
             document.getElementById('article-count').textContent = done + "/" + todo + " articles indexed (" + percent + "%)";
         })
         .catch(error => {

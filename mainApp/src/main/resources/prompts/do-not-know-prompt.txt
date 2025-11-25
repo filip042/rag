@@ -1,0 +1,1 @@
+Print out the following with no additional text of any kind: "There isn't enough information to answer that question."
