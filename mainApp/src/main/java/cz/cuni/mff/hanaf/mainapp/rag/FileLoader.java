@@ -94,13 +94,29 @@ public class FileLoader {
     }
 
     /**
+     * todo
+     * @param query
+     * @param workSpace
+     * @param progress
+     * @return
+     */
+    public CompletableFuture<Void> ask(String query, long workSpace, Map<String, Object> progress) {
+        return ask(query, workSpace, progress, null);
+    }
+
+    /**
      * Get an answer to a question from the LLM using the documents in the workspace
      *
      * @param query The query to be answered
      * @param workSpace The id of the workspace with the source documents
      * @return The answer as a string, alongside comma-delimited sources on the last line // todo
      */
-    public CompletableFuture<Void> ask(String query, long workSpace, Map<String, Object> progress) {
+    public CompletableFuture<Void> ask(String query, long workSpace, Map<String, Object> progress, ChatModel chatModel) {
+        if (chatModel == null) {
+            chatModel = this.chatModel;
+        }
+        ChatClient chatClient = ChatClient.builder(chatModel).build();
+
         return CompletableFuture.supplyAsync(() -> {
             Filter.Expression filterExpression = new Filter.Expression(
                     Filter.ExpressionType.EQ,
@@ -110,7 +126,6 @@ public class FileLoader {
             int size = 5;
             progress.put("total", size);
             SearchRequest request = SearchRequest.builder().filterExpression(filterExpression).topK(size).build();
-            ChatClient chatClient = ChatClient.builder(chatModel).build();
 
             System.out.println(query);
 
