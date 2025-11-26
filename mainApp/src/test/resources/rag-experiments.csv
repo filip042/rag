@@ -1,6 +1,4 @@
 experiment_id,provider,model,prompt,temperature,workspace,repetitions
-exp1,openai,gpt4o,default,0.2,101,5
-exp2,openai,gpt4o,cot,0.2,101,5
-exp3,ollama,deepseek-r1:1.5b,default,0.2,101,5
-exp4,ollama,qwen3:0.6b,cot,0.0,101,5
-exp5,ollama,qwen3:0.6b,default,0.0,102,3
+exp3,ollama,deepseek-r1:1.5b,default,0.7,1,1
+exp4,ollama,qwen3:0.6b,cot,0.7,1,1
+exp5,ollama,qwen3:0.6b,default,0.6,1,2

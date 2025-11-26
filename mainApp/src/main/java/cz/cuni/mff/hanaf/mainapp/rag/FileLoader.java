@@ -274,6 +274,10 @@ public class FileLoader {
         System.out.println("Deleted workspace " + workspace);
     }
 
+    public void setSystemPrompt(Resource promptResource) {
+        this.askTemplateResource = promptResource;
+    }
+
     private String extractDocumentName(Document document) {
         Pattern pattern = Pattern.compile("<chunk source=\"([^\"]+)\">\\s*(.*?)\\s*</chunk>", Pattern.DOTALL);
 

@@ -12,6 +12,7 @@ import org.springframework.ai.document.Document;
 import org.springframework.ai.evaluation.EvaluationRequest;
 import org.springframework.ai.evaluation.EvaluationResponse;
 import org.springframework.ai.ollama.OllamaChatModel;
+import org.springframework.ai.ollama.api.OllamaApi;
 import org.springframework.ai.ollama.api.OllamaOptions;
 import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.openai.OpenAiChatOptions;
@@ -39,21 +40,27 @@ class RagEvaluationTests {
     @Autowired
     private FileLoader fileLoader;
 
+    @Autowired
+    private OllamaApi ollamaApi;
+
     private final RelevancyEvaluator relevancyEvaluator;
 
     private final FactCheckingEvaluator factCheckingEvaluator;
 
     private final String evaluatorModel = "gpt-4o-mini";
 
+    // todo get from yaml or something
+    private final String apiKey = "<api key>";
+
+    private static final Path RESULT_PATH = Path.of("target/rag-eval-results.csv");
+
     RagEvaluationTests() { // todo move to evaluatorconfig
-        OpenAiApi evaluatorApi = OpenAiApi.builder().apiKey(System.getenv("OPENAI_API_KEY")).build(); // todo temp
+        OpenAiApi evaluatorApi = OpenAiApi.builder().apiKey(apiKey).build();
         OpenAiChatOptions evaluatorOptions = OpenAiChatOptions.builder().model(evaluatorModel).build();
         ChatModel evaluatorModel = OpenAiChatModel.builder().openAiApi(evaluatorApi).defaultOptions(evaluatorOptions).build();
         relevancyEvaluator = new RelevancyEvaluator(ChatClient.builder(evaluatorModel));
         factCheckingEvaluator = new FactCheckingEvaluator(ChatClient.builder(evaluatorModel));
     }
-
-    private static final Path RESULT_PATH = Path.of("target/rag-eval-results.csv");
 
     void evaluateRagResponse(String id, String query, String expected, long workspace, int repetitions, ChatModel chatModel) throws Exception {
         Set<String> expectedSet = Set.of(expected.split(";"));
@@ -111,22 +118,27 @@ class RagEvaluationTests {
     void runExperiment(String experimentId, String provider, String model, String prompt, double temperature, long workspace, int repetitions) throws Exception {
         ChatModel chatModel = createChatModel(provider, model, temperature);
 
-        Resource promptResource = new ClassPathResource("prompts/" + prompt + ".txt");
-        String systemPrompt = new String(promptResource.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
-//        fileLoader.setSystemPrompt(systemPrompt); todo
+        Resource promptResource;
+        if (prompt.equals("default")) {
+            promptResource = new ClassPathResource("prompts/ask-template.txt");
+        } else {
+            promptResource = new ClassPathResource("prompts/" + prompt + ".txt");
+        }
+        fileLoader.setSystemPrompt(promptResource);
 
         runTestCasesForExperiment(experimentId, chatModel, workspace, repetitions);
     }
 
     private ChatModel createChatModel(String provider, String modelName, double temperature) {
-        if (provider.equals("openai")) {
+        if (provider.equals("openai")) { // todo like ollama
             return OpenAiChatModel.builder()
                     .openAiApi(OpenAiApi.builder().apiKey(System.getenv("OPENAI_API_KEY")).build())
                     .defaultOptions(OpenAiChatOptions.builder().model(modelName).temperature(temperature).build()).build();
         } else if(provider.equals("ollama")) {
             return OllamaChatModel.builder()
-                    .defaultOptions(OllamaOptions.builder().model(modelName)
-                    .temperature(temperature).build()).build();
+                    .defaultOptions(OllamaOptions.builder().model("deepseek-r1:1.5b").temperature(0.7).build())
+                    .ollamaApi(ollamaApi)
+                    .build();
         }
         throw new IllegalArgumentException("Unknown provider: " + provider);
     }
@@ -138,7 +150,6 @@ class RagEvaluationTests {
                 .map(cols -> Arrays.copyOf(cols, 3))
                 .collect(Collectors.toList());
     }
-
 
     private synchronized void writeResult(String id, String query, int relevant, int factual, int repetitions, double precision, double recall, double f1) throws Exception {
         if (!Files.exists(RESULT_PATH)) {
