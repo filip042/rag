@@ -188,32 +188,6 @@ public class ThymeLeafController {
     }
 
     /**
-     * Adds the documents in the directory to the workspace
-     *
-     * @param directory The directory with the documents to be added
-     * @param session The current http session with the current workspace
-     * @return a view name or redirect string:
-     *         - The view name for the results page if the session has a valid project
-     *         - "redirect:/user/dashboard" otherwise
-     */
-    @PostMapping("/load") // todo remove, use version in admin controller
-    @ResponseBody
-    public String loadDir(@RequestParam(name = "directory") String directory, HttpSession session) {
-        String apiUrl = appConfig.getBaseUrl() + appConfig.getApiUrls().getBase() + appConfig.getApiUrls().getAdd();
-        Map<String, Object> params = new HashMap<>();
-        Project project = (Project) session.getAttribute("project");
-        if (project == null) {
-            return "NO_PROJECT";
-        }
-        params.put("path", directory);
-        params.put("workSpace", project.getId());
-
-        restTemplate.postForObject(apiUrl, params, Void.class);
-
-        return "OK";
-    }
-
-    /**
      * Displays the form for creating users
      *
      * @param model The model to which the user is added
@@ -399,7 +373,7 @@ public class ThymeLeafController {
         model.addAttribute("users", usersList);
 
         String url = appConfig.getBaseUrl() + appConfig.getApiUrls().getBase() + appConfig.getApiUrls().getStatus();
-        String loadUrl = appConfig.getBaseUrl() + appConfig.getFrontendUrls().getBase() + appConfig.getFrontendUrls().getLoad();
+        String loadUrl = appConfig.getBaseUrl() + "/admin" + appConfig.getFrontendUrls().getLoad(); // todo temp
         String parameter = "?workSpace=" + sessionProject.getId();
         model.addAttribute("articleCountEndpoint", url.concat(parameter));
         model.addAttribute("loadEndpoint", loadUrl);
