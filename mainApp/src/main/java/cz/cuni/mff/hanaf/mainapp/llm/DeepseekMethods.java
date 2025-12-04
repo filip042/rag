@@ -1,7 +1,7 @@
 package cz.cuni.mff.hanaf.mainapp.llm;
 
 import org.springframework.ai.ollama.api.OllamaApi;
-import org.springframework.ai.ollama.api.OllamaOptions;
+import org.springframework.ai.ollama.api.OllamaChatOptions;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 
@@ -45,13 +45,12 @@ public class DeepseekMethods implements LlmMethods {
     }
 
     public String callWithoutThinking(String prompt) {
-        Map<String, Object> options = OllamaOptions.builder()
+        Map<String, Object> options = OllamaChatOptions.builder()
                 .model("deepseek-r1:1.5b")
                 .temperature(0.7)
+                .disableThinking()
                 .build()
                 .toMap();
-
-        options.put("think", false);
 
         OllamaApi.ChatRequest request = OllamaApi.ChatRequest.builder(model)
                 .stream(false)

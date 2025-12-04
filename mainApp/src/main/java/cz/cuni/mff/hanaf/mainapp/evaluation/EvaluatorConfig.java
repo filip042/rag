@@ -16,6 +16,6 @@ public class EvaluatorConfig {
 
     @Bean
     public FactCheckingEvaluator factCheckingEvaluator(ChatClient.Builder builder) {
-        return new FactCheckingEvaluator(builder);
+        return FactCheckingEvaluator.builder(builder).build();
     }
 }

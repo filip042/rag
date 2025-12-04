@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.ai.chat.prompt.SystemPromptTemplate;
 import org.springframework.ai.ollama.api.OllamaApi;
-import org.springframework.ai.ollama.api.OllamaOptions;
+import org.springframework.ai.ollama.api.OllamaChatOptions;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 
@@ -48,13 +48,12 @@ public class Qwen3Methods implements LlmMethods {
     }
 
     public String callWithoutThinking(String prompt) {
-        Map<String, Object> options = OllamaOptions.builder()
+        Map<String, Object> options = OllamaChatOptions.builder()
                 .model("qwen3:0.6b")
                 .temperature(0.7)
+                .disableThinking()
                 .build()
                 .toMap();
-
-        options.put("think", false);
 
         OllamaApi.ChatRequest request = OllamaApi.ChatRequest.builder("qwen3:0.6b")
                 .stream(false)

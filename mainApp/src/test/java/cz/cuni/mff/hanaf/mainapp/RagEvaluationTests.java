@@ -13,11 +13,12 @@ import org.springframework.ai.evaluation.EvaluationRequest;
 import org.springframework.ai.evaluation.EvaluationResponse;
 import org.springframework.ai.ollama.OllamaChatModel;
 import org.springframework.ai.ollama.api.OllamaApi;
-import org.springframework.ai.ollama.api.OllamaOptions;
+import org.springframework.ai.ollama.api.OllamaChatOptions;
 import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.ai.openai.api.OpenAiApi;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
@@ -49,17 +50,14 @@ class RagEvaluationTests {
 
     private final String evaluatorModel = "gpt-4o-mini";
 
-    // todo get from yaml or something
-    private final String apiKey = "<api key>";
-
     private static final Path RESULT_PATH = Path.of("target/rag-eval-results.csv");
 
-    RagEvaluationTests() { // todo move to evaluatorconfig
+    RagEvaluationTests(@Value("${spring.ai.openai.api-key}") String apiKey) { // todo move to evaluatorconfig
         OpenAiApi evaluatorApi = OpenAiApi.builder().apiKey(apiKey).build();
         OpenAiChatOptions evaluatorOptions = OpenAiChatOptions.builder().model(evaluatorModel).build();
         ChatModel evaluatorModel = OpenAiChatModel.builder().openAiApi(evaluatorApi).defaultOptions(evaluatorOptions).build();
         relevancyEvaluator = new RelevancyEvaluator(ChatClient.builder(evaluatorModel));
-        factCheckingEvaluator = new FactCheckingEvaluator(ChatClient.builder(evaluatorModel));
+        factCheckingEvaluator = FactCheckingEvaluator.builder(ChatClient.builder(evaluatorModel)).build();
     }
 
     void evaluateRagResponse(String id, String query, String expected, long workspace, int repetitions, ChatModel chatModel) throws Exception {
@@ -136,7 +134,7 @@ class RagEvaluationTests {
                     .defaultOptions(OpenAiChatOptions.builder().model(modelName).temperature(temperature).build()).build();
         } else if(provider.equals("ollama")) {
             return OllamaChatModel.builder()
-                    .defaultOptions(OllamaOptions.builder().model("deepseek-r1:1.5b").temperature(0.7).build())
+                    .defaultOptions(OllamaChatOptions.builder().model("deepseek-r1:1.5b").temperature(0.7).build())
                     .ollamaApi(ollamaApi)
                     .build();
         }
