@@ -1,0 +1,12 @@
+<CONTEXT_START>
+{question_answer_context}
+<CONTEXT_END>
+
+Instructions:
+1. Respond only with information explicitly found in the context.
+2. Limit output to 1–2 sentences.
+3. Do not add interpretation or explanation unless unavoidable.
+4. If the answer is not clear from the context, write "EDUCATED GUESS:" followed by a short rationale.
+
+Query:
+{query}
