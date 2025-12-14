@@ -33,31 +33,26 @@ import java.nio.file.StandardOpenOption;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@SpringBootTest
+@SpringBootTest(properties = {
+        "spring.ai.openai.api-key=dummy"
+})y
 @ActiveProfiles("openai")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class RagEvaluationTests {
 
-    @Autowired
-    private FileLoader fileLoader;
-
-    @Autowired
-    private OllamaApi ollamaApi;
-
+    private final FileLoader fileLoader;
+    private final OllamaApi ollamaApi;
     private final RelevancyEvaluator relevancyEvaluator;
-
     private final FactCheckingEvaluator factCheckingEvaluator;
-
-    private final String evaluatorModel = "gpt-4o-mini";
 
     private static final Path RESULT_PATH = Path.of("target/rag-eval-results.csv");
 
-    RagEvaluationTests(@Value("${spring.ai.openai.api-key}") String apiKey) { // todo move to evaluatorconfig
-        OpenAiApi evaluatorApi = OpenAiApi.builder().apiKey(apiKey).build();
-        OpenAiChatOptions evaluatorOptions = OpenAiChatOptions.builder().model(evaluatorModel).build();
-        ChatModel evaluatorModel = OpenAiChatModel.builder().openAiApi(evaluatorApi).defaultOptions(evaluatorOptions).build();
-        relevancyEvaluator = new RelevancyEvaluator(ChatClient.builder(evaluatorModel));
-        factCheckingEvaluator = FactCheckingEvaluator.builder(ChatClient.builder(evaluatorModel)).build();
+    @Autowired
+    RagEvaluationTests(FileLoader fileLoader, OllamaApi ollamaApi, RelevancyEvaluator relevancyEvaluator, FactCheckingEvaluator factCheckingEvaluator) {
+        this.fileLoader = fileLoader;
+        this.ollamaApi = ollamaApi;
+        this.relevancyEvaluator = relevancyEvaluator;
+        this.factCheckingEvaluator = factCheckingEvaluator;
     }
 
     void evaluateRagResponse(String id, String query, String expected, long workspace, int repetitions, ChatModel chatModel) throws Exception {
