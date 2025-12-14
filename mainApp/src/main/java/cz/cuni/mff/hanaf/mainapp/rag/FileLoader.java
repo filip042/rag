@@ -25,10 +25,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.Executor;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
@@ -39,18 +36,20 @@ import java.util.stream.Stream;
 @Service
 public class FileLoader {
 
-    private final VectorStore vectorStore; // maybe map instead of metadata
+    private final VectorStore vectorStore;
     private final ChatModel chatModel;
     private final ProjectRepository projectRepository;
     private final LlmMethods llmMethods;
     private final Executor llmExecutor;
+    private final ExecutorService documentExecutor;
 
     public FileLoader(VectorStore vectorStore, ChatModel chatModel, ProjectRepository projectRepository, LlmMethods llmMethods, @Qualifier("llmExecutor") Executor llmExecutor) {
-        this.vectorStore = vectorStore;
+        this.vectorStore = new SynchronizedVectorStore(vectorStore);
         this.chatModel = chatModel;
         this.projectRepository = projectRepository;
         this.llmMethods = llmMethods;
         this.llmExecutor = llmExecutor;
+        this.documentExecutor = Executors.newFixedThreadPool(4);
     }
 
     @Value("classpath:prompts/ask-template.txt")
@@ -200,6 +199,8 @@ public class FileLoader {
             List<Path> toIndex = paths.filter(Files::isRegularFile).toList();
             allFilesToIndex.put(workspace, toIndex);
 
+            // todo remove files not in the directory
+
             List<CompletableFuture<Void>> futures = toIndex.stream()
                     .filter(f -> {
                         try {
@@ -222,7 +223,7 @@ public class FileLoader {
                     System.err.println("Failed processing " + f + ": " + e.getMessage());
                 }
                 finishedQueue.add(f.toString());
-            }))
+            }, documentExecutor))
                     .toList();
 
             CompletableFuture<Void> allDone = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));

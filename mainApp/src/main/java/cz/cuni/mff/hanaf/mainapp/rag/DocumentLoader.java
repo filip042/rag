@@ -18,7 +18,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 
 public class DocumentLoader{
-    private final SynchronizedVectorStore vectorStore;
+    private final VectorStore vectorStore;
     private final ChatModel chatModel;
 
     private final List<String> formats = List.of(".txt", ".html", ".pdf");
@@ -40,8 +40,9 @@ public class DocumentLoader{
     protected void load(Path f, long workspace, Instant finalThisTime) {
         String fileName = f.getFileName().toString();
         String p = f.toString();
-        List<Document> splitDocuments = readAndSplitDocument(p);
+        this.deleteOldDocuments(workspace, finalThisTime, fileName);
 
+        List<Document> splitDocuments = readAndSplitDocument(p);
         List<Document> documentsWithSource = prepareDocumentsWithSource(fileName, workspace, finalThisTime, splitDocuments);
 
         if (!documentsWithSource.isEmpty()) {
@@ -49,7 +50,6 @@ public class DocumentLoader{
         } else {
             System.out.println(fileName + " is empty");
         }
-        this.deleteOldDocuments(workspace, finalThisTime, fileName);
     }
 
     /**
@@ -59,7 +59,7 @@ public class DocumentLoader{
      * @return A list of chunks created from the given document
      */
     private List<Document> readAndSplitDocument(String filePath) {
-        OverlapTextSplitter splitter = new OverlapTextSplitter(2000, 300, 50, 10000, true, 100);
+        OverlapTextSplitter splitter = new OverlapTextSplitter(500, 300, 50, 10000, true, 100);
 
         if (filePath.endsWith(".md")) {
             MarkdownDocumentReaderConfig config = MarkdownDocumentReaderConfig.builder()
