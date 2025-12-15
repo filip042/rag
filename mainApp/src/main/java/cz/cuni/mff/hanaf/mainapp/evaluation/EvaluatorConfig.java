@@ -7,6 +7,7 @@ import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.ai.openai.api.OpenAiApi;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -15,7 +16,10 @@ public class EvaluatorConfig {
 
     private final ChatModel evaluatorChatModel;
 
-    public EvaluatorConfig(OpenAiApi api) {
+    public EvaluatorConfig(@Value("${spring.ai.openai.api-key}") String apiKey) {
+        OpenAiApi api = OpenAiApi.builder()
+                .apiKey(apiKey)
+                .build();
         this.evaluatorChatModel =
                 OpenAiChatModel.builder()
                         .openAiApi(api)

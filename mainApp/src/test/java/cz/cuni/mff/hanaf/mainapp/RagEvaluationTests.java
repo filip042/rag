@@ -33,9 +33,7 @@ import java.nio.file.StandardOpenOption;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@SpringBootTest(properties = {
-        "spring.ai.openai.api-key=dummy"
-})y
+@SpringBootTest
 @ActiveProfiles("openai")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class RagEvaluationTests {
@@ -129,7 +127,7 @@ class RagEvaluationTests {
                     .defaultOptions(OpenAiChatOptions.builder().model(modelName).temperature(temperature).build()).build();
         } else if(provider.equals("ollama")) {
             return OllamaChatModel.builder()
-                    .defaultOptions(OllamaChatOptions.builder().model("deepseek-r1:1.5b").temperature(0.7).build())
+                    .defaultOptions(OllamaChatOptions.builder().model(modelName).temperature(temperature).build())
                     .ollamaApi(ollamaApi)
                     .build();
         }
