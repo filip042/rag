@@ -2,6 +2,7 @@ package cz.cuni.mff.hanaf.mainapp.data;
 
 import jakarta.persistence.*;
 
+import java.time.Instant;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -14,6 +15,8 @@ public class Project {
     private Long id;
 
     private String name;
+
+    private Instant lastIndexedTime;
 
     @ElementCollection(fetch = FetchType.EAGER)
     private Set<String> files;
@@ -65,6 +68,24 @@ public class Project {
      */
     public void setName(String name) {
         this.name = name;
+    }
+
+    /**
+     * Get the last time this project was indexed
+     *
+     * @return The last indexed timestamp, or null if never indexed
+     */
+    public Instant getLastIndexedTime() {
+        return lastIndexedTime;
+    }
+
+    /**
+     * Set the last indexed time
+     *
+     * @param lastIndexedTime The time to set
+     */
+    public void setLastIndexedTime(Instant lastIndexedTime) {
+        this.lastIndexedTime = lastIndexedTime;
     }
 
     /**

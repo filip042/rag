@@ -59,7 +59,6 @@ public class FileLoader {
     @Value("classpath:prompts/do-not-know-prompt.txt")
     private Resource doNotKnowPromptResource;
 
-    private Instant lastModifiedTime = Instant.MIN;
     private final Map<Long, CompletableFuture<Void>> indexingTasks = new ConcurrentHashMap<>();
     private final Map<Long, ConcurrentLinkedQueue<String>> finishedFiles = new ConcurrentHashMap<>();
     private final Map<Long, List<Path>> allFilesToIndex = new ConcurrentHashMap<>();
@@ -184,12 +183,13 @@ public class FileLoader {
         }
 
         try (Stream<Path> paths = Files.walk(directory)) {
-            Instant finalThisTime = Instant.now();
+            Instant indexingStartTime = Instant.now();
             ConcurrentLinkedQueue<String> finishedQueue = new ConcurrentLinkedQueue<>();
             finishedFiles.put(workspace, finishedQueue);
 
             Project project = projectRepository.getReferenceById(workspace);
             Set<String> existingFiles = Optional.ofNullable(project.getFiles()).orElseGet(HashSet::new);
+            Instant lastIndexedTime = project.getLastIndexedTime();
 
             List<Path> toIndex = paths.filter(Files::isRegularFile).toList();
             allFilesToIndex.put(workspace, toIndex);
@@ -205,8 +205,11 @@ public class FileLoader {
             List<CompletableFuture<Void>> futures = toIndex.stream()
                     .filter(f -> {
                         try {
-                            if (existingFiles.contains(f.toString()) && !Files.getLastModifiedTime(f).toInstant().isAfter(lastModifiedTime)) {
-                                finishedQueue.add(f.toString()); // todo doesn't work as expected when run first time
+                            if (lastIndexedTime == null) {
+                                return true;
+                            }
+                            if (existingFiles.contains(f.toString()) && !Files.getLastModifiedTime(f).toInstant().isAfter(lastIndexedTime)) {
+                                finishedQueue.add(f.toString());
                                 return false;
                             }
                             return true;
@@ -218,7 +221,7 @@ public class FileLoader {
                         System.out.println("Processing: " + f);
                         try {
                             DocumentLoader loader = new DocumentLoader(vectorStore, chatModel);
-                            loader.load(f, workspace, finalThisTime);
+                            loader.load(f, workspace, indexingStartTime);
                             System.out.println("Finished processing: " + f);
                         } catch (Exception e) {
                             System.err.println("Failed processing " + f + ": " + e.getMessage());
@@ -240,10 +243,10 @@ public class FileLoader {
                 }
 
                 project.setFiles(currentFiles);
+                project.setLastIndexedTime(indexingStartTime);
                 projectRepository.save(project);
             });
 
-            lastModifiedTime = finalThisTime;
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
