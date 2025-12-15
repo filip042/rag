@@ -14,6 +14,7 @@ import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.ai.vectorstore.filter.Filter;
+import org.springframework.ai.vectorstore.filter.FilterExpressionBuilder;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
@@ -83,11 +84,8 @@ public class FileLoader {
      * @return A list of documents most similar to the query
      */
     public List<Document> searchSimilarDocuments(String query, long workSpace, int topK) {
-        Filter.Expression filterExpression = new Filter.Expression(
-                Filter.ExpressionType.EQ,
-                new Filter.Key("workSpace"),
-                new Filter.Value(workSpace)
-        );
+        FilterExpressionBuilder expressionBuilder = new FilterExpressionBuilder();
+        Filter.Expression filterExpression = expressionBuilder.eq("workSpace", workSpace).build();
         return vectorStore.similaritySearch(SearchRequest.builder().query(query).filterExpression(filterExpression).topK(topK).build());
     }
 
@@ -116,11 +114,8 @@ public class FileLoader {
         ChatClient chatClient = ChatClient.builder(chatModel).build();
 
         return CompletableFuture.supplyAsync(() -> {
-            Filter.Expression filterExpression = new Filter.Expression(
-                    Filter.ExpressionType.EQ,
-                    new Filter.Key("workSpace"),
-                    new Filter.Value(workSpace)
-            );
+            FilterExpressionBuilder expressionBuilder = new FilterExpressionBuilder();
+            Filter.Expression filterExpression = expressionBuilder.eq("workSpace", workSpace).build();
             int size = 5;
             progress.put("total", size);
             SearchRequest request = SearchRequest.builder().filterExpression(filterExpression).topK(size).build();
@@ -180,7 +175,7 @@ public class FileLoader {
      * @param path The path to the directory with the documents as a string
      * @param workspace The id of the workspace the documents are being added to as a long
      */
-    public void addDoc(String path, long workspace) { // doesn't remove files that don't exist
+    public void addDoc(String path, long workspace) {
         System.out.println(path);
         Path directory = Path.of(path);
 
@@ -199,13 +194,19 @@ public class FileLoader {
             List<Path> toIndex = paths.filter(Files::isRegularFile).toList();
             allFilesToIndex.put(workspace, toIndex);
 
-            // todo remove files not in the directory
+            Set<String> currentFiles = toIndex.stream()
+                    .map(Path::toString)
+                    .collect(Collectors.toSet());
+
+            Set<String> filesToRemove = existingFiles.stream()
+                    .filter(file -> !currentFiles.contains(file))
+                    .collect(Collectors.toSet());
 
             List<CompletableFuture<Void>> futures = toIndex.stream()
                     .filter(f -> {
                         try {
                             if (existingFiles.contains(f.toString()) && !Files.getLastModifiedTime(f).toInstant().isAfter(lastModifiedTime)) {
-                                finishedQueue.add(f.toString());
+                                finishedQueue.add(f.toString()); // todo doesn't work as expected when run first time
                                 return false;
                             }
                             return true;
@@ -214,28 +215,47 @@ public class FileLoader {
                         }
                     })
                     .map(f -> CompletableFuture.runAsync(() -> {
-                System.out.println("Processing: " + f);
-                try {
-                    DocumentLoader loader = new DocumentLoader(vectorStore, chatModel);
-                    loader.load(f, workspace, finalThisTime);
-                    System.out.println("Finished processing: " + f);
-                } catch (Exception e) {
-                    System.err.println("Failed processing " + f + ": " + e.getMessage());
-                }
-                finishedQueue.add(f.toString());
-            }, documentExecutor))
+                        System.out.println("Processing: " + f);
+                        try {
+                            DocumentLoader loader = new DocumentLoader(vectorStore, chatModel);
+                            loader.load(f, workspace, finalThisTime);
+                            System.out.println("Finished processing: " + f);
+                        } catch (Exception e) {
+                            System.err.println("Failed processing " + f + ": " + e.getMessage());
+                        }
+                        finishedQueue.add(f.toString());
+                    }, documentExecutor))
                     .toList();
 
             CompletableFuture<Void> allDone = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
             indexingTasks.put(workspace, allDone);
+
             allDone.thenRun(() -> {
-                project.addFiles(finishedQueue);
+                if (!filesToRemove.isEmpty()) {
+                    System.out.println("Removing " + filesToRemove.size() + " deleted files");
+                    for (String fileToRemove : filesToRemove) {
+                        String fileName = Path.of(fileToRemove).getFileName().toString();
+                        deleteDocumentsForFile(workspace, fileName);
+                    }
+                }
+
+                project.setFiles(currentFiles);
                 projectRepository.save(project);
             });
+
             lastModifiedTime = finalThisTime;
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private void deleteDocumentsForFile(long workspace, String fileName) {
+        FilterExpressionBuilder expressionBuilder = new FilterExpressionBuilder();
+        Filter.Expression filterExpression = expressionBuilder.and(
+                expressionBuilder.eq("workSpace", workspace),
+                expressionBuilder.eq("source", fileName)
+        ).build();
+        vectorStore.delete(filterExpression);
     }
 
     /**
@@ -265,11 +285,8 @@ public class FileLoader {
      * @param workspace The id of the workspace that is being deleted
      */
     public void deleteWorkspace(long workspace) {
-        Filter.Expression filterExpression = new Filter.Expression(
-                Filter.ExpressionType.EQ,
-                new Filter.Key("workSpace"),
-                new Filter.Value(workspace)
-        );
+        FilterExpressionBuilder expressionBuilder = new FilterExpressionBuilder();
+        Filter.Expression filterExpression = expressionBuilder.eq("workSpace", workspace).build();
         vectorStore.delete(filterExpression);
         System.out.println("Deleted workspace " + workspace);
     }
