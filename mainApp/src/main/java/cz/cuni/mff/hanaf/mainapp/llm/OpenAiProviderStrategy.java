@@ -12,7 +12,7 @@ public class OpenAiProviderStrategy implements LlmProviderStrategy {
 
     @Override
     public void apply(LlmProperties properties) {
-        System.setProperty("spring.ai.openai.api-key", properties.getBaseUrl());
+        System.setProperty("spring.ai.openai.api-key", properties.getApiKey());
         System.setProperty("spring.ai.openai.chat.options.model", properties.getChat().getModel());
         System.setProperty("spring.ai.openai.chat.options.temperature",
                 properties.getChat().getTemperature().toString());

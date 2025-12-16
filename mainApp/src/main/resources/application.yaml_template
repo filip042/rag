@@ -38,7 +38,8 @@ app:
   base-url: http://localhost:8080
   llm:
     provider: <llm provider>
-    base-url: <url for ollama or api key for open ai>
+    base-url: <url for ollama>
+    api-key: <api key for openAi>
     chat:
       model: <chat model>
       temperature: <model temperature>

@@ -9,6 +9,7 @@ public class LlmProperties {
 
     private String provider;
     private String baseUrl;
+    private String apiKey;
     private Chat chat = new Chat();
     private Embedding embedding = new Embedding();
 
@@ -59,6 +60,14 @@ public class LlmProperties {
 
     public void setBaseUrl(String baseUrl) {
         this.baseUrl = baseUrl;
+    }
+
+    public String getApiKey() {
+        return apiKey;
+    }
+
+    public void setApiKey(String baseUrl) {
+        this.apiKey = apiKey;
     }
 
     public Chat getChat() {
