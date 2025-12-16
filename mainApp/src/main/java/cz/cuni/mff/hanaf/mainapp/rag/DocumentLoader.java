@@ -59,7 +59,7 @@ public class DocumentLoader{
      * @return A list of chunks created from the given document
      */
     private List<Document> readAndSplitDocument(String filePath) {
-        OverlapTextSplitter splitter = new OverlapTextSplitter(500, 300, 50, 10000, true, 100);
+        OverlapTextSplitter splitter = new OverlapTextSplitter(2000, 300, 50, 10000, true, 100);
 
         if (filePath.endsWith(".md")) {
             MarkdownDocumentReaderConfig config = MarkdownDocumentReaderConfig.builder()

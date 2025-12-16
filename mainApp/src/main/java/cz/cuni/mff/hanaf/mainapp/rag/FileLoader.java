@@ -42,7 +42,6 @@ public class FileLoader {
     private final ProjectRepository projectRepository;
     private final LlmMethods llmMethods;
     private final Executor llmExecutor;
-    private final ExecutorService documentExecutor;
 
     public FileLoader(VectorStore vectorStore, ChatModel chatModel, ProjectRepository projectRepository, LlmMethods llmMethods, @Qualifier("llmExecutor") Executor llmExecutor) {
         this.vectorStore = new SynchronizedVectorStore(vectorStore);
@@ -50,7 +49,6 @@ public class FileLoader {
         this.projectRepository = projectRepository;
         this.llmMethods = llmMethods;
         this.llmExecutor = llmExecutor;
-        this.documentExecutor = Executors.newFixedThreadPool(4);
     }
 
     @Value("classpath:prompts/ask-template.txt")
@@ -227,7 +225,7 @@ public class FileLoader {
                             System.err.println("Failed processing " + f + ": " + e.getMessage());
                         }
                         finishedQueue.add(f.toString());
-                    }, documentExecutor))
+                    }, llmExecutor))
                     .toList();
 
             CompletableFuture<Void> allDone = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
