@@ -4,7 +4,6 @@ import cz.cuni.mff.hanaf.mainapp.rag.FileLoader;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvFileSource;
-import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.evaluation.FactCheckingEvaluator;
 import org.springframework.ai.chat.evaluation.RelevancyEvaluator;
 import org.springframework.ai.chat.model.ChatModel;
@@ -18,7 +17,6 @@ import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.ai.openai.api.OpenAiApi;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
@@ -26,7 +24,6 @@ import org.springframework.test.context.ActiveProfiles;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
@@ -40,15 +37,17 @@ class RagEvaluationTests {
 
     private final FileLoader fileLoader;
     private final OllamaApi ollamaApi;
+    private final OpenAiApi openAiApi;
     private final RelevancyEvaluator relevancyEvaluator;
     private final FactCheckingEvaluator factCheckingEvaluator;
 
     private static final Path RESULT_PATH = Path.of("target/rag-eval-results.csv");
 
     @Autowired
-    RagEvaluationTests(FileLoader fileLoader, OllamaApi ollamaApi, RelevancyEvaluator relevancyEvaluator, FactCheckingEvaluator factCheckingEvaluator) {
+    RagEvaluationTests(FileLoader fileLoader, OllamaApi ollamaApi, OpenAiApi openAiApi,RelevancyEvaluator relevancyEvaluator, FactCheckingEvaluator factCheckingEvaluator) {
         this.fileLoader = fileLoader;
         this.ollamaApi = ollamaApi;
+        this.openAiApi = openAiApi;
         this.relevancyEvaluator = relevancyEvaluator;
         this.factCheckingEvaluator = factCheckingEvaluator;
     }
@@ -121,10 +120,11 @@ class RagEvaluationTests {
     }
 
     private ChatModel createChatModel(String provider, String modelName, double temperature) {
-        if (provider.equals("openai")) { // todo like ollama
+        if (provider.equals("openai")) {
             return OpenAiChatModel.builder()
-                    .openAiApi(OpenAiApi.builder().apiKey(System.getenv("OPENAI_API_KEY")).build())
-                    .defaultOptions(OpenAiChatOptions.builder().model(modelName).temperature(temperature).build()).build();
+                    .defaultOptions(OpenAiChatOptions.builder().model(modelName).temperature(temperature).build())
+                    .openAiApi(openAiApi)
+                    .build();
         } else if(provider.equals("ollama")) {
             return OllamaChatModel.builder()
                     .defaultOptions(OllamaChatOptions.builder().model(modelName).temperature(temperature).build())
@@ -134,8 +134,9 @@ class RagEvaluationTests {
         throw new IllegalArgumentException("Unknown provider: " + provider);
     }
 
-    private List<String[]> loadTestCases() throws IOException { // todo use csv parser, remove hardcoded path
-        return Files.lines(Path.of("src/test/resources/rag-testcases.csv"))
+    private List<String[]> loadTestCases() throws IOException {
+        Resource resource = new ClassPathResource("rag-testcases.csv");
+        return Files.lines(Path.of(resource.getURI()))
                 .skip(1)
                 .map(line -> line.split(","))
                 .map(cols -> Arrays.copyOf(cols, 3))
