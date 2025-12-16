@@ -1,4 +1,4 @@
-package cz.cuni.mff.hanaf.mainapp.llm;
+package cz.cuni.mff.hanaf.mainapp.providers;
 
 import org.springframework.stereotype.Component;
 

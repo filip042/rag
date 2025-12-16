@@ -1,4 +1,4 @@
-package cz.cuni.mff.hanaf.mainapp.llm;
+package cz.cuni.mff.hanaf.mainapp.providers;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
@@ -66,7 +66,7 @@ public class LlmProperties {
         return apiKey;
     }
 
-    public void setApiKey(String baseUrl) {
+    public void setApiKey(String apiKey) {
         this.apiKey = apiKey;
     }
 

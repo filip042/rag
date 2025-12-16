@@ -1,5 +1,6 @@
 package cz.cuni.mff.hanaf.mainapp.llm;
 
+import cz.cuni.mff.hanaf.mainapp.providers.LlmProperties;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.ai.ollama.OllamaChatModel;

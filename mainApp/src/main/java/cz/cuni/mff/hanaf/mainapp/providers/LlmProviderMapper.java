@@ -1,4 +1,4 @@
-package cz.cuni.mff.hanaf.mainapp.llm;
+package cz.cuni.mff.hanaf.mainapp.providers;
 
 import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Component;
