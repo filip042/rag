@@ -6,6 +6,14 @@
     <link rel="stylesheet" href="/css/default.css">
 </head>
 <body>
+  <div th:if="${project.lastIndexedTime == null && admin}" class="warning">
+    <strong>⚠ Warning:</strong> This project is empty. Please add documents in the settings before asking questions.
+  </div>
+
+  <div th:if="${project.lastIndexedTime == null && !admin}" class="warning">
+      <strong>⚠ Warning:</strong> This project is empty. Please contact a project administrator to add documents.
+  </div>
+
   <form action="#" th:action="@{/user/answer}" method="post">
     <label for="question">Question:</label>
     <input type="text" id="question" name="question" required><br>

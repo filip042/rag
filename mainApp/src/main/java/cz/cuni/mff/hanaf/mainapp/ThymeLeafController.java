@@ -56,6 +56,8 @@ public class ThymeLeafController {
                 session.setAttribute("admin", projectRepository.findByAdminUsers_Id(id).contains(project));
             });
         }
+        Project currentProject = (Project) session.getAttribute("project");
+        model.addAttribute("project", currentProject);
         model.addAttribute("admin", session.getAttribute("admin"));
         return "load";
     }

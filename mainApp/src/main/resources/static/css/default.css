@@ -64,6 +64,16 @@ h2 {
     text-align: center;
 }
 
+.warning {
+    background-color: #fff3cd;
+    color: #dc582a;
+    border: 1px solid #ffc107;
+    padding: 10px 15px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
 form {
     background-color: white;
     padding: 25px 30px;
