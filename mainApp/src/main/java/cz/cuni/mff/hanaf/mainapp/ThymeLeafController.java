@@ -300,10 +300,34 @@ public class ThymeLeafController {
         if (user == null) {
             return "redirect:" + url;
         }
-        List<Project> adminProjects = projectRepository.findByAdminUsers_Id(user.getId());
-        adminProjects.stream().filter(project -> project.getAdminUsers().size() == 1)
-                .forEach(projectRepository::delete);
-        userRepository.deleteById(user.getId());
+
+        User managedUser = userRepository.findById(user.getId())
+                .orElseThrow(() -> new IllegalStateException("User not found"));
+
+        List<Project> adminProjects = projectRepository.findByAdminUsers_Id(managedUser.getId());
+        List<Long> projectIdsToDelete = adminProjects.stream()
+                .filter(project -> project.getAdminUsers().size() == 1)
+                .map(Project::getId)
+                .toList();
+
+        projectIdsToDelete.forEach(projectRepository::deleteById);
+
+        projectRepository.findByAccessibleUsers_Id(managedUser.getId()).stream()
+                .filter(project -> !projectIdsToDelete.contains(project.getId()))
+                .forEach(project -> {
+                    project.removeAccessibleUser(managedUser);
+                    projectRepository.save(project);
+                });
+
+        adminProjects.stream()
+                .filter(project -> !projectIdsToDelete.contains(project.getId()))
+                .forEach(project -> {
+                    project.removeAdminUser(managedUser);
+                    projectRepository.save(project);
+                });
+
+        userRepository.deleteById(managedUser.getId());
+
         return "redirect:" + url;
     }
 
