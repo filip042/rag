@@ -46,7 +46,7 @@ public class DeepseekMethods implements LlmMethods {
 
     public String callWithoutThinking(String prompt) {
         Map<String, Object> options = OllamaChatOptions.builder()
-                .model("deepseek-r1:1.5b")
+                .model(model)
                 .temperature(0.7)
                 .disableThinking()
                 .build()

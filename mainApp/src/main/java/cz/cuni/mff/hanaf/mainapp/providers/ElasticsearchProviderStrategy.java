@@ -17,6 +17,7 @@ public class ElasticsearchProviderStrategy implements VectorstoreProviderStrateg
         System.setProperty("spring.ai.vectorstore.elasticsearch.initialize-schema", properties.isInitializeSchema().toString());
         System.setProperty("spring.ai.vectorstore.elasticsearch.index-name", properties.getIndexName());
         System.setProperty("spring.ai.vectorstore.elasticsearch.dimensions", properties.getDimensions().toString());
+        System.out.println("boom " + properties.getDimensions());
         System.setProperty("spring.ai.vectorstore.elasticsearch.similarity", properties.getSimilarity());
     }
 }

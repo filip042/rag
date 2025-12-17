@@ -1,26 +1,27 @@
 package cz.cuni.mff.hanaf.mainapp.llm;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.ai.chat.prompt.SystemPromptTemplate;
 import org.springframework.ai.ollama.api.OllamaApi;
 import org.springframework.ai.ollama.api.OllamaChatOptions;
+import org.springframework.ai.openai.OpenAiChatOptions;
+import org.springframework.ai.openai.api.OpenAiApi;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
+import org.springframework.http.ResponseEntity;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class Qwen3Methods implements LlmMethods {
-    private final OllamaApi ollamaApi;
+public class Gpt4oMethods implements LlmMethods {
+    private final OpenAiApi openAiApi;
     private final String model;
 
     @Value("classpath:/prompts/check-relevance.txt")
     private Resource systemResource;
 
-    public Qwen3Methods(OllamaApi ollamaApi, String model) {
-        this.ollamaApi = ollamaApi;
+    public Gpt4oMethods(OpenAiApi openAiApi, String model) {
+        this.openAiApi = openAiApi;
         this.model = model;
     }
 
@@ -47,22 +48,22 @@ public class Qwen3Methods implements LlmMethods {
     }
 
     public String callWithoutThinking(String prompt) {
-        Map<String, Object> options = OllamaChatOptions.builder()
-                .model(model)
-                .temperature(0.7)
-                .disableThinking()
-                .build()
-                .toMap();
+        OpenAiApi.ChatCompletionMessage chatCompletionMessage =
+                new OpenAiApi.ChatCompletionMessage(prompt, OpenAiApi.ChatCompletionMessage.Role.USER);
 
-        OllamaApi.ChatRequest request = OllamaApi.ChatRequest.builder(model)
-                .stream(false)
-                .messages(List.of(
-                        OllamaApi.Message.builder(OllamaApi.Message.Role.USER)
-                                .content(prompt)
-                                .build()))
-                .options(options)
-                .build();
+        OpenAiApi.ChatCompletionRequest request = new OpenAiApi.ChatCompletionRequest(
+                List.of(chatCompletionMessage),
+                model,
+                0.7,    // temperature
+                false   // stream
+        );
 
-        return ollamaApi.chat(request).message().content();
+        ResponseEntity<OpenAiApi.ChatCompletion> response = this.openAiApi.chatCompletionEntity(request);
+
+        return response.getBody()
+                .choices()
+                .getFirst()
+                .message()
+                .content();
     }
 }
