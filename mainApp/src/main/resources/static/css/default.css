@@ -158,3 +158,95 @@ a:hover {
 div {
     margin-bottom: 10px;
 }
+
+@media (prefers-color-scheme: dark) {
+    body {
+        background-color: #1a1a1a;
+        color: #e0e0e0;
+    }
+
+    h2, h1 {
+        color: #f0f0f0;
+    }
+
+    table {
+        background-color: #2d2d2d;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    }
+
+    table th, table td {
+        border-bottom: 1px solid #444;
+    }
+
+    table th {
+        background-color: #388E3C;
+    }
+
+    table tr:hover td {
+        background-color: #383838;
+    }
+
+    .error {
+        background-color: #4a1a1a;
+        color: #ff6b6b;
+        border: 1px solid #6b2c2c;
+    }
+
+    .warning {
+        background-color: #4a3a1a;
+        color: #ffb74d;
+        border: 1px solid #6b5a2c;
+    }
+
+    form {
+        background-color: #2d2d2d;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    }
+
+    label {
+        color: #e0e0e0;
+    }
+
+    input[type="text"],
+    input[type="password"],
+    select {
+        background-color: #383838;
+        border: 1px solid #555;
+        color: #e0e0e0;
+    }
+
+    input[type="text"]:focus,
+    input[type="password"]:focus,
+    select:focus {
+        background-color: #424242;
+        border-color: #4CAF50;
+    }
+
+    input[type="submit"], button {
+        background-color: #4CAF50;
+    }
+
+    input[type="submit"]:hover, button:hover {
+        background-color: #45a049;
+    }
+
+    button[type="submit"].delete {
+        background-color: #c62828;
+    }
+
+    button[type="submit"].delete:hover {
+        background-color: #b71c1c;
+    }
+
+    a {
+        color: #66bb6a;
+    }
+
+    a:hover {
+        color: #81c784;
+    }
+
+    #article-count {
+        color: #999;
+    }
+}
