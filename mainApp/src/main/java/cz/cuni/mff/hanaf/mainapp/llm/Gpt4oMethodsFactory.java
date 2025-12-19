@@ -1,15 +1,15 @@
 package cz.cuni.mff.hanaf.mainapp.llm;
 
-import org.springframework.ai.openai.api.OpenAiApi;
+import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.stereotype.Component;
 
 @Component
 public class Gpt4oMethodsFactory implements LlmMethodsFactory {
 
-    private final OpenAiApi openAiApi;
+    private final OpenAiChatModel openAiChatModel;
 
-    public Gpt4oMethodsFactory(OpenAiApi openAiApi) {
-        this.openAiApi = openAiApi;
+    public Gpt4oMethodsFactory(OpenAiChatModel openAiChatModel) {
+        this.openAiChatModel = openAiChatModel;
     }
 
     @Override
@@ -19,6 +19,6 @@ public class Gpt4oMethodsFactory implements LlmMethodsFactory {
 
     @Override
     public LlmMethods create(String modelName) {
-        return new Gpt4oMethods(openAiApi, modelName);
+        return new Gpt4oMethods(openAiChatModel, modelName);
     }
 }

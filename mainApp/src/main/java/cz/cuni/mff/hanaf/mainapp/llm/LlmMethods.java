@@ -1,11 +1,8 @@
 package cz.cuni.mff.hanaf.mainapp.llm;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.ai.chat.prompt.SystemPromptTemplate;
 import org.springframework.core.io.Resource;
 
-import java.util.HashMap;
 import java.util.Map;
 
 public interface LlmMethods {

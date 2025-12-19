@@ -1,26 +1,23 @@
 package cz.cuni.mff.hanaf.mainapp.llm;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.ai.chat.prompt.SystemPromptTemplate;
-import org.springframework.ai.ollama.api.OllamaApi;
+import org.springframework.ai.chat.prompt.Prompt;
+import org.springframework.ai.ollama.OllamaChatModel;
 import org.springframework.ai.ollama.api.OllamaChatOptions;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 
-import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Qwen3Methods implements LlmMethods {
-    private final OllamaApi ollamaApi;
+    private final OllamaChatModel ollamaChatModel;
     private final String model;
 
     @Value("classpath:/prompts/check-relevance.txt")
     private Resource systemResource;
 
-    public Qwen3Methods(OllamaApi ollamaApi, String model) {
-        this.ollamaApi = ollamaApi;
+    public Qwen3Methods(OllamaChatModel ollamaChatModel, String model) {
+        this.ollamaChatModel = ollamaChatModel;
         this.model = model;
     }
 
@@ -47,22 +44,13 @@ public class Qwen3Methods implements LlmMethods {
     }
 
     public String callWithoutThinking(String prompt) {
-        Map<String, Object> options = OllamaChatOptions.builder()
+        OllamaChatOptions options = OllamaChatOptions.builder()
                 .model(model)
                 .temperature(0.7)
                 .disableThinking()
-                .build()
-                .toMap();
-
-        OllamaApi.ChatRequest request = OllamaApi.ChatRequest.builder(model)
-                .stream(false)
-                .messages(List.of(
-                        OllamaApi.Message.builder(OllamaApi.Message.Role.USER)
-                                .content(prompt)
-                                .build()))
-                .options(options)
                 .build();
 
-        return ollamaApi.chat(request).message().content();
+        Prompt chatPrompt = new Prompt(prompt, options);
+        return ollamaChatModel.call(chatPrompt).getResult().getOutput().toString();
     }
 }

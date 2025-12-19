@@ -1,15 +1,15 @@
 package cz.cuni.mff.hanaf.mainapp.llm;
 
-import org.springframework.ai.ollama.api.OllamaApi;
+import org.springframework.ai.ollama.OllamaChatModel;
 import org.springframework.stereotype.Component;
 
 @Component
 public class Qwen3MethodsFactory implements LlmMethodsFactory {
 
-    private final OllamaApi ollamaApi;
+    private final OllamaChatModel ollamaChatModel;
 
-    public Qwen3MethodsFactory(OllamaApi ollamaApi) {
-        this.ollamaApi = ollamaApi;
+    public Qwen3MethodsFactory(OllamaChatModel ollamaChatModel) {
+        this.ollamaChatModel = ollamaChatModel;
     }
 
     @Override
@@ -19,6 +19,6 @@ public class Qwen3MethodsFactory implements LlmMethodsFactory {
 
     @Override
     public LlmMethods create(String modelName) {
-        return new Qwen3Methods(ollamaApi, modelName);
+        return new Qwen3Methods(ollamaChatModel, modelName);
     }
 }

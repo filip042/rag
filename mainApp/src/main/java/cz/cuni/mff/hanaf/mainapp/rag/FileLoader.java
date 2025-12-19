@@ -4,6 +4,7 @@ import cz.cuni.mff.hanaf.mainapp.data.Project;
 import cz.cuni.mff.hanaf.mainapp.data.ProjectRepository;
 import cz.cuni.mff.hanaf.mainapp.llm.LlmMethods;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.client.ChatClientRequest;
 import org.springframework.ai.chat.client.ChatClientResponse;
 import org.springframework.ai.chat.messages.AbstractMessage;
 import org.springframework.ai.chat.model.ChatModel;
@@ -115,7 +116,7 @@ public class FileLoader {
             Filter.Expression filterExpression = expressionBuilder.eq("workSpace", workSpace).build();
             int size = 5;
             progress.put("total", size);
-            SearchRequest request = SearchRequest.builder().filterExpression(filterExpression).topK(size).build();
+            SearchRequest request = SearchRequest.builder().query(query).filterExpression(filterExpression).topK(size).build();
 
             System.out.println(query);
 
@@ -126,15 +127,29 @@ public class FileLoader {
             progress.put("checked", count);
             progress.put("checked_all", verified);
 
+            System.out.println("blam");
+            List<Document> candidates = vectorStore.similaritySearch(request);
+            System.out.println("blim");
+
+            List<Document> relevant =
+                    candidates.stream()
+                            .filter(doc -> {
+                                System.out.println("boo");
+                                boolean isRelevant = llmMethods.verifySource(doc.getText(), query);
+                                count.incrementAndGet();
+                                return isRelevant;
+                            })
+                            .toList();
+
+            verified.set(true);
+
             VerifyingQuestionAnswerAdvisor qaAdvisor;
             try {
                 qaAdvisor = VerifyingQuestionAnswerAdvisor.builder(vectorStore)
                         .promptTemplate(systemPromptTemplate)
                         .doNotKnowPrompt(doNotKnowPromptResource.getContentAsString(StandardCharsets.UTF_8))
                         .searchRequest(request)
-                        .llmMethods(llmMethods)
-                        .counter(count)
-                        .verified(verified)
+                        .documents(relevant)
                         .build();
             } catch (IOException e) {
                 throw new RuntimeException(e);
@@ -142,7 +157,8 @@ public class FileLoader {
 
             ChatClientResponse clientResponse = chatClient.prompt(query)
                     .advisors(qaAdvisor)
-                    .call().chatClientResponse();
+                    .call()
+                    .chatClientResponse();
 
             String answer = Optional.ofNullable(clientResponse.chatResponse())
                     .map(ChatResponse::getResult)

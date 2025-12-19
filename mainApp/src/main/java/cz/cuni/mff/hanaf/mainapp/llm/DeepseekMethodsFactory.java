@@ -1,15 +1,15 @@
 package cz.cuni.mff.hanaf.mainapp.llm;
 
-import org.springframework.ai.ollama.api.OllamaApi;
+import org.springframework.ai.ollama.OllamaChatModel;
 import org.springframework.stereotype.Component;
 
 @Component
 public class DeepseekMethodsFactory implements LlmMethodsFactory {
 
-    private final OllamaApi ollamaApi;
+    private final OllamaChatModel ollamaChatModel;
 
-    public DeepseekMethodsFactory(OllamaApi ollamaApi) {
-        this.ollamaApi = ollamaApi;
+    public DeepseekMethodsFactory(OllamaChatModel ollamaChatModel) {
+        this.ollamaChatModel = ollamaChatModel;
     }
 
     @Override
@@ -19,6 +19,6 @@ public class DeepseekMethodsFactory implements LlmMethodsFactory {
 
     @Override
     public LlmMethods create(String modelName) {
-        return new DeepseekMethods(ollamaApi, modelName);
+        return new DeepseekMethods(ollamaChatModel, modelName);
     }
 }
