@@ -1,7 +1,9 @@
 Context information is below. Each chunk is enclosed in an xml tag. The opening tag contains the source filename.
 
 ---------------------
+<context>
 {question_answer_context}
+</context>
 ---------------------
 
 Strictly follow these instructions when answering the query:

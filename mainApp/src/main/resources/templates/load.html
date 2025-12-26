@@ -3,23 +3,27 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <title>Form</title>
+    <link rel="stylesheet" href="/css/default.css">
 </head>
 <body>
+  <div th:if="${project.lastIndexedTime == null && admin}" class="warning">
+    <strong>⚠ Warning:</strong> This project is empty. Please add documents in the settings before asking questions.
+  </div>
+
+  <div th:if="${project.lastIndexedTime == null && !admin}" class="warning">
+      <strong>⚠ Warning:</strong> This project is empty. Please contact a project administrator to add documents.
+  </div>
+
   <form action="#" th:action="@{/user/answer}" method="post">
-    <label for="question">Question:</label><br>
+    <label for="question">Question:</label>
     <input type="text" id="question" name="question" required><br>
     <input type="submit" value="Submit">
   </form>
 
-  <form action="#" th:action="@{/user/load}" method="post" th:if="${admin}">
-      <label for="directory">Directory:</label><br>
-      <input type="text" id="directory" name="directory" required><br>
-      <button type="submit">Upload Directory</button>
-      <div id="article-count">0/0 articles indexed</div>
-      <script th:inline="javascript">
-          const articleCountEndpoint = /*[[${articleCountEndpoint}]]*/ '';
-      </script>
-      <script src="/js/articleCount.js"></script>
+  <br>
+
+  <form action="#" th:action="@{/user/admin}" th:if="${admin}" method="post">
+      <button type="submit">Settings</button>
   </form>
 
   <br>
@@ -31,7 +35,11 @@
   <br>
 
   <form action="#" th:action="@{/user/deleteProject}" method="post" th:if="${admin}">
-      <button type="submit" onclick="return confirm('Are you sure you want to delete this project?');">Delete Project</button>
+      <button type="submit" class="delete" onclick="return confirm('Are you sure you want to delete this project?');">Delete Project</button>
+  </form>
+
+  <form action="#" th:action="@{/user/exitProject}" method="post" th:if="${!admin}">
+      <button type="submit" class="delete" onclick="return confirm('Are you sure you want to exit this project?');">Exit Project</button>
   </form>
 </body>
 </html>

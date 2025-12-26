@@ -18,10 +18,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 
 public class DocumentLoader{
-    private final Path f;
-    private final long workspace;
-    private final Instant finalThisTime;
-    private final SynchronizedVectorStore vectorStore;
+    private final VectorStore vectorStore;
     private final ChatModel chatModel;
 
     private final List<String> formats = List.of(".txt", ".html", ".pdf");
@@ -32,10 +29,7 @@ public class DocumentLoader{
     @Value("classpath:prompts/summarize-template.txt")
     private Resource summarizeResource;
 
-    public DocumentLoader(Path f, long workspace, Instant finalThisTime, VectorStore vectorStore, ChatModel chatModel) {
-        this.f = f;
-        this.workspace = workspace;
-        this.finalThisTime = finalThisTime;
+    public DocumentLoader(VectorStore vectorStore, ChatModel chatModel) {
         this.vectorStore = new SynchronizedVectorStore(vectorStore);
         this.chatModel = chatModel;
     }
@@ -43,11 +37,12 @@ public class DocumentLoader{
     /**
      * Adds the document from the path to the database
      */
-    protected void load() {
+    protected void load(Path f, long workspace, Instant finalThisTime) {
         String fileName = f.getFileName().toString();
         String p = f.toString();
-        List<Document> splitDocuments = readAndSplitDocument(p);
+        this.deleteOldDocuments(workspace, finalThisTime, fileName);
 
+        List<Document> splitDocuments = readAndSplitDocument(p);
         List<Document> documentsWithSource = prepareDocumentsWithSource(fileName, workspace, finalThisTime, splitDocuments);
 
         if (!documentsWithSource.isEmpty()) {
@@ -55,7 +50,6 @@ public class DocumentLoader{
         } else {
             System.out.println(fileName + " is empty");
         }
-        this.deleteOldDocuments(workspace, finalThisTime, fileName);
     }
 
     /**

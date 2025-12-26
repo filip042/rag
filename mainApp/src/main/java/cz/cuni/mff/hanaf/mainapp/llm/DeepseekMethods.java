@@ -1,21 +1,20 @@
 package cz.cuni.mff.hanaf.mainapp.llm;
 
-import org.springframework.ai.ollama.api.OllamaApi;
-import org.springframework.ai.ollama.api.OllamaOptions;
+import org.springframework.ai.chat.prompt.Prompt;
+import org.springframework.ai.ollama.OllamaChatModel;
+import org.springframework.ai.ollama.api.OllamaChatOptions;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 
-import java.util.*;
-
 public class DeepseekMethods implements LlmMethods {
-    private final OllamaApi ollamaApi;
+    private final OllamaChatModel ollamaChatModel;
     private final String model;
 
     @Value("classpath:/prompts/check-relevance.txt")
     private Resource systemResource;
 
-    public DeepseekMethods(OllamaApi ollamaApi, String model) {
-        this.ollamaApi = ollamaApi;
+    public DeepseekMethods(OllamaChatModel ollamaChatModel, String model) {
+        this.ollamaChatModel = ollamaChatModel;
         this.model = model;
     }
 
@@ -45,23 +44,13 @@ public class DeepseekMethods implements LlmMethods {
     }
 
     public String callWithoutThinking(String prompt) {
-        Map<String, Object> options = OllamaOptions.builder()
-                .model("deepseek-r1:1.5b")
+        OllamaChatOptions options = OllamaChatOptions.builder()
+                .model(model)
                 .temperature(0.7)
-                .build()
-                .toMap();
-
-        options.put("think", false);
-
-        OllamaApi.ChatRequest request = OllamaApi.ChatRequest.builder(model)
-                .stream(false)
-                .messages(List.of(
-                        OllamaApi.Message.builder(OllamaApi.Message.Role.USER)
-                                .content(prompt)
-                                .build()))
-                .options(options)
+                .disableThinking()
                 .build();
 
-        return ollamaApi.chat(request).message().content();
+        Prompt chatPrompt = new Prompt(prompt, options);
+        return ollamaChatModel.call(chatPrompt).getResult().getOutput().toString();
     }
 }

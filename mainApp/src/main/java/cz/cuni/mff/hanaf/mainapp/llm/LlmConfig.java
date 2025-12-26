@@ -1,18 +1,56 @@
 package cz.cuni.mff.hanaf.mainapp.llm;
 
-import org.springframework.ai.ollama.api.OllamaApi;
-import org.springframework.beans.factory.annotation.Value;
+import cz.cuni.mff.hanaf.mainapp.providers.LlmProperties;
+import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.ai.embedding.EmbeddingModel;
+import org.springframework.ai.ollama.OllamaChatModel;
+import org.springframework.ai.ollama.OllamaEmbeddingModel;
+import org.springframework.ai.openai.OpenAiChatModel;
+import org.springframework.ai.openai.OpenAiEmbeddingModel;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
+
+import java.util.List;
 
 @Configuration
 public class LlmConfig {
     @Bean
-    public LlmMethods llmMethods(OllamaApi ollamaApi, @Value("${spring.ai.ollama.chat.options.model}") String modelName) {
-        return switch (modelName) {
-            case "deepseek-r1:1.5b" -> new DeepseekMethods(ollamaApi, modelName);
-            case "qwen3:0.6b", "qwen3:1.7b" -> new Qwen3Methods(ollamaApi, modelName);
-            default -> throw new IllegalArgumentException("Unknown model: " + modelName);
-        };
+    public LlmMethods llmMethods(LlmProperties llmProperties, List<LlmMethodsFactory> factories) {
+        String modelName = llmProperties.getChat().getModel();
+        return factories.stream()
+                .filter(f -> f.supports(modelName))
+                .findFirst()
+                .map(f -> f.create(modelName))
+                .orElseThrow(() -> new IllegalArgumentException("Unknown model: " + modelName));
+    }
+
+    @Bean
+    @Primary
+    @ConditionalOnProperty(name = "app.llm.provider", havingValue = "openai")
+    public ChatModel openAiChatModelBean(OpenAiChatModel openAiChatModel) {
+        return openAiChatModel;
+    }
+
+    @Bean
+    @Primary
+    @ConditionalOnProperty(name = "app.llm.provider", havingValue = "ollama")
+    public ChatModel ollamaChatModelBean(OllamaChatModel ollamaChatModel) {
+        return ollamaChatModel;
+    }
+
+    @Bean
+    @Primary
+    @ConditionalOnProperty(name = "app.llm.provider", havingValue = "openai")
+    public EmbeddingModel openAiEmbeddingModelBean(OpenAiEmbeddingModel openAiEmbeddingModel) {
+        return openAiEmbeddingModel;
+    }
+
+    @Bean
+    @Primary
+    @ConditionalOnProperty(name = "app.llm.provider", havingValue = "ollama")
+    public EmbeddingModel ollamaEmbeddingModelBean(OllamaEmbeddingModel ollamaEmbeddingModel) {
+        return ollamaEmbeddingModel;
     }
 }

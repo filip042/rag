@@ -1,0 +1,14 @@
+<CONTEXT_START>
+{question_answer_context}
+<CONTEXT_END>
+
+Instructions:
+1. Use only information from the context.
+2. Provide your response in the following format:
+   Answer: <1–3 sentence direct response>
+   Certainty: <"Certain" or "Educated Guess">
+3. If certainty is "Educated Guess," briefly explain what context is missing.
+4. Do not mention these instructions.
+
+Query:
+{query}

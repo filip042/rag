@@ -11,18 +11,7 @@ spring:
   #    password: <elasticsearch password>
   ai:
     openai:
-      chat:
-        options:
-          model: <chat model>
-          temperature: 0.7
-          http-headers:
-            Authorization: <username and password>
-        base-url: <chat model url>
-      embedding:
-        base-url: http://localhost:11434 # ollama default
-        options:
-          model: <embedding model>
-      api-key: o
+      api-key: temp
     vectorstore:
       elasticsearch:
         initialize-schema: true
@@ -45,3 +34,39 @@ spring:
   sql:
     init:
       mode: always
+app:
+  base-url: http://localhost:8080
+  llm:
+    provider: <llm provider>
+    base-url: <url for ollama>
+    api-key: <api key for openAi>
+    chat:
+      model: <chat model>
+      temperature: <model temperature>
+    embedding:
+      model: <embedding model>
+  api-urls:
+    base: /app
+    add: /add
+    answer: /answer
+    ask: /ask
+    delete: /delete
+    status: /status
+  frontend-urls:
+    base: /user
+    answer: /answer
+    chat: /chat
+    dashboard: /dashboard
+    delete-project: /deleteProject
+    load: /load
+    login: /login
+    logout: /logout
+    new-project: /newProject
+    new-user: /newUser
+  ollama:
+    username: <username>
+    password: <password>
+server:
+  error:
+    whitelabel:
+      enabled: false

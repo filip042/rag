@@ -1,0 +1,12 @@
+<CONTEXT_START>
+{question_answer_context}
+<CONTEXT_END>
+
+Instructions:
+1. Answer using only the information found in the context.
+2. After the answer, include a short "Evidence:" section that quotes 1–2 supporting lines from the context.
+3. Keep the answer itself concise.
+4. If definitive evidence is missing, start with "EDUCATED GUESS:".
+
+Query:
+{query}

@@ -2,11 +2,12 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
     <title>Dashboard</title>
+    <link rel="stylesheet" href="/css/default.css">
 </head>
 <body>
 
 <form action="#" th:action="@{/user/chat}" method="post">
-    <label for="projects">Available Projects:</label><br>
+    <label for="projects">Available Projects:</label>
     <select id="projects" name="projectId" required>
         <option th:each="option : ${availableProjects}" th:value="${option.id}" th:text="${option.name}"/>
     </select>
@@ -15,7 +16,7 @@
 </form>
 <br>
 <form action="#" th:action="@{/user/newProject}" method="get" th:object="${users}">
-    <label>New Project:</label><br>
+    <label>New Project:</label>
     <input type="submit" value="Create">
 </form>
 <br>
@@ -23,5 +24,8 @@
     <input type="submit" value="Logout">
 </form>
 
+<form action="#" th:action="@{/user/deleteUser}" method="post">
+    <button type="submit" class="delete" onclick="return confirm('Are you sure you want to delete this user?');">Delete User</button>
+</form>
 </body>
 </html>
