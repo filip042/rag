@@ -3,8 +3,10 @@
 <head>
     <title>Login</title>
     <link rel="stylesheet" href="/css/default.css">
+    <link rel="stylesheet" href="/css/headerFooterLayout.css">
 </head>
 <body>
+<div th:replace="~{fragments/header :: header}"></div>
 
 <div th:if="${error}" class="error">
     <p th:text="${error}"></p>
@@ -28,6 +30,8 @@
     <label>New User:</label>
     <input type="submit" value="Create">
 </form>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
 
 </body>
 </html>

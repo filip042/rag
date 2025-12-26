@@ -4,8 +4,11 @@
     <meta charset="UTF-8"/>
     <title>Admin Settings</title>
     <link rel="stylesheet" href="/css/default.css">
+    <link rel="stylesheet" href="/css/headerFooterLayout.css">
 </head>
 <body>
+
+<div th:replace="~{fragments/header :: header}"></div>
 
 <h1>Project Administration</h1>
 
@@ -94,5 +97,6 @@
 
 <script src="/js/admin.js"></script>
 
+<div th:replace="~{fragments/footer :: footer}"></div>
 </body>
 </html>

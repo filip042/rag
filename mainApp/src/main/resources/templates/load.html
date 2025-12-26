@@ -4,8 +4,11 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <title>Form</title>
     <link rel="stylesheet" href="/css/default.css">
+    <link rel="stylesheet" href="/css/headerFooterLayout.css">
 </head>
 <body>
+<div th:replace="~{fragments/header :: header}"></div>
+
   <div th:if="${project.lastIndexedTime == null && admin}" class="warning">
     <strong>⚠ Warning:</strong> This project is empty. Please add documents in the settings before asking questions.
   </div>
@@ -42,4 +45,7 @@
       <button type="submit" class="delete" onclick="return confirm('Are you sure you want to exit this project?');">Exit Project</button>
   </form>
 </body>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+
 </html>

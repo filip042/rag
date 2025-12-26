@@ -12,8 +12,11 @@
   </script>
 
   <link rel="stylesheet" href="/css/answer.css">
+  <link rel="stylesheet" href="/css/headerFooterLayout.css">
 </head>
 <body>
+<div th:replace="~{fragments/header :: header}"></div>
+
 <div id="answer-area">
   <p id="answer-text">Loading answer. This may take several minutes.</p>
   <div class="spinner" id="spinner"></div>
@@ -29,5 +32,8 @@
 </form>
 
 <script src="/js/answer.js"></script>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+
 </body>
 </html>

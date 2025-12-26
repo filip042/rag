@@ -3,8 +3,11 @@
 <head>
     <title>Create New Project</title>
     <link rel="stylesheet" href="/css/default.css">
+    <link rel="stylesheet" href="/css/headerFooterLayout.css">
 </head>
 <body>
+<div th:replace="~{fragments/header :: header}"></div>
+
 <h2>Create New Project</h2>
 
 <div th:if="${error}" class="error">
@@ -27,5 +30,8 @@
 <form action="#" th:action="@{/user/dashboard}" method="get">
     <input type="submit" value="Back to Dashboard">
 </form>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+
 </body>
 </html>

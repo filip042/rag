@@ -4,8 +4,11 @@
     <meta charset="UTF-8">
     <title>Error</title>
     <link rel="stylesheet" href="/css/default.css">
+    <link rel="stylesheet" href="/css/headerFooterLayout.css">
 </head>
 <body>
+<div th:replace="~{fragments/header :: header}"></div>
+
 <h1 th:text="'Error ' + ${statusCode}">Something went wrong</h1>
 
 <p th:switch="${statusCode}">
@@ -20,5 +23,8 @@
 <form action="#" th:action="@{/user/logout}" method="get">
     <input type="submit" value="Return">
 </form>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+
 </body>
 </html>

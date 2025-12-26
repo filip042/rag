@@ -3,8 +3,11 @@
 <head>
     <title>Dashboard</title>
     <link rel="stylesheet" href="/css/default.css">
+    <link rel="stylesheet" href="/css/headerFooterLayout.css">
 </head>
 <body>
+
+<div th:replace="~{fragments/header :: header}"></div>
 
 <form action="#" th:action="@{/user/chat}" method="post">
     <label for="projects">Available Projects:</label>
@@ -27,5 +30,8 @@
 <form action="#" th:action="@{/user/deleteUser}" method="post">
     <button type="submit" class="delete" onclick="return confirm('Are you sure you want to delete this user?');">Delete User</button>
 </form>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+
 </body>
 </html>

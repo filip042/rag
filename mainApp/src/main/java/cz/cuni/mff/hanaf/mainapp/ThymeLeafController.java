@@ -57,6 +57,8 @@ public class ThymeLeafController {
             });
         }
         Project currentProject = (Project) session.getAttribute("project");
+        User currentUser = (User) session.getAttribute("authenticatedUser");
+        model.addAttribute("currentUser", currentUser.getUsername());
         model.addAttribute("project", currentProject);
         model.addAttribute("admin", session.getAttribute("admin"));
         return "load";
@@ -110,6 +112,7 @@ public class ThymeLeafController {
         projects.addAll(adminProjects);
         model.addAttribute("project", new Project());
         model.addAttribute("availableProjects", projects);
+        model.addAttribute("currentUser", user.getUsername());
 
         return "dashboard";
     }
@@ -181,10 +184,12 @@ public class ThymeLeafController {
         }
         String askUrl = appConfig.getBaseUrl() + appConfig.getApiUrls().getBase() + appConfig.getApiUrls().getAsk();
         String answerUrl = appConfig.getBaseUrl() + appConfig.getApiUrls().getBase() + appConfig.getApiUrls().getAnswer();
+        User currentUser = (User) session.getAttribute("authenticatedUser");
         model.addAttribute("question", question);
         model.addAttribute("workSpace", project.getId());
         model.addAttribute("askUrl", askUrl);
         model.addAttribute("answerUrl", answerUrl);
+        model.addAttribute("currentUser", currentUser.getUsername());
 
         return "answer";
     }
@@ -401,9 +406,11 @@ public class ThymeLeafController {
         String url = appConfig.getBaseUrl() + appConfig.getApiUrls().getBase() + appConfig.getApiUrls().getStatus();
         String loadUrl = appConfig.getBaseUrl() + "/admin" + appConfig.getFrontendUrls().getLoad(); // todo temp
         String parameter = "?workSpace=" + sessionProject.getId();
+        User currentUser = (User) session.getAttribute("authenticatedUser");
         model.addAttribute("articleCountEndpoint", url.concat(parameter));
         model.addAttribute("loadEndpoint", loadUrl);
         model.addAttribute("admin", session.getAttribute("admin"));
+        model.addAttribute("currentUser", currentUser.getUsername());
 
         return "adminSettings";
     }

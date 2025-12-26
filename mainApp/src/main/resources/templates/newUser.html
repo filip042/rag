@@ -3,8 +3,11 @@
 <head>
     <title>Create New User</title>
     <link rel="stylesheet" href="/css/default.css">
+    <link rel="stylesheet" href="/css/headerFooterLayout.css">
 </head>
 <body>
+<div th:replace="~{fragments/header :: header}"></div>
+
 <h2>Create New User</h2>
 
 <div th:if="${error}" class="error">
@@ -37,5 +40,8 @@
 <form action="#" th:action="@{/user/login}" method="get">
     <input type="submit" value="Back to Login">
 </form>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+
 </body>
 </html>
