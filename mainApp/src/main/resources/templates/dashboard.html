@@ -9,7 +9,7 @@
 
 <div th:replace="~{fragments/header :: header}"></div>
 
-<form action="#" th:action="@{/user/chat}" method="post">
+<form action="#" th:action="@{/user/dashboard}" method="post">
     <label for="projects">Available Projects:</label>
     <select id="projects" name="projectId" required>
         <option th:each="option : ${availableProjects}" th:value="${option.id}" th:text="${option.name}"/>

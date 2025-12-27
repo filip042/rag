@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>RAG Assistant - AI-Powered Document Q&A</title>
+    <link rel="stylesheet" href="/css/default.css">
+    <link rel="stylesheet" href="/css/headerFooterLayout.css">
+    <link rel="stylesheet" href="/css/landing.css">
+</head>
+<body>
+
+<div th:replace="~{fragments/header :: header}"></div>
+
+<main class="landing-container">
+    <section class="hero">
+        <h1>🏠 RAG Assistant</h1>
+        <p class="tagline">AI-Powered Document Question & Answer System</p>
+
+        <div class="cta-buttons">
+            <form th:action="@{/user/login}" method="get" style="display: inline;">
+                <button type="submit" class="cta-primary">Get Started</button>
+            </form>
+        </div>
+    </section>
+
+    <section class="features">
+        <h2>Key Features</h2>
+        <div class="feature-grid">
+            <div class="feature-card">
+                <div class="feature-icon">🔍</div>
+                <h3>Intelligent Search</h3>
+                <p>Advanced semantic search finds relevant information across all your documents instantly.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">💬</div>
+                <h3>Natural Conversations</h3>
+                <p>Ask questions in plain language and receive clear, contextual answers with source citations.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">📁</div>
+                <h3>Document Management</h3>
+                <p>Easily upload and organize your document collections for efficient knowledge retrieval.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">👥</div>
+                <h3>Team Collaboration</h3>
+                <p>Share projects with team members and manage access with role-based permissions.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="how-it-works">
+        <h2>How It Works</h2>
+        <div class="steps">
+            <div class="step">
+                <div class="step-number">1</div>
+                <h3>Upload Documents</h3>
+                <p>Add your documents to create a knowledge base</p>
+            </div>
+
+            <div class="step-arrow">→</div>
+
+            <div class="step">
+                <div class="step-number">2</div>
+                <h3>Ask Questions</h3>
+                <p>Query your documents using natural language</p>
+            </div>
+
+            <div class="step-arrow">→</div>
+
+            <div class="step">
+                <div class="step-number">3</div>
+                <h3>Get Answers</h3>
+                <p>Receive accurate responses with source citations</p>
+            </div>
+        </div>
+    </section>
+</main>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+</body>
+</html>

@@ -5,46 +5,50 @@ spring:
     client:
       connect-timeout: 1200s
       read-timeout: 1200s
-  elasticsearch:
-    uris: http://localhost:9200
-  #    username: <elasticsearch username>
-  #    password: <elasticsearch password>
   ai:
     openai:
-      api-key: temp
-    vectorstore:
-      elasticsearch:
-        initialize-schema: true
-        index-name: <index name>
-        dimensions: <embedding model dimensions>
-        similarity: cosine
+      api-key: <api key for tests>
+      chat:
+        options:
+          max-tokens: 1000 <might be unnecessary>
   datasource:
-    url: jdbc:h2:mem:testdb  # for in-memory database
+    url: jdbc:h2:mem:testdb #file:/data/demo
     username: <username>
     password: <password>
     driverClassName: org.h2.Driver
   jpa:
-    database-platform: <database platform>
+    database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
       ddl-auto: create
-    defer-datasource-initialization: true  # create tables before sql commands from data.sql are executed
+    defer-datasource-initialization: true
   h2:
     console:
       enabled: true
   sql:
     init:
       mode: always
+  main:
+    allow-bean-definition-overriding: true <todo probably remove when seperation into dependencies done>
 app:
   base-url: http://localhost:8080
   llm:
-    provider: <llm provider>
-    base-url: <url for ollama>
-    api-key: <api key for openAi>
+    provider: <provider>
+    base-url: <ollama base url>
+    api-key: <openAi api key>
     chat:
       model: <chat model>
-      temperature: <model temperature>
+      temperature: <llm temperature>
     embedding:
       model: <embedding model>
+  vectorstore:
+    provider: <vectorstore provider>
+    uris: http://localhost:9200
+    username: <todo check if set>
+    password: <todo ditto>
+    initialize-schema: true
+    index-name: <index name>
+    dimensions: <index dimensions, corresponds to embedding model>
+    similarity: cosine
   api-urls:
     base: /app
     add: /add

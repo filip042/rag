@@ -32,32 +32,27 @@ public class ThymeLeafController {
         this.passwordEncoder = passwordEncoder;
     }
 
+    @GetMapping("/")
+    public String landingPage() {
+        return "index";
+    }
+
     /**
      * Loads the form for working with the LLM
      *
-     * @param projectId The ID of the current project
      * @param session The http session with the current project, if such a project exists
      * @return a view name or redirect string:
      *         - The template name of the form if the project id is valid
      *         - "redirect:/user/logout" otherwise
      */
-    @PostMapping("/chat")
-    public String loadForm(@RequestParam(value = "projectId", required = false) Long projectId, HttpSession session, Model model) {
-        String logoutUrl = appConfig.getFrontendUrls().getBase() + appConfig.getFrontendUrls().getLogout();
-        if ((projectId == null && session.getAttribute("project") == null) || session.getAttribute("authenticatedUser") == null) {
-            System.out.println(projectId);
-            System.out.println(session.getAttribute("authenticatedUser"));
-            return "redirect:" + logoutUrl;
-        }
-        if (projectId != null) {
-            projectRepository.findById(projectId).ifPresent(project -> {
-                session.setAttribute("project", project);
-                long id = ((User) session.getAttribute("authenticatedUser")).getId();
-                session.setAttribute("admin", projectRepository.findByAdminUsers_Id(id).contains(project));
-            });
-        }
+    @GetMapping("/chat")
+    public String loadForm(HttpSession session, Model model) {
         Project currentProject = (Project) session.getAttribute("project");
         User currentUser = (User) session.getAttribute("authenticatedUser");
+        if (currentProject == null || currentUser == null) {
+            String dashboardUrl = appConfig.getFrontendUrls().getBase() + appConfig.getFrontendUrls().getDashboard();
+            return "redirect:" + dashboardUrl;
+        }
         model.addAttribute("currentUser", currentUser.getUsername());
         model.addAttribute("project", currentProject);
         model.addAttribute("admin", session.getAttribute("admin"));
@@ -115,6 +110,25 @@ public class ThymeLeafController {
         model.addAttribute("currentUser", user.getUsername());
 
         return "dashboard";
+    }
+
+    @PostMapping("/dashboard")
+    public String verifyProject(@RequestParam("projectId") Long projectId, HttpSession session) {
+        User user = (User) session.getAttribute("authenticatedUser");
+        String dashboardUrl = appConfig.getFrontendUrls().getBase() + appConfig.getFrontendUrls().getDashboard();
+
+        if (user == null) {
+            return "redirect:" + dashboardUrl;
+        }
+
+        projectRepository.findById(projectId).ifPresent(project -> {
+            session.setAttribute("project", project);
+            session.setAttribute("admin", projectRepository.findByAdminUsers_Id(user.getId()).contains(project));
+        });
+
+        String chatUrl = appConfig.getFrontendUrls().getBase() + appConfig.getFrontendUrls().getChat();
+
+        return "redirect:" + chatUrl;
     }
 
     /**
@@ -220,7 +234,8 @@ public class ThymeLeafController {
     public String createNewUser(
             @ModelAttribute("user") User user,
             @RequestParam("confirmPassword") String confirmPassword,
-            Model model
+            Model model,
+            HttpSession session
     ) {
         if (user.getUsername() == null || user.getUsername().trim().isEmpty()) {
             model.addAttribute("error", "Username cannot be empty");
@@ -240,9 +255,10 @@ public class ThymeLeafController {
         }
         try {
             user.setPassword(passwordEncoder.encode(user.getPassword()));
-            userRepository.save(user);
-            String loginUrl = appConfig.getFrontendUrls().getBase() + appConfig.getFrontendUrls().getLogin();
-            return "redirect:" + loginUrl;
+            User savedUser = userRepository.save(user);
+            session.setAttribute("authenticatedUser", savedUser);
+            String dashboardUrl = appConfig.getFrontendUrls().getBase() + appConfig.getFrontendUrls().getDashboard();
+            return "redirect:" + dashboardUrl;
         } catch (Exception e) {
             model.addAttribute("error", "Error creating user");
             return "newUser";
@@ -283,11 +299,13 @@ public class ThymeLeafController {
             return "newProject";
         }
         try {
-            projectRepository.save(project);
-            String url = appConfig.getFrontendUrls().getBase() + appConfig.getFrontendUrls().getDashboard();
+            Project savedProject = projectRepository.save(project);
+            session.setAttribute("project", savedProject);
+            session.setAttribute("admin", true);
+            String url = appConfig.getFrontendUrls().getBase() + appConfig.getFrontendUrls().getChat();
             return "redirect:" + url;
         } catch (Exception e) {
-            model.addAttribute("error", "Error creating user");
+            model.addAttribute("error", "Error creating project");
             return "newProject";
         }
     }
