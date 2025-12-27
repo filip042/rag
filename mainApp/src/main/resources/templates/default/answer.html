@@ -11,8 +11,8 @@
     const workSpace = /*[[${workSpace}]]*/ 0;
   </script>
 
-  <link rel="stylesheet" href="/css/answer.css">
-  <link rel="stylesheet" href="/css/headerFooterLayout.css">
+  <link rel="stylesheet" th:href="@{/css/default.css}">
+  <link rel="stylesheet" th:href="@{/css/headerFooterLayout.css}">
 </head>
 <body>
 <div th:replace="~{fragments/header :: header}"></div>
