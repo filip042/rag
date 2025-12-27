@@ -27,8 +27,8 @@
         const loadEndpoint = /*[[${loadEndpoint}]]*/ '';
     </script>
 
-    <script src="/js/articleCount.js"></script>
-    <script src="/js/loadDirectory.js"></script>
+    <script th:src="@{/js/articleCount.js}"></script>
+    <script th:src="@{/js/loadDirectory.js}"></script>
 </form>
 
 <br>
@@ -95,7 +95,7 @@
     <button type="submit">Return to Dashboard</button>
 </form>
 
-<script src="/js/admin.js"></script>
+<script th:src="@{/js/admin.js}"></script>
 
 <div th:replace="~{fragments/footer :: footer}"></div>
 </body>
