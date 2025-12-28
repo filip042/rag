@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -90,16 +91,17 @@ public class RagController {
         return fileLoader.allAdded(workSpace);
     }
 
-    /**
-     * Adds the documents in the given directory to the given workspace
-     *
-     * @param payload A map containing the path to the directory and the id of the workspace the documents will be added to
-     */
+    // todo
     @PostMapping("/add")
-    public void md(@RequestBody Map<String, Object> payload) {
-        String path = (String) payload.get("path");
-        long workSpace = ((Number) payload.get("workSpace")).longValue();
-        fileLoader.addDoc(path, workSpace);
+    public ResponseEntity<String> uploadFiles(@RequestParam("files") MultipartFile[] files,
+            @RequestParam("workSpace") long workSpace) {
+        try {
+            fileLoader.addDocuments(files, workSpace);
+            return ResponseEntity.ok("Upload started");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Upload failed: " + e.getMessage());
+        }
     }
 
     /**

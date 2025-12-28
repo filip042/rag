@@ -159,6 +159,30 @@ div {
     margin-bottom: 10px;
 }
 
+.upload-type-selector {
+    margin-bottom: 15px;
+}
+
+.upload-type-selector label {
+    display: inline;
+    font-weight: normal;
+    margin-right: 20px;
+}
+
+.upload-type-selector input[type="radio"] {
+    margin-right: 5px;
+}
+
+.hidden {
+    display: none;
+}
+
+#selected-files {
+    margin-top: 10px;
+    color: #666;
+}
+
+
 @media (prefers-color-scheme: dark) {
     body {
         background-color: #1a1a1a;
@@ -247,6 +271,10 @@ div {
     }
 
     #article-count {
+        color: #999;
+    }
+
+    #selected-files {
         color: #999;
     }
 }

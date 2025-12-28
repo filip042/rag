@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -61,17 +62,6 @@ public class FileLoader {
     private final Map<Long, CompletableFuture<Void>> indexingTasks = new ConcurrentHashMap<>();
     private final Map<Long, ConcurrentLinkedQueue<String>> finishedFiles = new ConcurrentHashMap<>();
     private final Map<Long, List<Path>> allFilesToIndex = new ConcurrentHashMap<>();
-
-    /**
-     * Checks if a given path is a directory
-     *
-     * @param path The path to check
-     * @return True if the path is a directory, false otherwise
-     */
-    private Boolean isDir(Path path) { // todo move to own class
-        if (path == null || !Files.exists(path)) return false;
-        else return Files.isDirectory(path);
-    }
 
     /**
      * Return the given amount of documents most similar to the given query from the given workspace
@@ -182,21 +172,13 @@ public class FileLoader {
         }, llmExecutor);
     }
 
-    /**
-     * Adds the documents in the given directory to the database
-     *
-     * @param path The path to the directory with the documents as a string
-     * @param workspace The id of the workspace the documents are being added to as a long
-     */
-    public void addDoc(String path, long workspace) {
-        System.out.println(path);
-        Path directory = Path.of(path);
-
-        if (!isDir(directory)) {
+    // todo
+    public void addDocuments(MultipartFile[] files, long workspace) {
+        if (files == null || files.length == 0) {
             return;
         }
 
-        try (Stream<Path> paths = Files.walk(directory)) {
+        try {
             Instant indexingStartTime = Instant.now();
             ConcurrentLinkedQueue<String> finishedQueue = new ConcurrentLinkedQueue<>();
             finishedFiles.put(workspace, finishedQueue);
@@ -205,11 +187,22 @@ public class FileLoader {
             Set<String> existingFiles = Optional.ofNullable(project.getFiles()).orElseGet(HashSet::new);
             Instant lastIndexedTime = project.getLastIndexedTime();
 
-            List<Path> toIndex = paths.filter(Files::isRegularFile).toList();
+            Path tempDir = Files.createTempDirectory("uploads_" + workspace);
+
+            List<Path> toIndex = new ArrayList<>();
+            for (MultipartFile file : files) {
+                if (!file.isEmpty()) {
+                    Path filePath = tempDir.resolve(file.getOriginalFilename());
+                    Files.createDirectories(filePath.getParent());
+                    file.transferTo(filePath.toFile());
+                    toIndex.add(filePath);
+                }
+            }
+
             allFilesToIndex.put(workspace, toIndex);
 
             Set<String> currentFiles = toIndex.stream()
-                    .map(Path::toString)
+                    .map(path -> path.getFileName().toString())
                     .collect(Collectors.toSet());
 
             Set<String> filesToRemove = existingFiles.stream()
@@ -222,8 +215,9 @@ public class FileLoader {
                             if (lastIndexedTime == null) {
                                 return true;
                             }
-                            if (existingFiles.contains(f.toString()) && !Files.getLastModifiedTime(f).toInstant().isAfter(lastIndexedTime)) {
-                                finishedQueue.add(f.toString());
+                            String fileName = f.getFileName().toString();
+                            if (existingFiles.contains(fileName) && !Files.getLastModifiedTime(f).toInstant().isAfter(lastIndexedTime)) {
+                                finishedQueue.add(fileName);
                                 return false;
                             }
                             return true;
@@ -240,7 +234,7 @@ public class FileLoader {
                         } catch (Exception e) {
                             System.err.println("Failed processing " + f + ": " + e.getMessage());
                         }
-                        finishedQueue.add(f.toString());
+                        finishedQueue.add(f.getFileName().toString());
                     }, llmExecutor))
                     .toList();
 
@@ -251,14 +245,28 @@ public class FileLoader {
                 if (!filesToRemove.isEmpty()) {
                     System.out.println("Removing " + filesToRemove.size() + " deleted files");
                     for (String fileToRemove : filesToRemove) {
-                        String fileName = Path.of(fileToRemove).getFileName().toString();
-                        deleteDocumentsForFile(workspace, fileName);
+                        deleteDocumentsForFile(workspace, fileToRemove);
                     }
                 }
 
                 project.setFiles(currentFiles);
                 project.setLastIndexedTime(indexingStartTime);
                 projectRepository.save(project);
+
+                // Clean up temporary directory
+                try {
+                    Files.walk(tempDir)
+                            .sorted(Comparator.reverseOrder())
+                            .forEach(path -> {
+                                try {
+                                    Files.delete(path);
+                                } catch (IOException e) {
+                                    System.err.println("Failed to delete temp file: " + path);
+                                }
+                            });
+                } catch (IOException e) {
+                    System.err.println("Failed to clean up temp directory: " + e.getMessage());
+                }
             });
 
         } catch (IOException e) {

@@ -13,12 +13,30 @@
 <h1>Project Administration</h1>
 
 <form id="loadForm" th:if="${admin}">
-    <h2>Upload Directory</h2>
+    <h2>Upload Files or Directory</h2>
 
-    <label for="directory">Directory:</label>
-    <input type="text" id="directory" name="directory" required><br>
+    <div class="upload-type-selector">
+        <label>
+            <input type="radio" name="uploadType" value="files" checked> Upload Individual Files
+        </label>
+        <label>
+            <input type="radio" name="uploadType" value="directory"> Upload Directory
+        </label>
+    </div>
 
-    <button type="submit">Upload Directory</button>
+    <div id="filesInputContainer">
+        <label for="fileInput">Select Files:</label>
+        <input type="file" id="fileInput" name="files" multiple>
+    </div>
+
+    <div id="directoryInputContainer" class="hidden">
+        <label for="directoryInput">Select Directory:</label>
+        <input type="file" id="directoryInput" name="directory" webkitdirectory>
+    </div>
+
+    <div id="selected-files"></div>
+
+    <button type="submit">Upload</button>
 
     <div id="article-count">0/0 articles indexed</div>
 
