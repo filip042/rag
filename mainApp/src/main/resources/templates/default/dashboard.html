@@ -9,15 +9,17 @@
 
 <div th:replace="~{fragments/header :: header}"></div>
 
-<form action="#" th:action="@{/user/dashboard}" method="post">
-    <label for="projects">Available Projects:</label>
-    <select id="projects" name="projectId" required>
-        <option th:each="option : ${availableProjects}" th:value="${option.id}" th:text="${option.name}"/>
-    </select>
+<div th:if="${availableProjects != null && !availableProjects.isEmpty()}">
+    <form action="#" th:action="@{/user/dashboard}" method="post">
+        <label for="projects">Available Projects:</label>
+        <select id="projects" name="projectId" required>
+            <option th:each="option : ${availableProjects}" th:value="${option.id}" th:text="${option.name}"/>
+        </select>
+        <br>
+        <input type="submit" value="Select">
+    </form>
     <br>
-    <input type="submit" value="Select">
-</form>
-<br>
+</div>
 <form action="#" th:action="@{/user/newProject}" method="get" th:object="${users}">
     <label>New Project:</label>
     <input type="submit" value="Create">
