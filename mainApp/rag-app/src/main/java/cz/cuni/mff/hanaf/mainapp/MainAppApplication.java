@@ -1,14 +1,15 @@
 package cz.cuni.mff.hanaf.mainapp;
 
+import cz.cuni.mff.hanaf.core.config.LlmProperties;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.web.client.RestTemplate;
 
 @SpringBootApplication
-@ConfigurationPropertiesScan("cz.cuni.mff.hanaf.core.config")
+@EnableConfigurationProperties(LlmProperties.class)
 public class MainAppApplication {
 
 	public static void main(String[] args) {

@@ -1,6 +1,5 @@
-package cz.cuni.mff.hanaf.mainapp.llm;
+package cz.cuni.mff.hanaf.ollama.config;
 
-import cz.cuni.mff.hanaf.mainapp.AppConfig;
 import org.springframework.ai.model.ollama.autoconfigure.OllamaConnectionProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -14,14 +13,14 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 @Configuration
-@EnableConfigurationProperties({OllamaConnectionProperties.class, AppConfig.class})
+@EnableConfigurationProperties({OllamaConnectionProperties.class, OllamaAuthProperties.class})
 public class OllamaConfig {
     @Primary
     @Bean
-    public OllamaApi ollamaApi(OllamaConnectionProperties ollamaProps, AppConfig appConfig) {
+    public OllamaApi ollamaApi(OllamaConnectionProperties ollamaProps, OllamaAuthProperties authProps) {
         ExchangeFilterFunction basicAuthFilter = ExchangeFilterFunction.ofRequestProcessor(request -> {
             ClientRequest filtered = ClientRequest.from(request)
-                    .headers(h -> h.setBasicAuth(appConfig.getOllama().getUsername(), appConfig.getOllama().getPassword()))
+                    .headers(h -> h.setBasicAuth(authProps.getUsername(), authProps.getPassword()))
                     .build();
             return Mono.just(filtered);
         });
@@ -31,7 +30,7 @@ public class OllamaConfig {
 
         RestClient.Builder restClientBuilder = RestClient.builder()
                 .requestInterceptor((request, body, execution) -> {
-                    request.getHeaders().setBasicAuth(appConfig.getOllama().getUsername(), appConfig.getOllama().getPassword());
+                    request.getHeaders().setBasicAuth(authProps.getUsername(), authProps.getPassword());
                     return execution.execute(request, body);
                 });
 
