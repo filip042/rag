@@ -27,6 +27,7 @@
         <module>rag-starter-llm-gpt4o-openai</module>
         <module>rag-starter-vectorstore-elasticsearch</module>
         <module>rag-app</module>
+        <module>rag-integration-tests</module>
     </modules>
 
     <properties>
@@ -57,6 +58,12 @@
             <dependency>
                 <groupId>cz.cuni.mff.hanaf</groupId>
                 <artifactId>rag-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>cz.cuni.mff.hanaf</groupId>
+                <artifactId>rag-app</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
@@ -93,6 +100,12 @@
             <dependency>
                 <groupId>cz.cuni.mff.hanaf</groupId>
                 <artifactId>rag-starter-vectorstore-elasticsearch</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>cz.cuni.mff.hanaf</groupId>
+                <artifactId>rag-integration-tests</artifactId>
                 <version>${project.version}</version>
             </dependency>
         </dependencies>
