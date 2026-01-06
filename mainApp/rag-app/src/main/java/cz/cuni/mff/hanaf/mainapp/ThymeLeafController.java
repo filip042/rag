@@ -134,7 +134,7 @@ public class ThymeLeafController {
     /**
      * Checks if the login credentials are valid, and if they are, logs the user in
      *
-     * @param id The id of the user chosen
+     * @param username The username entered by the user
      * @param password The password entered by the user
      * @param model The model to add errors and form data to
      * @param session The http session where the authenticated user is set
@@ -144,12 +144,12 @@ public class ThymeLeafController {
      */
     @PostMapping("/login")
     public String verifyUser(
-            @ModelAttribute("userId") Long id,
+            @RequestParam("username") String username,
             @RequestParam("password") String password,
             Model model,
             HttpSession session
     ) {
-        User existingUser = userRepository.findById(id)
+        User existingUser = userRepository.findByUsername(username)
                 .orElse(null);
 
         if (existingUser != null && passwordMatches(existingUser, password)) {
@@ -158,10 +158,6 @@ public class ThymeLeafController {
             return "redirect:" + dashboardUrl;
         } else {
             model.addAttribute("error", "Invalid username or password");
-
-            List<User> users = userRepository.findAll();
-
-            model.addAttribute("availableUsers", users);
             return "chooseUser";
         }
     }

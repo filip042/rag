@@ -12,21 +12,17 @@
     <p th:text="${error}"></p>
 </div>
 
-<div th:if="${availableUsers != null && !availableUsers.isEmpty()}">
-    <form action="#" th:action="@{/user/login}" method="post">
-        <label for="users">Available Users:</label>
-        <select id="users" name="userId" required>
-            <option th:each="option : ${availableUsers}" th:value="${option.id}" th:text="${option.username}"/>
-        </select>
-        <br>
-        <label for="password">Password:</label>
-        <input type="password" id="password" name="password" required>
-        <br>
-        <input type="submit" value="Submit">
-    </form>
-
+<form action="#" th:action="@{/user/login}" method="post">
+    <label for="username">Username:</label>
+    <input type="text" id="username" name="username" required>
     <br>
-</div>
+    <label for="password">Password:</label>
+    <input type="password" id="password" name="password" required>
+    <br>
+    <input type="submit" value="Submit">
+</form>
+
+<br>
 
 <form action="#" th:action="@{/user/newUser}" method="get">
     <label>New User:</label>
