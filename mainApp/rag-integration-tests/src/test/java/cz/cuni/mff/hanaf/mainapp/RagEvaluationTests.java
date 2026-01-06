@@ -141,8 +141,7 @@ class RagEvaluationTests {
         Resource resource = new ClassPathResource("rag-testcases.csv");
         return Files.lines(Path.of(resource.getURI()))
                 .skip(1)
-                .map(line -> line.split(","))
-                .map(cols -> Arrays.copyOf(cols, 3))
+                .map(line -> line.split(",", 3))
                 .collect(Collectors.toList());
     }
 

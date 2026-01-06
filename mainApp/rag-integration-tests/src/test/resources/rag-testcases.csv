@@ -1,2 +1,6 @@
-id,query,expected,workspace,repetitions
-t1,Who is J.R.R. Tolkien?,J._R._R._Tolkien.txt;1,1
+id,query,expected
+t1,Who is J.R.R. Tolkien?,J._R._R._Tolkien.txt
+t2,Who wrote The Hobbit?,J._R._R._Tolkien.txt;The_Hobbit.txt
+t3,What was the relationship between Robert Howard and Lovecraft?,H._P._Lovecraft.txt;Robert_E._Howard.txt
+t4,When was The Hobbit published?,The_Hobbit.txt
+t5,Compare Tolkien and Lovecraft's writing styles,J._R._R._Tolkien.txt;H._P._Lovecraft.txt

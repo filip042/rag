@@ -1,0 +1,13 @@
+<CONTEXT_START>
+{question_answer_context}
+<CONTEXT_END>
+
+Instructions:
+1. Think step-by-step about what the context tells you.
+2. Briefly explain your reasoning (1-2 sentences).
+3. Provide a concise final answer.
+4. Use only information from the context.
+5. If uncertain, mark as "EDUCATED GUESS:" and explain why.
+
+Query:
+{query}

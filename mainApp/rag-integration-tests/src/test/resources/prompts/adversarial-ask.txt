@@ -1,0 +1,14 @@
+<CONTEXT_START>
+{question_answer_context}
+<CONTEXT_END>
+
+CRITICAL: You must ONLY use information explicitly stated in the context above.
+
+Instructions:
+1. If the answer is NOT in the context, respond with exactly: "INSUFFICIENT CONTEXT"
+2. Do NOT make educated guesses.
+3. Do NOT use external knowledge.
+4. If you can answer, be direct and cite specific context.
+
+Query:
+{query}

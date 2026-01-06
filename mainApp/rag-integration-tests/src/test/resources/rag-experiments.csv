@@ -1,25 +1,26 @@
 experiment_id,provider,model,prompt,temperature,workspace,repetitions
-exp6,ollama,deepseek-r1:1.5b,default,0.7,1,1
-exp7,ollama,deepseek-r1:1.5b,default,0.7,2,1
-exp8,ollama,deepseek-r1:1.5b,default,0.7,3,1
-exp9,ollama,deepseek-r1:1.5b,default,0.7,4,1
-exp10,ollama,deepseek-r1:1.5b,analyst-ask,0.6,1,2
-exp11,ollama,deepseek-r1:1.5b,evidence-ask,0.8,2,2
-exp12,ollama,deepseek-r1:1.5b,expert-ask,0.7,3,1
-exp13,ollama,deepseek-r1:1.5b,json-ask,0.5,4,2
-exp14,ollama,deepseek-r1:1.5b,judge-ask,0.6,1,1
-exp15,ollama,deepseek-r1:1.5b,precision-ask,0.8,2,2
-exp16,ollama,deepseek-r1:1.5b,specific-ask,0.7,3,1
-exp17,ollama,deepseek-r1:1.5b,structured-ask,0.5,4,2
-exp18,ollama,qwen3:0.6b,default,0.7,1,1
-exp19,ollama,qwen3:0.6b,default,0.7,2,1
-exp20,ollama,qwen3:0.6b,default,0.7,3,1
-exp21,ollama,qwen3:0.6b,default,0.7,4,1
-exp22,ollama,qwen3:0.6b,analyst-ask,0.6,1,2
-exp23,ollama,qwen3:0.6b,evidence-ask,0.8,2,2
-exp24,ollama,qwen3:0.6b,expert-ask,0.7,3,1
-exp25,ollama,qwen3:0.6b,json-ask,0.5,4,2
-exp26,ollama,qwen3:0.6b,judge-ask,0.6,1,1
-exp27,ollama,qwen3:0.6b,precision-ask,0.8,2,2
-exp28,ollama,qwen3:0.6b,specific-ask,0.7,3,1
-exp29,ollama,qwen3:0.6b,structured-ask,0.5,4,2
+# Baseline - understand temperature impact with default prompt
+base_openai_t0,openai,gpt-4o-mini,default,0.0,0,3
+base_openai_t6,openai,gpt-4o-mini,default,0.6,0,3
+base_openai_t10,openai,gpt-4o-mini,default,1.0,0,3
+base_deepseek_t6,ollama,deepseek-r1:1.5b,default,0.6,0,3
+base_qwen_t6,ollama,qwen3:0.6b,default,0.6,0,3
+
+# Core prompt variations - GPT-4o-mini at optimal temperatures
+prompt_precision,openai,gpt-4o-mini,precision-ask,0.6,0,3
+prompt_evidence,openai,gpt-4o-mini,evidence-ask,0.7,0,3
+prompt_expert,openai,gpt-4o-mini,expert-ask,0.7,0,3
+prompt_json,openai,gpt-4o-mini,json-ask,0.6,0,3
+prompt_adversarial,openai,gpt-4o-mini,adversarial-ask,0.5,0,3
+prompt_minimal,openai,gpt-4o-mini,minimal-ask,0.6,0,3
+
+# Best prompts on small models - your standard temp
+best_deepseek_evidence,ollama,deepseek-r1:1.5b,evidence-ask,0.6,0,3
+best_deepseek_minimal,ollama,deepseek-r1:1.5b,minimal-ask,0.6,0,3
+best_qwen_evidence,ollama,qwen3:0.6b,evidence-ask,0.6,0,3
+best_qwen_minimal,ollama,qwen3:0.6b,minimal-ask,0.6,0,3
+
+# Critical comparison - deterministic vs creative for key prompts
+evidence_t0,openai,gpt-4o-mini,evidence-ask,0.0,0,3
+adversarial_t0,openai,gpt-4o-mini,adversarial-ask,0.0,0,3
+adversarial_t7,openai,gpt-4o-mini,adversarial-ask,0.7,0,3
