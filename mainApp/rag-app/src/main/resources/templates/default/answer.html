@@ -17,7 +17,13 @@
 <body>
 <div th:replace="~{fragments/header :: header}"></div>
 
+<div id="question-area">
+  <h3>Question:</h3>
+  <p id="question-text" th:text="${question}"></p>
+</div>
+
 <div id="answer-area">
+  <h3>Answer:</h3>
   <p id="answer-text">Loading answer. This may take several minutes.</p>
   <div class="spinner" id="spinner"></div>
 </div>

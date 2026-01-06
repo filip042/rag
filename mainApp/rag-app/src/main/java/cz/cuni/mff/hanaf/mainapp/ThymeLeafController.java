@@ -67,9 +67,7 @@ public class ThymeLeafController {
      */
     @GetMapping("/login")
     public String chooseUser(Model model) {
-        List<User> users = userRepository.findAll();
         model.addAttribute("user", new User());
-        model.addAttribute("availableUsers", users);
         return "chooseUser";
     }
 

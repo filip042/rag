@@ -1,36 +1,44 @@
 body {
     font-family: Arial, sans-serif;
-    max-width: 600px;
+    max-width: 900px;
     margin: 40px auto;
     padding: 20px;
     background-color: #f4f4f4;
     line-height: 1.6;
     color: #333;
-    text-align: center;
 }
 
 h3 {
-    margin-top: 30px;
     color: #222;
-    text-align: left;
+    margin-bottom: 10px;
+}
+
+#question-area {
+    background-color: white;
+    padding: 25px 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+
+#question-text {
+    margin: 0;
+    font-size: 1.1em;
+    color: #333;
 }
 
 #answer-area {
     background-color: white;
-    padding: 30px;
+    padding: 25px 30px;
     border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     margin-bottom: 20px;
     min-height: 150px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
 }
 
 #answer-text {
     margin-bottom: 20px;
-    font-size: 1.1em;
+    font-size: 1em;
 }
 
 .spinner {
@@ -40,7 +48,7 @@ h3 {
     width: 60px;
     height: 60px;
     animation: spin 1.5s linear infinite;
-    margin: auto;
+    margin: 20px auto;
 }
 
 @keyframes spin {
@@ -50,16 +58,20 @@ h3 {
 
 #sources {
     background-color: white;
-    padding: 20px 25px;
+    padding: 25px 30px;
     border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     margin-bottom: 20px;
-    text-align: left;
+}
+
+#sources h3 {
+    margin-top: 0;
 }
 
 #sources ul {
     list-style-type: disc;
     padding-left: 20px;
+    margin: 0;
 }
 
 #sources li {
@@ -105,11 +117,14 @@ button:hover {
         color: #f0f0f0;
     }
 
-    #answer-area {
+    #question-area,
+    #answer-area,
+    #sources {
         background-color: #2d2d2d;
         box-shadow: 0 4px 6px rgba(0,0,0,0.3);
     }
 
+    #question-text,
     #answer-text {
         color: #e0e0e0;
     }
@@ -117,12 +132,6 @@ button:hover {
     .spinner {
         border: 12px solid #444;
         border-top: 12px solid #3498db;
-    }
-
-    #sources {
-        background-color: #2d2d2d;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-        color: #e0e0e0;
     }
 
     input[type="submit"],
