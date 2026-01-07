@@ -5,6 +5,7 @@
     <title>Admin Settings</title>
     <link rel="stylesheet" th:href="@{/css/default.css}">
     <link rel="stylesheet" th:href="@{/css/headerFooterLayout.css}">
+    <link rel="stylesheet" th:href="@{/css/upload-steps.css}">
 </head>
 <body>
 
@@ -15,30 +16,60 @@
 <form id="loadForm" th:if="${admin}">
     <h2>Upload Files or Directory</h2>
 
-    <div class="upload-type-selector">
-        <label>
-            <input type="radio" name="uploadType" value="files" checked> Upload Individual Files
-        </label>
-        <label>
-            <input type="radio" name="uploadType" value="directory"> Upload Directory
-        </label>
+    <!-- Step 1: Choose Upload Type -->
+    <div class="step-container" id="step1">
+        <div class="step-header">
+            <div class="step-number">1</div>
+            <h3 class="step-title">Choose Upload Type</h3>
+        </div>
+        <div class="step-content">
+            <div class="upload-type-selector">
+                <label>
+                    <input type="radio" name="uploadType" value="files" checked> Upload Individual Files
+                </label>
+                <label>
+                    <input type="radio" name="uploadType" value="directory"> Upload Directory
+                </label>
+            </div>
+        </div>
     </div>
 
-    <div id="filesInputContainer">
-        <label for="fileInput">Select Files:</label>
-        <input type="file" id="fileInput" name="files" multiple>
+    <!-- Step 2: Select Files -->
+    <div class="step-container" id="step2">
+        <div class="step-header">
+            <div class="step-number">2</div>
+            <h3 class="step-title">Select Files from Your Computer</h3>
+        </div>
+        <div class="step-content">
+            <div id="filesInputContainer">
+                <label for="fileInput">Select Files:</label>
+                <input type="file" id="fileInput" name="files" multiple>
+            </div>
+
+            <div id="directoryInputContainer" class="hidden">
+                <label for="directoryInput">Select Directory:</label>
+                <input type="file" id="directoryInput" name="directory" webkitdirectory>
+            </div>
+
+            <div id="selected-files" class="empty"></div>
+        </div>
     </div>
 
-    <div id="directoryInputContainer" class="hidden">
-        <label for="directoryInput">Select Directory:</label>
-        <input type="file" id="directoryInput" name="directory" webkitdirectory>
+    <!-- Step 3: Index Files -->
+    <div class="step-container disabled" id="step3">
+        <div class="step-header">
+            <div class="step-number">3</div>
+            <h3 class="step-title">Index Files in Database</h3>
+        </div>
+        <div class="step-content">
+            <button type="submit" id="uploadButton" disabled>Upload and Index</button>
+
+            <div class="indexing-status" id="indexingStatus">
+                <strong>Indexing in progress...</strong>
+                <div id="article-count">0/0 articles indexed</div>
+            </div>
+        </div>
     </div>
-
-    <div id="selected-files"></div>
-
-    <button type="submit">Upload</button>
-
-    <div id="article-count">0/0 articles indexed</div>
 
     <script th:inline="javascript">
         const articleCountEndpoint = /*[[${articleCountEndpoint}]]*/ '';
@@ -47,6 +78,7 @@
 
     <script th:src="@{/js/articleCount.js}"></script>
     <script th:src="@{/js/loadDirectory.js}"></script>
+    <script th:src="@{/js/upload-steps.js}"></script>
 </form>
 
 <br>
