@@ -203,9 +203,16 @@ public class FileLoader {
                     .map(path -> path.getFileName().toString())
                     .collect(Collectors.toSet());
 
-            Set<String> filesToRemove = existingFiles.stream()
-                    .filter(file -> !currentFiles.contains(file))
+            Set<String> filesToRemove = currentFiles.stream()
+                    .filter(existingFiles::contains)
                     .collect(Collectors.toSet());
+
+            if (!filesToRemove.isEmpty()) {
+                System.out.println("Removing old versions of " + filesToRemove.size() + " files");
+                for (String fileToRemove : filesToRemove) {
+                    deleteDocumentsForFile(workspace, fileToRemove);
+                }
+            }
 
             List<CompletableFuture<Void>> futures = toIndex.stream()
                     .filter(f -> {
@@ -240,14 +247,9 @@ public class FileLoader {
             indexingTasks.put(workspace, allDone);
 
             allDone.thenRun(() -> {
-                if (!filesToRemove.isEmpty()) {
-                    System.out.println("Removing " + filesToRemove.size() + " deleted files");
-                    for (String fileToRemove : filesToRemove) {
-                        deleteDocumentsForFile(workspace, fileToRemove);
-                    }
-                }
-
-                project.setFiles(currentFiles);
+                Set<String> updatedFiles = new HashSet<>(existingFiles);
+                updatedFiles.addAll(currentFiles);
+                project.setFiles(updatedFiles);
                 project.setLastIndexedTime(indexingStartTime);
                 projectRepository.save(project);
 
