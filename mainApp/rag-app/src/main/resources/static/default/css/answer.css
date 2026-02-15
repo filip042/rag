@@ -107,46 +107,44 @@ button:hover {
     text-align: center;
 }
 
-@media (prefers-color-scheme: dark) {
-    body {
-        background-color: #1a1a1a;
-        color: #e0e0e0;
-    }
+[data-color-scheme="dark"] body {
+    background-color: #1a1a1a;
+    color: #e0e0e0;
+}
 
-    h3 {
-        color: #f0f0f0;
-    }
+[data-color-scheme="dark"] h3 {
+    color: #f0f0f0;
+}
 
-    #question-area,
-    #answer-area,
-    #sources {
-        background-color: #2d2d2d;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-    }
+[data-color-scheme="dark"] #question-area,
+[data-color-scheme="dark"] #answer-area,
+[data-color-scheme="dark"] #sources {
+    background-color: #2d2d2d;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+}
 
-    #question-text,
-    #answer-text {
-        color: #e0e0e0;
-    }
+[data-color-scheme="dark"] #question-text,
+[data-color-scheme="dark"] #answer-text {
+    color: #e0e0e0;
+}
 
-    .spinner {
-        border: 12px solid #444;
-        border-top: 12px solid #3498db;
-    }
+[data-color-scheme="dark"] .spinner {
+    border: 12px solid #444;
+    border-top: 12px solid #3498db;
+}
 
-    input[type="submit"],
-    button {
-        background-color: #4CAF50;
-    }
+[data-color-scheme="dark"] input[type="submit"],
+[data-color-scheme="dark"] button {
+    background-color: #4CAF50;
+}
 
-    input[type="submit"]:hover,
-    button:hover {
-        background-color: #45a049;
-    }
+[data-color-scheme="dark"] input[type="submit"]:hover,
+[data-color-scheme="dark"] button:hover {
+    background-color: #45a049;
+}
 
-    .error {
-        background-color: #4a1a1a;
-        color: #ff6b6b;
-        border: 1px solid #6b2c2c;
-    }
+[data-color-scheme="dark"] .error {
+    background-color: #4a1a1a;
+    color: #ff6b6b;
+    border: 1px solid #6b2c2c;
 }

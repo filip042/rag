@@ -210,64 +210,61 @@
     }
 }
 
-/* Dark Mode */
-@media (prefers-color-scheme: dark) {
-    .landing-container {
-        background-color: transparent;
-    }
+[data-color-scheme="dark"] .landing-container {
+    background-color: transparent;
+}
 
-    .hero {
-        background: linear-gradient(135deg, #388E3C 0%, #2E7D32 100%);
-    }
+[data-color-scheme="dark"] .hero {
+    background: linear-gradient(135deg, #388E3C 0%, #2E7D32 100%);
+}
 
-    .features h2,
-    .how-it-works h2 {
-        color: #f0f0f0;
-    }
+[data-color-scheme="dark"] .features h2,
+[data-color-scheme="dark"] .how-it-works h2 {
+    color: #f0f0f0;
+}
 
-    .feature-card {
-        background-color: #2d2d2d;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-    }
+[data-color-scheme="dark"] .feature-card {
+    background-color: #2d2d2d;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+}
 
-    .feature-card:hover {
-        box-shadow: 0 6px 12px rgba(0,0,0,0.4);
-    }
+[data-color-scheme="dark"] .feature-card:hover {
+    box-shadow: 0 6px 12px rgba(0,0,0,0.4);
+}
 
-    .feature-card h3 {
-        color: #66bb6a;
-    }
+[data-color-scheme="dark"] .feature-card h3 {
+    color: #66bb6a;
+}
 
-    .feature-card p {
-        color: #b0b0b0;
-    }
+[data-color-scheme="dark"] .feature-card p {
+    color: #b0b0b0;
+}
 
-    .how-it-works {
-        background-color: #2d2d2d;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-    }
+[data-color-scheme="dark"] .how-it-works {
+    background-color: #2d2d2d;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+}
 
-    .step h3 {
-        color: #f0f0f0;
-    }
+[data-color-scheme="dark"] .step h3 {
+    color: #f0f0f0;
+}
 
-    .step p {
-        color: #b0b0b0;
-    }
+[data-color-scheme="dark"] .step p {
+    color: #b0b0b0;
+}
 
-    .step-number {
-        background-color: #388E3C;
-    }
+[data-color-scheme="dark"] .step-number {
+    background-color: #388E3C;
+}
 
-    .step-arrow {
-        color: #66bb6a;
-    }
+[data-color-scheme="dark"] .step-arrow {
+    color: #66bb6a;
+}
 
-    .cta-primary {
-        background-color: #f5f5f5;
-    }
+[data-color-scheme="dark"] .cta-primary {
+    background-color: #f5f5f5;
+}
 
-    .cta-primary:hover {
-        background-color: white;
-    }
+[data-color-scheme="dark"] .cta-primary:hover {
+    background-color: white;
 }

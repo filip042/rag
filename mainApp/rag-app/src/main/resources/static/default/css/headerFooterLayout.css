@@ -202,49 +202,46 @@ footer {
     }
 }
 
-/* Dark Mode */
-@media (prefers-color-scheme: dark) {
-    header {
-        background-color: #2d2d2d;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-    }
+[data-color-scheme="dark"] header {
+    background-color: #2d2d2d;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
 
-    .logo-text {
-        color: #e0e0e0;
-    }
+[data-color-scheme="dark"] .logo-text {
+    color: #e0e0e0;
+}
 
-    .header-nav a {
-        color: #e0e0e0;
-    }
+[data-color-scheme="dark"] .header-nav a {
+    color: #e0e0e0;
+}
 
-    .header-nav a:hover {
-        background-color: #383838;
-    }
+[data-color-scheme="dark"] .header-nav a:hover {
+    background-color: #383838;
+}
 
-    .user-info {
-        background-color: #383838;
-        color: #e0e0e0;
-        border-color: #555;
-    }
+[data-color-scheme="dark"] .user-info {
+    background-color: #383838;
+    color: #e0e0e0;
+    border-color: #555;
+}
 
-    footer {
-        background-color: #2d2d2d;
-        border-top: 1px solid #444;
-    }
+[data-color-scheme="dark"] footer {
+    background-color: #2d2d2d;
+    border-top: 1px solid #444;
+}
 
-    .footer-copyright {
-        color: #999;
-    }
+[data-color-scheme="dark"] .footer-copyright {
+    color: #999;
+}
 
-    .footer-link {
-        color: #66bb6a;
-    }
+[data-color-scheme="dark"] .footer-link {
+    color: #66bb6a;
+}
 
-    .footer-link:hover {
-        color: #81c784;
-    }
+[data-color-scheme="dark"] .footer-link:hover {
+    color: #81c784;
+}
 
-    .footer-version {
-        color: #777;
-    }
+[data-color-scheme="dark"] .footer-version {
+    color: #777;
 }

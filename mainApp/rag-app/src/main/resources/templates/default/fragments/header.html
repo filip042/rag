@@ -1,4 +1,5 @@
 <header th:fragment="header">
+    <script th:src="@{/js/theme-toggle.js}"></script>
     <div class="header-container">
         <div class="header-left">
             <a th:href="@{/user/}" class="logo">
@@ -8,6 +9,10 @@
         </div>
 
         <div class="header-right">
+            <button type="button" id="theme-toggle" class="header-btn theme-btn">
+                🌙
+            </button>
+
             <span class="user-info" th:if="${currentUser}" th:text="${currentUser}"></span>
 
             <form th:if="${currentUser != null}"
