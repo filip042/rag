@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <title>History</title>
+  <link rel="stylesheet" th:href="@{/css/default.css}">
+  <link rel="stylesheet" th:href="@{/css/headerFooterLayout.css}">
+</head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+
+<div th:each="question : ${questions}">
+  <p th:text="${question.getQuestion()}">Question</p>
+  <p th:text="${question.getAnswer()}">Answer</p>
+  <br>
+</div>
+
+<form action="#" th:action="@{/user/dashboard}" method="get">
+  <button type="submit">Return</button>
+</form>
+
+</body>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+</html>

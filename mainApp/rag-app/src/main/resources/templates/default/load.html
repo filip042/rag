@@ -25,6 +25,12 @@
 
   <br>
 
+  <form action="#" th:action="@{/user/history}" method="get">
+      <button type="submit">History</button>
+  </form>
+
+  <br>
+
   <form action="#" th:action="@{/user/admin}" th:if="${admin}" method="post">
       <button type="submit">Settings</button>
   </form>

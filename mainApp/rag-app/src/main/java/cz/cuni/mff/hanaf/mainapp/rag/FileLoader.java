@@ -3,6 +3,8 @@ package cz.cuni.mff.hanaf.mainapp.rag;
 import cz.cuni.mff.hanaf.mainapp.data.Project;
 import cz.cuni.mff.hanaf.mainapp.data.ProjectRepository;
 import cz.cuni.mff.hanaf.core.llm.LlmMethods;
+import cz.cuni.mff.hanaf.mainapp.data.Question;
+import cz.cuni.mff.hanaf.mainapp.data.QuestionRepository;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.ChatClientResponse;
 import org.springframework.ai.chat.messages.AbstractMessage;
@@ -40,13 +42,15 @@ public class FileLoader {
     private final VectorStore vectorStore;
     private final ChatModel chatModel;
     private final ProjectRepository projectRepository;
+    private final QuestionRepository questionRepository;
     private final LlmMethods llmMethods;
     private final Executor llmExecutor;
 
-    public FileLoader(VectorStore vectorStore, ChatModel chatModel, ProjectRepository projectRepository, LlmMethods llmMethods, @Qualifier("llmExecutor") Executor llmExecutor) {
+    public FileLoader(VectorStore vectorStore, ChatModel chatModel, ProjectRepository projectRepository, QuestionRepository questionRepository, LlmMethods llmMethods, @Qualifier("llmExecutor") Executor llmExecutor) {
         this.vectorStore = new SynchronizedVectorStore(vectorStore);
         this.chatModel = chatModel;
         this.projectRepository = projectRepository;
+        this.questionRepository = questionRepository;
         this.llmMethods = llmMethods;
         this.llmExecutor = llmExecutor;
     }
@@ -166,6 +170,14 @@ public class FileLoader {
             progress.put("sources", sources);
             progress.put("documents", documents);
             progress.put("status", "done");
+
+            Question question = new Question();
+            question.setQuestion(query);
+            question.setAnswer(formattedAnswer);
+            question.setProject(projectRepository.findById(workSpace)
+                    .orElseThrow(() -> new RuntimeException("Project not found")));
+            questionRepository.save(question);
+
             return null;
         }, llmExecutor);
     }

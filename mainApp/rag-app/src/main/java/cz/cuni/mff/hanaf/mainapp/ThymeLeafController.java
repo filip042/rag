@@ -1,9 +1,6 @@
 package cz.cuni.mff.hanaf.mainapp;
 
-import cz.cuni.mff.hanaf.mainapp.data.Project;
-import cz.cuni.mff.hanaf.mainapp.data.ProjectRepository;
-import cz.cuni.mff.hanaf.mainapp.data.User;
-import cz.cuni.mff.hanaf.mainapp.data.UserRepository;
+import cz.cuni.mff.hanaf.mainapp.data.*;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
@@ -22,13 +19,15 @@ public class ThymeLeafController {
     private final RestTemplate restTemplate;
     private final UserRepository userRepository;
     private final ProjectRepository projectRepository;
+    private final QuestionRepository questionRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public ThymeLeafController(AppConfig appConfig, RestTemplate restTemplate, UserRepository userRepository, ProjectRepository projectRepository, PasswordEncoder passwordEncoder) {
+    public ThymeLeafController(AppConfig appConfig, RestTemplate restTemplate, UserRepository userRepository, ProjectRepository projectRepository, QuestionRepository questionRepository, PasswordEncoder passwordEncoder) {
         this.appConfig = appConfig;
         this.restTemplate = restTemplate;
         this.userRepository = userRepository;
         this.projectRepository = projectRepository;
+        this.questionRepository = questionRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -425,6 +424,20 @@ public class ThymeLeafController {
         model.addAttribute("currentUser", currentUser.getUsername());
 
         return "adminSettings";
+    }
+
+    @GetMapping("/history")
+    public String showHistory(HttpSession session, Model model) {
+        Project project = (Project) session.getAttribute("project");
+        if (project == null) {
+            String logoutUrl = appConfig.getFrontendUrls().getBase() + appConfig.getFrontendUrls().getLogout();
+            return "redirect:" + logoutUrl;
+        }
+
+        List<Question> questions = questionRepository.findByProject_Id(project.getId());
+        model.addAttribute("questions", questions);
+
+        return "history";
     }
 
     private List<Map<String, Object>> mapUsers(Set<User> users, boolean isAdmin) {
