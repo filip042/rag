@@ -155,6 +155,7 @@ public class ThymeLeafController {
             return "redirect:" + dashboardUrl;
         } else {
             model.addAttribute("error", "Invalid username or password");
+            model.addAttribute("attemptedUsername", username);
             return "chooseUser";
         }
     }
