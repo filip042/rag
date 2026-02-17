@@ -24,6 +24,7 @@ async function checkAnswer(taskId) {
         const answerText = document.getElementById("answer-text");
         const sourcesList = document.getElementById("sources-list");
         const sourcesDiv = document.getElementById("sources");
+        const nextQuestionDiv = document.getElementById("next-question");
 
         if (status === "checking" && !checkedAll) {
             answerText.textContent = `Checking sources: ${checked}/${total}`;
@@ -49,6 +50,7 @@ async function checkAnswer(taskId) {
                 sourcesDiv.style.display = "block";
             }
         }
+        nextQuestionDiv.style.display = "block";
     } catch (err) {
         console.error("Error fetching answer:", err);
         document.getElementById("answer-text").textContent = "Error fetching answer.";

@@ -12,6 +12,7 @@
   </script>
 
   <link rel="stylesheet" th:href="@{/css/answer.css}">
+  <link rel="stylesheet" th:href="@{/css/default.css}">
   <link rel="stylesheet" th:href="@{/css/headerFooterLayout.css}">
 </head>
 <body>
@@ -32,6 +33,12 @@
   <h3>Sources:</h3>
   <ul id="sources-list"></ul>
 </div>
+
+<form action="#" th:action="@{/user/answer}" method="post" id="next-question" style="display: none">
+  <label for="question">Ask another question:</label>
+  <input type="text" id="question" name="question" required><br>
+  <input type="submit" value="Submit">
+</form>
 
 <form action="#" th:action="@{/user/chat}" method="get">
   <input type="submit" value="Return">
