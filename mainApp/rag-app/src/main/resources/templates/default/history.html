@@ -4,23 +4,51 @@
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
   <title>History</title>
   <link rel="stylesheet" th:href="@{/css/default.css}">
+  <link rel="stylesheet" th:href="@{/css/history.css}">
   <link rel="stylesheet" th:href="@{/css/headerFooterLayout.css}">
 </head>
 <body>
 <div th:replace="~{fragments/header :: header}"></div>
 
-<div th:each="question : ${questions}">
-  <p th:text="${question.getQuestion()}">Question</p>
-  <p th:text="${question.getAnswer()}">Answer</p>
-  <br>
+<h2>Question History</h2>
+
+<div class="controls">
+  <button onclick="sortQuestions('asc')">Sort Ascending</button>
+  <button onclick="sortQuestions('desc')">Sort Descending</button>
+</div>
+
+<div id="questionList">
+  <div th:each="question : ${questions}" class="question-card" th:attr="data-id=${question.id}">
+    <div class="question-header">
+      <span class="question-time" th:text="${question.getFormattedAnswerTime()}">Answer time</span>
+    </div>
+
+    <div class="question-section">
+      <strong>Question:</strong>
+      <p th:text="${question.getQuestion()}">Question</p>
+    </div>
+
+    <div class="answer-section">
+      <strong>Answer:</strong>
+      <p th:text="${question.getAnswer()}">Answer</p>
+    </div>
+
+    <div class="sources-section" th:if="${question.getSources() != null and !question.getSources().isEmpty()}">
+      <strong>Sources:</strong>
+      <ul>
+        <li th:each="source : ${question.getSources()}" th:text="${source}">Source</li>
+      </ul>
+    </div>
+  </div>
 </div>
 
 <form action="#" th:action="@{/user/dashboard}" method="get">
-  <button type="submit">Return</button>
+  <button type="submit">Return to Dashboard</button>
 </form>
 
-</body>
+<script th:src="@{/js/sort-questions.js}"></script>
 
 <div th:replace="~{fragments/footer :: footer}"></div>
 
+</body>
 </html>

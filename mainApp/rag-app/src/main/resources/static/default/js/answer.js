@@ -49,8 +49,8 @@ async function checkAnswer(taskId) {
                 });
                 sourcesDiv.style.display = "block";
             }
+            nextQuestionDiv.style.display = "block";
         }
-        nextQuestionDiv.style.display = "block";
     } catch (err) {
         console.error("Error fetching answer:", err);
         document.getElementById("answer-text").textContent = "Error fetching answer.";
