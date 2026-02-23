@@ -174,6 +174,8 @@ public class FileLoader {
             Question question = new Question();
             question.setQuestion(query);
             question.setAnswer(formattedAnswer);
+            question.setAnswerTime(Instant.now());
+            question.setSources(sources);
             question.setProject(projectRepository.findById(workSpace)
                     .orElseThrow(() -> new RuntimeException("Project not found")));
             questionRepository.save(question);
@@ -215,8 +217,19 @@ public class FileLoader {
                     .map(path -> path.getFileName().toString())
                     .collect(Collectors.toSet());
 
-            Set<String> filesToRemove = currentFiles.stream()
-                    .filter(existingFiles::contains)
+            Set<String> filesToRemove = toIndex.stream()
+                    .filter(f -> {
+                        String fileName = f.getFileName().toString();
+                        if (!existingFiles.contains(fileName)) {
+                            return false;
+                        }
+                        try {
+                            return Files.getLastModifiedTime(f).toInstant().isAfter(lastIndexedTime);
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    })
+                    .map(f -> f.getFileName().toString())
                     .collect(Collectors.toSet());
 
             if (!filesToRemove.isEmpty()) {

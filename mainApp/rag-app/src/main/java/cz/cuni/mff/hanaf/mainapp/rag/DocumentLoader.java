@@ -40,7 +40,6 @@ public class DocumentLoader{
     protected void load(Path f, long workspace, Instant finalThisTime) {
         String fileName = f.getFileName().toString();
         String p = f.toString();
-        this.deleteOldDocuments(workspace, finalThisTime, fileName);
 
         List<Document> splitDocuments = readAndSplitDocument(p);
         List<Document> documentsWithSource = prepareDocumentsWithSource(fileName, workspace, finalThisTime, splitDocuments);
@@ -103,26 +102,6 @@ public class DocumentLoader{
                             .build();
                 })
                 .collect(Collectors.toList());
-    }
-
-    /**
-     * Deletes all documents with newer versions in the database
-     *
-     * @param workspace The current workspace ID
-     * @param processingTime The current time
-     * @param fileName The name of the file with a new version
-     */
-    private void deleteOldDocuments(long workspace, Instant processingTime, String fileName) {
-        FilterExpressionBuilder b = new FilterExpressionBuilder();
-        Filter.Expression filterExpression = b.and(
-                b.and(
-                        b.eq("workSpace", workspace),
-                        b.lt("lastReadTime", processingTime.getEpochSecond())
-                ),
-                b.eq("source", fileName)
-        ).build();
-
-        vectorStore.delete(filterExpression);
     }
 
     /**
