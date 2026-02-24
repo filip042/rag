@@ -227,7 +227,7 @@ public class FileLoader {
 
             Set<String> currentFiles = toIndex.stream()
                     .map(path -> path.getFileName().toString())
-                    .collect(Collectors.toSet());
+                    .collect(Collectors.toSet()); // todo what is this for
 
             Set<String> filesToRemove = toIndex.stream()
                     .filter(f -> {

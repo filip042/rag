@@ -59,7 +59,16 @@ document.querySelectorAll('input[name="uploadType"]').forEach(radio => {
 
 // Show indexing status when form is submitted
 document.getElementById('loadForm').addEventListener('submit', function() {
+    console.log('submit fired');
+    console.log('startPolling type:', typeof startPolling);
+    const statusText = indexingStatus.querySelector('strong');
+    if (statusText) {
+        statusText.textContent = 'Indexing in progress...';
+        statusText.style.color = '';
+    }
     indexingStatus.classList.add('active');
+    startPolling();
+    console.log('startPolling called, intervalId:', intervalId);
 });
 
 // Optional: Disable file inputs during indexing (uncomment if desired)
