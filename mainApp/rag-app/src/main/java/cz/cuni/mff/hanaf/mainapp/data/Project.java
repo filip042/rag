@@ -2,10 +2,7 @@ package cz.cuni.mff.hanaf.mainapp.data;
 
 import jakarta.persistence.*;
 
-import java.time.Instant;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 
 @Entity
@@ -16,10 +13,11 @@ public class Project {
 
     private String name;
 
-    private Instant lastIndexedTime;
-
     @ElementCollection(fetch = FetchType.EAGER)
-    private Set<String> files;
+    @CollectionTable(name = "project_file_hashes", joinColumns = @JoinColumn(name = "project_id"))
+    @MapKeyColumn(name = "file_name")
+    @Column(name = "file_hash")
+    private Map<String, String> fileHashes;
 
     @ManyToMany
     @JoinTable(
@@ -38,7 +36,7 @@ public class Project {
     private Set<User> adminUsers;
 
     public Project() {
-        this.files = new HashSet<>();
+        this.fileHashes = new HashMap<>();
         this.accessibleUsers = new HashSet<>();
         this.adminUsers = new HashSet<>();
     }
@@ -71,59 +69,40 @@ public class Project {
     }
 
     /**
-     * Get the last time this project was indexed
+     * Get the files in the project and their hashes
      *
-     * @return The last indexed timestamp, or null if never indexed
+     * @return a map of the files in the project and their hashes
      */
-    public Instant getLastIndexedTime() {
-        return lastIndexedTime;
+    public Map<String, String> getFileHashes() {
+        return fileHashes;
     }
 
     /**
-     * Set the last indexed time
-     *
-     * @param lastIndexedTime The time to set
+     * Set the files in the project and their hashes
+     * @param fileHashes a map of files and their hashes
      */
-    public void setLastIndexedTime(Instant lastIndexedTime) {
-        this.lastIndexedTime = lastIndexedTime;
+    public void setFileHashes(Map<String, String> fileHashes) {
+        this.fileHashes = fileHashes;
     }
 
     /**
-     * Returns the current set of filenames
+     * Add a file and its hash to the project
      *
-     * @return The current set of filenames
+     * @param fileName the file's name
+     * @param hash the file's hash
      */
-    public Set<String> getFiles() {
-        return this.files;
+    public void addFileHash(String fileName, String hash) {
+        this.fileHashes.put(fileName, hash);
     }
 
     /**
-     * Replaces the current set of filenames with the given one
+     * Remove the given file and its hash
      *
-     * @param files The new set of filenames
+     * @param fileName
      */
-    public void setFiles(Set<String> files) {
-        this.files = files;
+    public void removeFileHash(String fileName) {
+        this.fileHashes.remove(fileName);
     }
-
-    /**
-     * Adds the given filenames to the project
-     *
-     * @param files The collection of filenames to add
-     */
-    public void addFiles(Collection<String> files) {
-        this.files.addAll(files);
-    }
-
-    /**
-     * Removes the given file from the project
-     *
-     * @param file The filename of the file to remove
-     */
-    public void removeFile(String file) {
-        this.files.remove(file);
-    }
-
     /**
      * Returns the current set of users with access
      *

@@ -3,6 +3,7 @@ package cz.cuni.mff.hanaf.mainapp.rag;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import cz.cuni.mff.hanaf.core.vectorstore.VectorstoreProperties;
 import cz.cuni.mff.hanaf.mainapp.data.Project;
 import cz.cuni.mff.hanaf.mainapp.data.ProjectRepository;
 import cz.cuni.mff.hanaf.core.llm.LlmMethods;
@@ -26,9 +27,11 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
+import org.springframework.util.DigestUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -51,9 +54,10 @@ public class FileLoader {
     private final LlmMethods llmMethods;
     private final Executor llmExecutor;
     private final RestClient restClient;
+    private final VectorstoreProperties vectorstoreProperties;
     private static final ObjectMapper mapper = new ObjectMapper();
 
-    public FileLoader(VectorStore vectorStore, ChatModel chatModel, ProjectRepository projectRepository, QuestionRepository questionRepository, LlmMethods llmMethods, @Qualifier("llmExecutor") Executor llmExecutor, RestClient restClient) {
+    public FileLoader(VectorStore vectorStore, ChatModel chatModel, ProjectRepository projectRepository, QuestionRepository questionRepository, LlmMethods llmMethods, @Qualifier("llmExecutor") Executor llmExecutor, RestClient restClient, VectorstoreProperties vectorstoreProperties) {
         this.vectorStore = new SynchronizedVectorStore(vectorStore);
         this.chatModel = chatModel;
         this.projectRepository = projectRepository;
@@ -61,6 +65,7 @@ public class FileLoader {
         this.llmMethods = llmMethods;
         this.llmExecutor = llmExecutor;
         this.restClient = restClient;
+        this.vectorstoreProperties = vectorstoreProperties;
     }
 
     @Value("classpath:prompts/ask-template.txt")
@@ -204,8 +209,7 @@ public class FileLoader {
             finishedFiles.put(workspace, finishedQueue);
 
             Project project = projectRepository.getReferenceById(workspace);
-            Set<String> existingFiles = Optional.ofNullable(project.getFiles()).orElseGet(HashSet::new);
-            Instant lastIndexedTime = project.getLastIndexedTime();
+            Map<String, String> existingFiles = Optional.ofNullable(project.getFileHashes()).orElseGet(HashMap::new);
 
             Path tempDir = Files.createTempDirectory("uploads_" + workspace);
 
@@ -228,11 +232,13 @@ public class FileLoader {
             Set<String> filesToRemove = toIndex.stream()
                     .filter(f -> {
                         String fileName = f.getFileName().toString();
-                        if (!existingFiles.contains(fileName)) {
+                        if (!existingFiles.containsKey(fileName)) {
                             return false;
                         }
                         try {
-                            return Files.getLastModifiedTime(f).toInstant().isAfter(lastIndexedTime);
+                            String newHash = computeHash(f);
+                            String storedHash = existingFiles.get(fileName);
+                            return !newHash.equals(storedHash);
                         } catch (IOException e) {
                             throw new RuntimeException(e);
                         }
@@ -249,12 +255,10 @@ public class FileLoader {
 
             List<CompletableFuture<Void>> futures = toIndex.stream()
                     .filter(f -> {
+                        String fileName = f.getFileName().toString();
                         try {
-                            if (lastIndexedTime == null) {
-                                return true;
-                            }
-                            String fileName = f.getFileName().toString();
-                            if (existingFiles.contains(fileName) && !Files.getLastModifiedTime(f).toInstant().isAfter(lastIndexedTime)) {
+                            String newHash = computeHash(f);
+                            if (existingFiles.containsKey(fileName) && newHash.equals(existingFiles.get(fileName))) {
                                 finishedQueue.add(fileName);
                                 return false;
                             }
@@ -280,11 +284,16 @@ public class FileLoader {
             indexingTasks.put(workspace, allDone);
 
             allDone.thenRun(() -> {
-                Set<String> updatedFiles = new HashSet<>(existingFiles);
-                updatedFiles.addAll(currentFiles);
-                project.setFiles(updatedFiles);
-                project.setLastIndexedTime(indexingStartTime);
-                projectRepository.save(project);
+                try {
+                    Map<String, String> updatedHashes = new HashMap<>(existingFiles);
+                    for (Path f : toIndex) {
+                        updatedHashes.put(f.getFileName().toString(), computeHash(f));
+                    }
+                    project.setFileHashes(updatedHashes);
+                    projectRepository.save(project);
+                } catch (IOException e) {
+                    System.err.println("Failed to compute hashes for saving: " + e.getMessage());
+                }
 
                 // Clean up temporary directory
                 try {
@@ -301,7 +310,6 @@ public class FileLoader {
                     System.err.println("Failed to clean up temp directory: " + e.getMessage());
                 }
             });
-
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -330,7 +338,7 @@ public class FileLoader {
             ObjectNode query = mapper.createObjectNode();
             query.set("query", mapper.createObjectNode().set("bool", bool));
 
-            Request request = new Request("POST", "/" + "my-vector-index" + "/_delete_by_query");
+            Request request = new Request("POST", "/" + vectorstoreProperties.getIndexName() + "/_delete_by_query");
             request.setJsonEntity(mapper.writeValueAsString(query));
             restClient.performRequest(request);
         } catch (Exception e) {
@@ -385,5 +393,11 @@ public class FileLoader {
         }
 
         return fileName;
+    }
+
+    private String computeHash(Path file) throws IOException {
+        try (InputStream is = Files.newInputStream(file)) {
+            return DigestUtils.md5DigestAsHex(is);
+        }
     }
 }
