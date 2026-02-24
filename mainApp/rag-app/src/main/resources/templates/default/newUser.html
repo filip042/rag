@@ -14,20 +14,20 @@
     <p th:text="${error}"></p>
 </div>
 
-<form th:object="${user}" th:action="@{/user/newUser}" method="post">
+<form th:object="${user}" th:action="@{/user/newUser}" method="post" autocomplete="off">
     <div>
         <label for="username">Username:</label>
-        <input type="text" id="username" th:field="*{username}" required>
+        <input type="text" id="username" th:field="*{username}" required autocomplete="off">
     </div>
 
     <div>
         <label for="password">Password:</label>
-        <input type="password" id="password" th:field="*{password}" required>
+        <input type="password" id="password" th:field="*{password}" required autocomplete="new-password">
     </div>
 
     <div>
         <label for="confirmPassword">Confirm Password:</label>
-        <input type="password" id="confirmPassword" name="confirmPassword" required>
+        <input type="password" id="confirmPassword" name="confirmPassword" required autocomplete="new-password">
     </div>
 
     <div>

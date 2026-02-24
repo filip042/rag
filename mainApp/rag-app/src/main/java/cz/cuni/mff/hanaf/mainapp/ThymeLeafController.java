@@ -52,8 +52,9 @@ public class ThymeLeafController {
             String dashboardUrl = appConfig.getFrontendUrls().getBase() + appConfig.getFrontendUrls().getDashboard();
             return "redirect:" + dashboardUrl;
         }
+        Project freshProject = projectRepository.findById(currentProject.getId()).orElse(currentProject); // so the warning banner is accurate
         model.addAttribute("currentUser", currentUser.getUsername());
-        model.addAttribute("project", currentProject);
+        model.addAttribute("project", freshProject);
         model.addAttribute("admin", session.getAttribute("admin"));
         return "load";
     }
