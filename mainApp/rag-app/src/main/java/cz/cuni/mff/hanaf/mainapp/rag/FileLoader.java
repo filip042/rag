@@ -1,10 +1,15 @@
 package cz.cuni.mff.hanaf.mainapp.rag;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import cz.cuni.mff.hanaf.mainapp.data.Project;
 import cz.cuni.mff.hanaf.mainapp.data.ProjectRepository;
 import cz.cuni.mff.hanaf.core.llm.LlmMethods;
 import cz.cuni.mff.hanaf.mainapp.data.Question;
 import cz.cuni.mff.hanaf.mainapp.data.QuestionRepository;
+import org.elasticsearch.client.Request;
+import org.elasticsearch.client.RestClient;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.ChatClientResponse;
 import org.springframework.ai.chat.messages.AbstractMessage;
@@ -45,14 +50,17 @@ public class FileLoader {
     private final QuestionRepository questionRepository;
     private final LlmMethods llmMethods;
     private final Executor llmExecutor;
+    private final RestClient restClient;
+    private static final ObjectMapper mapper = new ObjectMapper();
 
-    public FileLoader(VectorStore vectorStore, ChatModel chatModel, ProjectRepository projectRepository, QuestionRepository questionRepository, LlmMethods llmMethods, @Qualifier("llmExecutor") Executor llmExecutor) {
+    public FileLoader(VectorStore vectorStore, ChatModel chatModel, ProjectRepository projectRepository, QuestionRepository questionRepository, LlmMethods llmMethods, @Qualifier("llmExecutor") Executor llmExecutor, RestClient restClient) {
         this.vectorStore = new SynchronizedVectorStore(vectorStore);
         this.chatModel = chatModel;
         this.projectRepository = projectRepository;
         this.questionRepository = questionRepository;
         this.llmMethods = llmMethods;
         this.llmExecutor = llmExecutor;
+        this.restClient = restClient;
     }
 
     @Value("classpath:prompts/ask-template.txt")
@@ -299,13 +307,35 @@ public class FileLoader {
         }
     }
 
+    /**
+     * Deletes the chunks in the given workspace from the given file.
+     * Spring AI's built-in delete method for Filter Expressions does text search instead of exact-match, leading to false positives, e.g. E._R._Eddison.txt being returned for J._R._R._Tolkien.txt
+     * Deleting manually bypasses this
+     * @param workspace The workspace to delete from
+     * @param fileName The document the chunks to be deleted are from
+     */
     private void deleteDocumentsForFile(long workspace, String fileName) {
-        FilterExpressionBuilder expressionBuilder = new FilterExpressionBuilder();
-        Filter.Expression filterExpression = expressionBuilder.and(
-                expressionBuilder.eq("workSpace", workspace),
-                expressionBuilder.eq("source", fileName)
-        ).build();
-        vectorStore.delete(filterExpression);
+        try {
+            ArrayNode mustArray = mapper.createArrayNode();
+            mustArray.add(mapper.createObjectNode()
+                    .set("term", mapper.createObjectNode()
+                            .put("metadata.workSpace", workspace)));
+            mustArray.add(mapper.createObjectNode()
+                    .set("term", mapper.createObjectNode()
+                            .put("metadata.source.keyword", fileName)));
+
+            ObjectNode bool = mapper.createObjectNode();
+            bool.set("must", mustArray);
+
+            ObjectNode query = mapper.createObjectNode();
+            query.set("query", mapper.createObjectNode().set("bool", bool));
+
+            Request request = new Request("POST", "/" + "my-vector-index" + "/_delete_by_query");
+            request.setJsonEntity(mapper.writeValueAsString(query));
+            restClient.performRequest(request);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to delete documents for file: " + fileName, e);
+        }
     }
 
     /**
