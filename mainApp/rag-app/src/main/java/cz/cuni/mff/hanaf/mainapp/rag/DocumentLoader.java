@@ -37,12 +37,12 @@ public class DocumentLoader{
     /**
      * Adds the document from the path to the database
      */
-    protected void load(Path f, long workspace, Instant finalThisTime) {
+    protected void load(Path f, long workspace, Instant finalThisTime, String fileId) {
         String fileName = f.getFileName().toString();
         String p = f.toString();
 
         List<Document> splitDocuments = readAndSplitDocument(p);
-        List<Document> documentsWithSource = prepareDocumentsWithSource(fileName, workspace, finalThisTime, splitDocuments);
+        List<Document> documentsWithSource = prepareDocumentsWithSource(fileName, fileId, workspace, finalThisTime, splitDocuments);
 
         if (!documentsWithSource.isEmpty()) {
             vectorStore.add(documentsWithSource);
@@ -86,7 +86,7 @@ public class DocumentLoader{
      * @param splitDocuments A list of chunks created by splitting documents
      * @return A list of modified Documents
      */
-    private List<Document> prepareDocumentsWithSource(String fileName, long workspace, Instant processingTime, List<Document> splitDocuments) {
+    private List<Document> prepareDocumentsWithSource(String fileName, String fileId, long workspace, Instant processingTime, List<Document> splitDocuments) {
         return splitDocuments.stream()
                 .map(document -> {
                     String textWithSource = "<chunk source=\"" + fileName + "\">\n" + document.getText() + "\n</chunk>";
@@ -95,6 +95,7 @@ public class DocumentLoader{
                     metadata.put("workSpace", workspace);
                     metadata.put("lastReadTime", processingTime.getEpochSecond());
                     metadata.put("source", fileName);
+                    metadata.put("fileId", fileId);
 
                     return Document.builder()
                             .text(textWithSource)

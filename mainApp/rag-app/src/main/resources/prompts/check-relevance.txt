@@ -1,5 +1,5 @@
-Determine whether the following document is relevant to the given user query. 
-Relevance means that the document directly helps answer the query or provides information clearly related to it.
+Determine whether the following document is relevant to the given user query.
+Relevance means that the document contains information that could contribute to answering the query, even if it only addresses part of it.
 
 Query:
 {query}

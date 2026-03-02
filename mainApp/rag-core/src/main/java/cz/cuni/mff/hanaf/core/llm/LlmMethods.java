@@ -13,9 +13,9 @@ public interface LlmMethods {
      * @return The information from the answer in a map with the answer, sources, and done keys
      */
     default String prepareAnswer(String answer) {
-        System.out.println("temp");
-        System.out.println(answer); // todo test remove in future
-        System.out.println("endTemp");
+//        System.out.println("temp");
+//        System.out.println(answer); // todo test remove in future
+//        System.out.println("endTemp");
 
         answer = this.removeThinking(answer);
         return answer;

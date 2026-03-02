@@ -4,11 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import cz.cuni.mff.hanaf.core.vectorstore.VectorstoreProperties;
-import cz.cuni.mff.hanaf.mainapp.data.Project;
-import cz.cuni.mff.hanaf.mainapp.data.ProjectRepository;
+import cz.cuni.mff.hanaf.mainapp.data.*;
 import cz.cuni.mff.hanaf.core.llm.LlmMethods;
-import cz.cuni.mff.hanaf.mainapp.data.Question;
-import cz.cuni.mff.hanaf.mainapp.data.QuestionRepository;
 import org.elasticsearch.client.Request;
 import org.elasticsearch.client.RestClient;
 import org.springframework.ai.chat.client.ChatClient;
@@ -132,14 +129,14 @@ public class FileLoader {
             progress.put("checked", count);
             progress.put("checked_all", verified);
 
-            System.out.println("blam");
+//            System.out.println("blam");
             List<Document> candidates = vectorStore.similaritySearch(request);
-            System.out.println("blim");
+//            System.out.println("blim");
 
             List<Document> relevant =
                     candidates.stream()
                             .filter(doc -> {
-                                System.out.println("boo");
+                                System.out.println(doc.getMetadata().get("source"));
                                 boolean isRelevant = llmMethods.verifySource(doc.getText(), query);
                                 count.incrementAndGet();
                                 return isRelevant;
@@ -173,6 +170,11 @@ public class FileLoader {
 
             List<Document> documents = qaAdvisor.getVerifiedDocuments();
 
+//            if (!documents.isEmpty()) {
+//                Document doc = documents.getFirst();
+//                System.out.println(doc.toString());
+//            }
+
             Set<String> sources = documents.stream()
                     .map(this::extractDocumentName)
                     .collect(Collectors.toSet());
@@ -184,14 +186,17 @@ public class FileLoader {
             progress.put("documents", documents);
             progress.put("status", "done");
 
-            Question question = new Question();
-            question.setQuestion(query);
-            question.setAnswer(formattedAnswer);
-            question.setAnswerTime(Instant.now());
-            question.setSources(sources);
-            question.setProject(projectRepository.findById(workSpace)
-                    .orElseThrow(() -> new RuntimeException("Project not found")));
-            questionRepository.save(question);
+            System.out.println(formattedAnswer);
+
+            projectRepository.findById(workSpace).ifPresent(project -> {
+                Question question = new Question();
+                question.setQuestion(query);
+                question.setAnswer(formattedAnswer);
+                question.setAnswerTime(Instant.now());
+                question.setSources(sources);
+                question.setProject(project);
+                questionRepository.save(question);
+            });
 
             return null;
         }, llmExecutor);
@@ -209,7 +214,7 @@ public class FileLoader {
             finishedFiles.put(workspace, finishedQueue);
 
             Project project = projectRepository.getReferenceById(workspace);
-            Map<String, String> existingFiles = Optional.ofNullable(project.getFileHashes()).orElseGet(HashMap::new);
+            Map<String, FileInfo> existingFiles = new ConcurrentHashMap<>(Optional.ofNullable(project.getFiles()).orElse(Map.of()));
 
             Path tempDir = Files.createTempDirectory("uploads_" + workspace);
 
@@ -237,7 +242,7 @@ public class FileLoader {
                         }
                         try {
                             String newHash = computeHash(f);
-                            String storedHash = existingFiles.get(fileName);
+                            String storedHash = existingFiles.get(fileName).getHash();
                             return !newHash.equals(storedHash);
                         } catch (IOException e) {
                             throw new RuntimeException(e);
@@ -258,7 +263,7 @@ public class FileLoader {
                         String fileName = f.getFileName().toString();
                         try {
                             String newHash = computeHash(f);
-                            if (existingFiles.containsKey(fileName) && newHash.equals(existingFiles.get(fileName))) {
+                            if (existingFiles.containsKey(fileName) && newHash.equals(existingFiles.get(fileName).getHash())) {
                                 finishedQueue.add(fileName);
                                 return false;
                             }
@@ -268,15 +273,29 @@ public class FileLoader {
                         }
                     })
                     .map(f -> CompletableFuture.runAsync(() -> {
-                        System.out.println("Processing: " + f);
+                        String fileName = f.getFileName().toString();
+                        String fileId;
+                        if (existingFiles.containsKey(fileName)) {
+                            fileId = existingFiles.get(fileName).getFileId();
+                        } else {
+                            fileId = UUID.randomUUID().toString();
+                        }
                         try {
                             DocumentLoader loader = new DocumentLoader(vectorStore, chatModel);
-                            loader.load(f, workspace, indexingStartTime);
+                            loader.load(f, workspace, indexingStartTime, fileId);
                             System.out.println("Finished processing: " + f);
                         } catch (Exception e) {
                             System.err.println("Failed processing " + f + ": " + e.getMessage());
                         }
-                        finishedQueue.add(f.getFileName().toString());
+
+                        try {
+                            String hash = computeHash(f);
+                            existingFiles.put(fileName, new FileInfo(fileId, hash));
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+
+                        finishedQueue.add(fileName);
                     }, llmExecutor))
                     .toList();
 
@@ -284,16 +303,9 @@ public class FileLoader {
             indexingTasks.put(workspace, allDone);
 
             allDone.thenRun(() -> {
-                try {
-                    Map<String, String> updatedHashes = new HashMap<>(existingFiles);
-                    for (Path f : toIndex) {
-                        updatedHashes.put(f.getFileName().toString(), computeHash(f));
-                    }
-                    project.setFileHashes(updatedHashes);
-                    projectRepository.save(project);
-                } catch (IOException e) {
-                    System.err.println("Failed to compute hashes for saving: " + e.getMessage());
-                }
+                Map<String, FileInfo> updatedFiles = new HashMap<>(existingFiles);
+                project.setFiles(updatedFiles);
+                projectRepository.save(project);
 
                 // Clean up temporary directory
                 try {
@@ -320,30 +332,15 @@ public class FileLoader {
      * Spring AI's built-in delete method for Filter Expressions does text search instead of exact-match, leading to false positives, e.g. E._R._Eddison.txt being returned for J._R._R._Tolkien.txt
      * Deleting manually bypasses this
      * @param workspace The workspace to delete from
-     * @param fileName The document the chunks to be deleted are from
+     * @param fileId The id of the document the chunks to be deleted are from
      */
-    private void deleteDocumentsForFile(long workspace, String fileName) {
-        try {
-            ArrayNode mustArray = mapper.createArrayNode();
-            mustArray.add(mapper.createObjectNode()
-                    .set("term", mapper.createObjectNode()
-                            .put("metadata.workSpace", workspace)));
-            mustArray.add(mapper.createObjectNode()
-                    .set("term", mapper.createObjectNode()
-                            .put("metadata.source.keyword", fileName)));
-
-            ObjectNode bool = mapper.createObjectNode();
-            bool.set("must", mustArray);
-
-            ObjectNode query = mapper.createObjectNode();
-            query.set("query", mapper.createObjectNode().set("bool", bool));
-
-            Request request = new Request("POST", "/" + vectorstoreProperties.getIndexName() + "/_delete_by_query");
-            request.setJsonEntity(mapper.writeValueAsString(query));
-            restClient.performRequest(request);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to delete documents for file: " + fileName, e);
-        }
+    private void deleteDocumentsForFile(long workspace, String fileId) { // todo
+        FilterExpressionBuilder expressionBuilder = new FilterExpressionBuilder();
+        Filter.Expression filterExpression = expressionBuilder.and(
+                expressionBuilder.eq("workSpace", workspace),
+                expressionBuilder.eq("fileId", fileId)
+        ).build();
+        vectorStore.delete(filterExpression);
     }
 
     /**

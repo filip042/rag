@@ -85,7 +85,7 @@ class RagEvaluationTests {
 
             EvaluationRequest relevancyReq = new EvaluationRequest(query, context, answer);
             relevant += relevancyEvaluator.evaluate(relevancyReq).isPass() ? 1 : 0;
-            factual += factCheckPerDocument(answer, context) ? 1 : 0;
+            factual += factCheckDocuments(answer, context) ? 1 : 0;
         }
         precision /= repetitions;
         recall /= repetitions;
@@ -109,6 +109,9 @@ class RagEvaluationTests {
     @ParameterizedTest
     @CsvFileSource(resources = "/rag-experiments.csv", numLinesToSkip = 1)
     void runExperiment(String experimentId, String provider, String model, String prompt, double temperature, long workspace, int repetitions) throws Exception {
+        if (experimentId.startsWith("#")) {
+            return;
+        }
         ChatModel chatModel = createChatModel(provider, model, temperature);
 
         Resource promptResource;
@@ -118,6 +121,10 @@ class RagEvaluationTests {
             promptResource = new ClassPathResource("prompts/" + prompt + ".txt");
         }
         fileLoader.setSystemPrompt(promptResource);
+
+        if (provider.equals("openai")) {
+            Thread.sleep(2000);
+        }
 
         runTestCasesForExperiment(experimentId, chatModel, workspace, repetitions);
     }
@@ -157,14 +164,9 @@ class RagEvaluationTests {
         }
     }
 
-    private boolean factCheckPerDocument(String answer, List<Document> context) {
-        for (Document doc : context) {
-            EvaluationRequest req = new EvaluationRequest(List.of(doc), answer);
-            EvaluationResponse resp = factCheckingEvaluator.evaluate(req);
-            if (!resp.isPass()) { // maybe print here
-                return false;
-            }
-        }
-        return true;
+    private boolean factCheckDocuments(String answer, List<Document> context) {
+        EvaluationRequest req = new EvaluationRequest(context, answer);
+        EvaluationResponse resp = factCheckingEvaluator.evaluate(req);
+        return resp.isPass();
     }
 }

@@ -38,6 +38,16 @@ public class EvaluatorConfig {
     public FactCheckingEvaluator factCheckingEvaluator() {
         return FactCheckingEvaluator
                 .builder(ChatClient.builder(evaluatorChatModel))
+                .evaluationPrompt("""
+                        Evaluate whether the following answer contains any claims that are contradicted by or absent from the provided context documents.\s
+                        Respond with "yes" if the answer is fully consistent with the context, or "no" if it contains unsupported or contradicted claims.
+                        
+                        Context:
+                        {document}
+                        
+                        Answer:
+                        {claim}
+                        """)
                 .build();
     }
 }

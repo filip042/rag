@@ -2,6 +2,7 @@ package cz.cuni.mff.hanaf.mainapp.data;
 
 import jakarta.persistence.*;
 
+import java.io.File;
 import java.util.*;
 
 
@@ -14,10 +15,9 @@ public class Project {
     private String name;
 
     @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "project_file_hashes", joinColumns = @JoinColumn(name = "project_id"))
+    @CollectionTable(name = "project_files", joinColumns = @JoinColumn(name = "project_id"))
     @MapKeyColumn(name = "file_name")
-    @Column(name = "file_hash")
-    private Map<String, String> fileHashes;
+    private Map<String, FileInfo> files;
 
     @ManyToMany
     @JoinTable(
@@ -36,7 +36,7 @@ public class Project {
     private Set<User> adminUsers;
 
     public Project() {
-        this.fileHashes = new HashMap<>();
+        this.files = new HashMap<>();
         this.accessibleUsers = new HashSet<>();
         this.adminUsers = new HashSet<>();
     }
@@ -69,39 +69,40 @@ public class Project {
     }
 
     /**
-     * Get the files in the project and their hashes
+     * Get the files in the project and their info
      *
-     * @return a map of the files in the project and their hashes
+     * @return a map of the files in the project and their info
      */
-    public Map<String, String> getFileHashes() {
-        return fileHashes;
+    public Map<String, FileInfo> getFiles() {
+        return files;
     }
 
     /**
-     * Set the files in the project and their hashes
-     * @param fileHashes a map of files and their hashes
+     * Set the files in the project and their info
+     *
+     * @param files a map of files and their info
      */
-    public void setFileHashes(Map<String, String> fileHashes) {
-        this.fileHashes = fileHashes;
+    public void setFiles(Map<String, FileInfo> files) {
+        this.files = files;
     }
 
     /**
-     * Add a file and its hash to the project
+     * Add a file and its info to the project
      *
      * @param fileName the file's name
-     * @param hash the file's hash
+     * @param fileInfo the file's info
      */
-    public void addFileHash(String fileName, String hash) {
-        this.fileHashes.put(fileName, hash);
+    public void addFile(String fileName, FileInfo fileInfo) {
+        this.files.put(fileName, fileInfo);
     }
 
     /**
-     * Remove the given file and its hash
+     * Remove the given file and its info
      *
-     * @param fileName
+     * @param fileName the file's name
      */
-    public void removeFileHash(String fileName) {
-        this.fileHashes.remove(fileName);
+    public void removeFile(String fileName) {
+        this.files.remove(fileName);
     }
     /**
      * Returns the current set of users with access

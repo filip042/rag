@@ -9,11 +9,11 @@
 <body>
 <div th:replace="~{fragments/header :: header}"></div>
 
-  <div th:if="${project.getFileHashes().size() == 0 && admin}" class="warning">
+  <div th:if="${project.getFiles().size() == 0 && admin}" class="warning">
     <strong>⚠ Warning:</strong> This project is empty. Please add documents in the settings before asking questions.
   </div>
 
-  <div th:if="${project.getFileHashes().size() == 0 && !admin}" class="warning">
+  <div th:if="${project.getFiles().size() == 0 && !admin}" class="warning">
       <strong>⚠ Warning:</strong> This project is empty. Please contact a project administrator to add documents.
   </div>
 
