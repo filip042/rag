@@ -1,7 +1,9 @@
 package cz.cuni.mff.hanaf.mainapp;
 
+import com.opencsv.CSVReader;
 import cz.cuni.mff.hanaf.mainapp.config.TestConfig;
 import cz.cuni.mff.hanaf.mainapp.rag.FileLoader;
+import com.opencsv.exceptions.CsvException;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvFileSource;
@@ -26,6 +28,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
@@ -144,12 +147,12 @@ class RagEvaluationTests {
         throw new IllegalArgumentException("Unknown provider: " + provider);
     }
 
-    private List<String[]> loadTestCases() throws IOException {
+    private List<String[]> loadTestCases() throws CsvException, IOException {
         Resource resource = new ClassPathResource("rag-testcases.csv");
-        return Files.lines(Path.of(resource.getURI()))
-                .skip(1)
-                .map(line -> line.split(",", 3))
-                .collect(Collectors.toList());
+        try (CSVReader reader = new CSVReader(new InputStreamReader(resource.getInputStream()))) {
+            List<String[]> all = reader.readAll();
+            return all.subList(1, all.size());
+        }
     }
 
     private synchronized void writeResult(String id, String query, int relevant, int factual, int repetitions, double precision, double recall, double f1) throws Exception {
