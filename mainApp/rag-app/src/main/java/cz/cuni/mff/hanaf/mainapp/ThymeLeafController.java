@@ -100,12 +100,16 @@ public class ThymeLeafController {
             return "redirect:" + logoutUrl;
         }
 
-        List<Project> projects = projectRepository.findByAccessibleUsers_Id(user.getId());
-        List<Project> adminProjects = projectRepository.findByAdminUsers_Id(user.getId());
-        projects.addAll(adminProjects);
+        Set<Project> projects = new HashSet<>(projectRepository.findByIsPublicTrue());
+        if (!user.isGuest()) {
+            projects.addAll(projectRepository.findByAccessibleUsers_Id(user.getId()));
+            projects.addAll(projectRepository.findByAdminUsers_Id(user.getId()));
+        }
+
         model.addAttribute("project", new Project());
         model.addAttribute("availableProjects", projects);
         model.addAttribute("currentUser", user.getUsername());
+        model.addAttribute("guest", session.getAttribute("guest"));
 
         return "dashboard";
     }
@@ -159,6 +163,22 @@ public class ThymeLeafController {
             model.addAttribute("attemptedUsername", username);
             return "chooseUser";
         }
+    }
+
+    /**
+     * Logs the user in as a guest
+     *
+     * @param session The http session where the authenticated user is set
+     * @return "redirect:/user/dashboard"
+     */
+    @PostMapping("/guest")
+    public String guestLogin(HttpSession session) {
+        User guestUser = new User();
+        guestUser.setUsername("Guest");
+        session.setAttribute("authenticatedUser", guestUser);
+        session.setAttribute("guest", true);
+        String dashboardUrl = appConfig.getFrontendUrls().getBase() + appConfig.getFrontendUrls().getDashboard();
+        return "redirect:" + dashboardUrl;
     }
 
     /**

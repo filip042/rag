@@ -24,6 +24,13 @@
 
 <br>
 
+<form action="#" th:action="@{/user/guest}" method="post">
+    <label for="username">Guest access:</label>
+    <input type="submit" value="Login as Guest">
+</form>
+
+<br>
+
 <form action="#" th:action="@{/user/newUser}" method="get">
     <label>New User:</label>
     <input type="submit" value="Create">

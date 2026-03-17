@@ -2,7 +2,7 @@ package cz.cuni.mff.hanaf.mainapp.data;
 
 import jakarta.persistence.*;
 
-import java.io.File;
+import java.time.LocalDateTime;
 import java.util.*;
 
 
@@ -11,6 +11,14 @@ public class Project {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    private boolean isPublic;
+
+//    private boolean isArchived;
+//
+//    private boolean isTemporary;
+//
+//    private LocalDateTime expiresAt;
 
     private String name;
 

@@ -81,9 +81,13 @@ public class User { // todo temp for testing thymeleaf, will add database soon
     /**
      * Gets the set of projects the user has admin access to
      *
-     * @return The set of projects the user has admin acces to
+     * @return The set of projects the user has admin access to
      */
     public Set<Project> getAdminProjects() {
         return adminProjects;
+    }
+
+    public boolean isGuest() {
+        return id == null;
     }
 }

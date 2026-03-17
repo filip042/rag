@@ -10,6 +10,7 @@ import java.util.Optional;
 public interface ProjectRepository extends JpaRepository<Project, Long> {
     List<Project> findByAccessibleUsers_Id(long id);
     List<Project> findByAdminUsers_Id(long id);
+    List<Project> findByIsPublicTrue();
     @Query("SELECT p FROM Project p " +
             "LEFT JOIN FETCH p.accessibleUsers " +
             "LEFT JOIN FETCH p.adminUsers " +
