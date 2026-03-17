@@ -54,13 +54,28 @@ public class FormResultsController {
         return "OK";
     }
 
+    @PostMapping("/visibility")
+    public Map<String, Object> setVisibility(@RequestParam boolean isPublic, HttpSession session) {
+        Project sessionProject = (Project) session.getAttribute("project");
+        Project project = projectRepository.findById(sessionProject.getId())
+                .orElseThrow(() -> new IllegalStateException("Project not found"));
+        project.setPublic(isPublic);
+        projectRepository.save(project);
+
+        return Map.of("isPublic", isPublic);
+    }
+
     @PostMapping("/add")
     public Map<String, Object> addUser(@RequestParam Long userId, HttpSession session) {
         Project sessionProject = (Project) session.getAttribute("project");
         Project project = projectRepository.findByIdWithUsers(sessionProject.getId())
                 .orElseThrow(() -> new IllegalStateException("Project not found"));
         User user = userRepository.findById(userId).orElseThrow();
-        project.getAccessibleUsers().add(user);
+        if (project.isPublic()) {
+            project.getAdminUsers().add(user);
+        } else {
+            project.getAccessibleUsers().add(user);
+        }
         projectRepository.save(project);
 
         return Map.of("user", Map.of(

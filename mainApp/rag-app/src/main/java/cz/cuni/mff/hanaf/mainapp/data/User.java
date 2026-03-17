@@ -87,6 +87,11 @@ public class User { // todo temp for testing thymeleaf, will add database soon
         return adminProjects;
     }
 
+    /**
+     * Checks whether the given user is a guest
+     *
+     * @return true if the user is a guest, false otherwise
+     */
     public boolean isGuest() {
         return id == null;
     }

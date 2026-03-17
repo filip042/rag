@@ -12,6 +12,8 @@ public class Project {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private String name;
+
     private boolean isPublic;
 
 //    private boolean isArchived;
@@ -19,8 +21,6 @@ public class Project {
 //    private boolean isTemporary;
 //
 //    private LocalDateTime expiresAt;
-
-    private String name;
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "project_files", joinColumns = @JoinColumn(name = "project_id"))
@@ -47,6 +47,33 @@ public class Project {
         this.files = new HashMap<>();
         this.accessibleUsers = new HashSet<>();
         this.adminUsers = new HashSet<>();
+        this.isPublic = false;
+    }
+
+    /**
+     * Checks the two objects for equality using is, id possible
+     * @param o the object being checked for equality
+     * @return true if the two objects are equal, false otherwise
+     */
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof Project project)) {
+            return false;
+        }
+        return Objects.equals(id, project.id);
+    }
+
+    /**
+     * Returns the hash code of the Project, computed from id if set
+     *
+     * @return The hash code of the Project
+     */
+    @Override
+    public int hashCode() {
+        return id != null ? Objects.hashCode(id) : System.identityHashCode(this);
     }
 
     /**
@@ -74,6 +101,24 @@ public class Project {
      */
     public void setName(String name) {
         this.name = name;
+    }
+
+    /**
+     * Checks if the project is public
+     *
+     * @return true if the project is public, false otherwise
+     */
+    public boolean isPublic() {
+        return isPublic;
+    }
+
+    /**
+     * Sets whether the project is public
+     *
+     * @param isPublic Whether the project is public
+     */
+    public void setPublic(boolean isPublic) {
+        this.isPublic = isPublic;
     }
 
     /**

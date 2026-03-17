@@ -83,7 +83,23 @@
 
 <br>
 
-<h2>Add User to Project</h2>
+<h2>Project Visibility</h2>
+
+<form class="ajax-form visibility" th:action="@{/admin/visibility}" method="post">
+    <div class="upload-type-selector">
+        <label>
+            <input type="radio" name="isPublic" value="true" th:checked="${project.isPublic}"> Public
+        </label>
+        <label>
+            <input type="radio" name="isPublic" value="false" th:checked="${!project.isPublic}"> Private
+        </label>
+    </div>
+    <button type="submit">Save</button>
+</form>
+
+<br>
+
+<h2 id="add-user-heading" th:text="${project.isPublic} ? 'Add Admin to Project' : 'Add User to Project'">Add User to Project</h2>
 
 <p th:if="${addUserError}"
    th:text="${addUserError}"
@@ -101,7 +117,7 @@
 
 <br>
 
-<h2>Current Project Users</h2>
+<h2 id="current-users-heading" th:text="${project.isPublic} ? 'Current Project Admins' : 'Current Project Users'">Current Project Users</h2>
 
 <table>
     <thead>

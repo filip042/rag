@@ -62,11 +62,13 @@ public class ThymeLeafController {
     /**
      * Displays the form for logging in
      *
+     * @param session The current http session
      * @param model The model to which the data for the form is added
      * @return The form's view name
      */
     @GetMapping("/login")
-    public String chooseUser(Model model) {
+    public String chooseUser(HttpSession session, Model model) {
+        session.setAttribute("guest", false);
         model.addAttribute("user", new User());
         return "chooseUser";
     }
@@ -125,7 +127,7 @@ public class ThymeLeafController {
 
         projectRepository.findById(projectId).ifPresent(project -> {
             session.setAttribute("project", project);
-            session.setAttribute("admin", projectRepository.findByAdminUsers_Id(user.getId()).contains(project));
+            session.setAttribute("admin", !user.isGuest() && projectRepository.findByAdminUsers_Id(user.getId()).contains(project));
         });
 
         String chatUrl = appConfig.getFrontendUrls().getBase() + appConfig.getFrontendUrls().getChat();
@@ -444,6 +446,7 @@ public class ThymeLeafController {
         model.addAttribute("loadEndpoint", loadUrl);
         model.addAttribute("admin", session.getAttribute("admin"));
         model.addAttribute("currentUser", currentUser.getUsername());
+        model.addAttribute("project", project);
 
         return "adminSettings";
     }

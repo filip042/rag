@@ -23,6 +23,27 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    function applyVisibilityToTable(isPublic) {
+        document.querySelectorAll("table tbody tr").forEach(row => {
+            const isAdmin = row.querySelector("td:nth-child(2)").textContent === "Admin";
+            row.style.display = isPublic && !isAdmin ? "none" : "";
+        });
+    }
+
+    const isPublicOnLoad = document.querySelector("input[name='isPublic']:checked").value === "true";
+    applyVisibilityToTable(isPublicOnLoad);
+
+    document.querySelector(".ajax-form.visibility").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const data = await submitForm(e.target);
+        if (!data) {
+            return;
+        }
+        document.getElementById("add-user-heading").textContent = data.isPublic ? "Add Admin to Project" : "Add User to Project";
+        document.getElementById("current-users-heading").textContent = data.isPublic ? "Current Project Admins" : "Current Project Users";
+        applyVisibilityToTable(data.isPublic);
+    });
+
     document.querySelectorAll(".ajax-form.add-user").forEach(form => {
         form.addEventListener("submit", async (e) => {
             e.preventDefault();
@@ -39,16 +60,22 @@ document.addEventListener("DOMContentLoaded", () => {
                 <td>${data.user.username}</td>
                 <td>${data.user.admin ? 'Admin' : 'User'}</td>
                 <td>
-                    ${!data.user.admin ? `<form class="ajax-form promote-user" action="/admin/promote" method="post" style="display:inline;">
-                        <input type="hidden" name="userId" value="${data.user.id}">
-                        <button type="submit">Promote</button>
-                    </form>` : ''}
-                    <form class="ajax-form remove-user" action="/admin/remove" method="post" style="display:inline;">
-                        <input type="hidden" name="userId" value="${data.user.id}">
-                        <button type="submit" class="delete" onclick="return confirm('Remove this user from the project?');">Remove</button>
-                    </form>
+                    ${!data.user.admin ? `
+                        <form class="ajax-form promote-user" action="/admin/promote" method="post" style="display:inline;">
+                            <input type="hidden" name="userId" value="${data.user.id}">
+                            <button type="submit">Promote</button>
+                        </form>
+                        <form class="ajax-form remove-user" action="/admin/remove" method="post" style="display:inline;">
+                            <input type="hidden" name="userId" value="${data.user.id}">
+                            <button type="submit" class="delete" onclick="return confirm('Remove this user from the project?');">Remove</button>
+                        </form>
+                    ` : ''}
                 </td>
             `;
+            const isPublic = document.querySelector("input[name='isPublic']:checked").value === "true";
+            if (isPublic && !data.user.admin) {
+                newRow.style.display = "none";
+            }
             tbody.appendChild(newRow);
         });
     });
