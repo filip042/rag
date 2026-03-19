@@ -5,28 +5,43 @@ document.addEventListener("DOMContentLoaded", () => {
         const method = form.method.toUpperCase();
         const formData = new FormData(form);
 
-        try {
-            const response = await fetch(url, {
-                method: method,
-                body: formData,
-                headers: {
-                    "X-Requested-With": "XMLHttpRequest"
-                }
-            });
+        const response = await fetch(url, {
+            method: method,
+            body: formData,
+            headers: {
+                "X-Requested-With": "XMLHttpRequest"
+            }
+        });
 
-            if (!response.ok) throw new Error(`Request failed: ${response.statusText}`);
-            console.log(url);
-            return await response.json();
-        } catch (err) {
-            console.error(err);
+        if (!response.ok) {
+            console.error(`Request failed: ${response.statusText}`);
             alert("Something went wrong. Check console for details.");
         }
+        // console.log(url);
+        return await response.json();
     }
 
     function applyVisibilityToTable(isPublic) {
+        const select = document.getElementById("users");
         document.querySelectorAll("table tbody tr").forEach(row => {
             const isAdmin = row.querySelector("td:nth-child(2)").textContent === "Admin";
-            row.style.display = isPublic && !isAdmin ? "none" : "";
+            const userId = row.querySelector("input[name='userId']")?.value;
+            const username = row.querySelector("td:nth-child(1)").textContent;
+
+            if (isPublic && !isAdmin) {
+                row.style.display = "none";
+                if (userId) {
+                    const option = document.createElement("option");
+                    option.value = userId;
+                    option.textContent = username;
+                    select.appendChild(option);
+                }
+            } else {
+                row.style.display = "";
+                if (userId) {
+                    select.querySelector(`option[value="${userId}"]`)?.remove();
+                }
+            }
         });
     }
 
@@ -75,6 +90,12 @@ document.addEventListener("DOMContentLoaded", () => {
             const isPublic = document.querySelector("input[name='isPublic']:checked").value === "true";
             if (isPublic && !data.user.admin) {
                 newRow.style.display = "none";
+            }
+            if (data.user.admin) {
+                const existingRow = Array.from(tbody.querySelectorAll("tr")).find(row =>
+                    row.querySelector("input[name='userId']")?.value === String(data.user.id)
+                );
+                if (existingRow) existingRow.remove();
             }
             tbody.appendChild(newRow);
         });

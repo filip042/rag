@@ -72,6 +72,7 @@ public class FormResultsController {
                 .orElseThrow(() -> new IllegalStateException("Project not found"));
         User user = userRepository.findById(userId).orElseThrow();
         if (project.isPublic()) {
+            project.getAccessibleUsers().remove(user);
             project.getAdminUsers().add(user);
         } else {
             project.getAccessibleUsers().add(user);
@@ -81,7 +82,7 @@ public class FormResultsController {
         return Map.of("user", Map.of(
                 "id", user.getId(),
                 "username", user.getUsername(),
-                "admin", false
+                "admin", project.isPublic()
         ));
     }
 

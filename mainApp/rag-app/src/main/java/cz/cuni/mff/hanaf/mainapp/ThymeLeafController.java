@@ -430,12 +430,15 @@ public class ThymeLeafController {
         projectUsers.addAll(admins);
         projectUsers.addAll(accessible);
 
-        List<User> usersNotInProject = userRepository.findAll().stream()
-                .filter(u -> !projectUsers.contains(u))
-                .toList();
+        Set<User> unadded; // todo misleading name
+        unadded = new HashSet<>(userRepository.findAll());
+        unadded.removeAll(project.getAdminUsers());
+        if (!project.isPublic()) {
+            unadded.removeAll(project.getAccessibleUsers());
+        }
 
         model.addAttribute("user", new User());
-        model.addAttribute("unadded", usersNotInProject);
+        model.addAttribute("unadded", unadded);
         model.addAttribute("users", usersList);
 
         String url = appConfig.getBaseUrl() + appConfig.getApiUrls().getBase() + appConfig.getApiUrls().getStatus();

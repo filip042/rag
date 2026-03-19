@@ -135,6 +135,7 @@
         <td th:text="${user.admin ? 'Admin' : 'User'}"></td>
 
         <td>
+            <input type="hidden" name="userId" th:value="${user.id}">
 
             <form class="ajax-form promote-user" th:if="${!user.admin}"
                   th:action="@{/admin/promote}" method="post" style="display:inline;">

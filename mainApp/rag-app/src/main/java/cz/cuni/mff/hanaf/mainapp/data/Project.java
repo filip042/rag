@@ -16,8 +16,8 @@ public class Project {
 
     private boolean isPublic;
 
-//    private boolean isArchived;
-//
+    private boolean isArchived;
+
 //    private boolean isTemporary;
 //
 //    private LocalDateTime expiresAt;
