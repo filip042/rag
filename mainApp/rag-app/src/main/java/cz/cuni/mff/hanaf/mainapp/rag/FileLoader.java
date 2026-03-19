@@ -1,13 +1,7 @@
 package cz.cuni.mff.hanaf.mainapp.rag;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import cz.cuni.mff.hanaf.core.vectorstore.VectorstoreProperties;
 import cz.cuni.mff.hanaf.mainapp.data.*;
 import cz.cuni.mff.hanaf.core.llm.LlmMethods;
-import org.elasticsearch.client.Request;
-import org.elasticsearch.client.RestClient;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.ChatClientResponse;
 import org.springframework.ai.chat.messages.AbstractMessage;
@@ -40,6 +34,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 public class FileLoader {
@@ -50,19 +45,14 @@ public class FileLoader {
     private final QuestionRepository questionRepository;
     private final LlmMethods llmMethods;
     private final Executor llmExecutor;
-    private final RestClient restClient;
-    private final VectorstoreProperties vectorstoreProperties;
-    private static final ObjectMapper mapper = new ObjectMapper();
 
-    public FileLoader(VectorStore vectorStore, ChatModel chatModel, ProjectRepository projectRepository, QuestionRepository questionRepository, LlmMethods llmMethods, @Qualifier("llmExecutor") Executor llmExecutor, RestClient restClient, VectorstoreProperties vectorstoreProperties) {
+    public FileLoader(VectorStore vectorStore, ChatModel chatModel, ProjectRepository projectRepository, QuestionRepository questionRepository, LlmMethods llmMethods, @Qualifier("llmExecutor") Executor llmExecutor) {
         this.vectorStore = new SynchronizedVectorStore(vectorStore);
         this.chatModel = chatModel;
         this.projectRepository = projectRepository;
         this.questionRepository = questionRepository;
         this.llmMethods = llmMethods;
         this.llmExecutor = llmExecutor;
-        this.restClient = restClient;
-        this.vectorstoreProperties = vectorstoreProperties;
     }
 
     @Value("classpath:prompts/ask-template.txt")
@@ -71,41 +61,32 @@ public class FileLoader {
     @Value("classpath:prompts/do-not-know-prompt.txt")
     private Resource doNotKnowPromptResource;
 
-    private final Map<Long, CompletableFuture<Void>> indexingTasks = new ConcurrentHashMap<>();
     private final Map<Long, ConcurrentLinkedQueue<String>> finishedFiles = new ConcurrentHashMap<>();
     private final Map<Long, List<Path>> allFilesToIndex = new ConcurrentHashMap<>();
 
     /**
-     * Return the given amount of documents most similar to the given query from the given workspace
+     * Get an answer to a question from the LLM using the documents in the workspace,
+     * using the default chat model. See {@link #ask(String, long, Map, ChatModel)} for full details.
      *
-     * @param query The query being searched for
-     * @param workSpace The id of the workspace to search
-     * @param topK The number of documents to return
-     * @return A list of documents most similar to the query
-     */
-    public List<Document> searchSimilarDocuments(String query, long workSpace, int topK) {
-        FilterExpressionBuilder expressionBuilder = new FilterExpressionBuilder();
-        Filter.Expression filterExpression = expressionBuilder.eq("workSpace", workSpace).build();
-        return vectorStore.similaritySearch(SearchRequest.builder().query(query).filterExpression(filterExpression).topK(topK).build());
-    }
-
-    /**
-     * todo
-     * @param query
-     * @param workSpace
-     * @param progress
-     * @return
+     * @param query     The query to be answered
+     * @param workSpace The id of the workspace with the source documents
+     * @param progress  The map to be updated with task progress and results
+     * @return A CompletableFuture that completes when the answer has been written to {@code progress}
      */
     public CompletableFuture<Void> ask(String query, long workSpace, Map<String, Object> progress) {
         return ask(query, workSpace, progress, null);
     }
 
     /**
-     * Get an answer to a question from the LLM using the documents in the workspace
+     * Get an answer to a question from the LLM using the documents in the workspace.
+     * Results are written into {@code progress} under "answer", "sources", "documents",
+     * and "status" (set to "done" on completion).
      *
-     * @param query The query to be answered
+     * @param query     The query to be answered
      * @param workSpace The id of the workspace with the source documents
-     * @return The answer as a string, alongside comma-delimited sources on the last line // todo
+     * @param progress  The map to be updated with task progress and results
+     * @param chatModel The chat model to use, or null to use the default
+     * @return A CompletableFuture that completes when the answer has been written to {@code progress}
      */
     public CompletableFuture<Void> ask(String query, long workSpace, Map<String, Object> progress, ChatModel chatModel) {
         if (chatModel == null) {
@@ -170,11 +151,6 @@ public class FileLoader {
 
             List<Document> documents = qaAdvisor.getVerifiedDocuments();
 
-//            if (!documents.isEmpty()) {
-//                Document doc = documents.getFirst();
-//                System.out.println(doc.toString());
-//            }
-
             Set<String> sources = documents.stream()
                     .map(this::extractDocumentName)
                     .collect(Collectors.toSet());
@@ -202,7 +178,14 @@ public class FileLoader {
         }, llmExecutor);
     }
 
-    // todo
+    /**
+     * Asynchronously indexes the given files into the given workspace.
+     * Files whose hash matches an already-indexed version are skipped; files
+     * whose hash has changed are re-indexed. Cleans up temporary storage once done.
+     *
+     * @param files     The files to be indexed
+     * @param workspace The id of the workspace to add the files to
+     */
     public void addDocuments(MultipartFile[] files, long workspace) {
         if (files == null || files.length == 0) {
             return;
@@ -230,10 +213,6 @@ public class FileLoader {
 
             allFilesToIndex.put(workspace, toIndex);
 
-            Set<String> currentFiles = toIndex.stream()
-                    .map(path -> path.getFileName().toString())
-                    .collect(Collectors.toSet()); // todo what is this for
-
             Set<String> filesToRemove = toIndex.stream()
                     .filter(f -> {
                         String fileName = f.getFileName().toString();
@@ -248,7 +227,7 @@ public class FileLoader {
                             throw new RuntimeException(e);
                         }
                     })
-                    .map(f -> f.getFileName().toString())
+                    .map(f -> existingFiles.get(f.getFileName().toString()).getFileId())
                     .collect(Collectors.toSet());
 
             if (!filesToRemove.isEmpty()) {
@@ -300,7 +279,6 @@ public class FileLoader {
                     .toList();
 
             CompletableFuture<Void> allDone = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
-            indexingTasks.put(workspace, allDone);
 
             allDone.thenRun(() -> {
                 Map<String, FileInfo> updatedFiles = new HashMap<>(existingFiles);
@@ -308,9 +286,8 @@ public class FileLoader {
                 projectRepository.save(project);
 
                 // Clean up temporary directory
-                try {
-                    Files.walk(tempDir)
-                            .sorted(Comparator.reverseOrder())
+                try (Stream<Path> paths = Files.walk(tempDir)) {
+                    paths.sorted(Comparator.reverseOrder())
                             .forEach(path -> {
                                 try {
                                     Files.delete(path);
@@ -329,12 +306,12 @@ public class FileLoader {
 
     /**
      * Deletes the chunks in the given workspace from the given file.
-     * Spring AI's built-in delete method for Filter Expressions does text search instead of exact-match, leading to false positives, e.g. E._R._Eddison.txt being returned for J._R._R._Tolkien.txt
-     * Deleting manually bypasses this
+     * Spring AI's built-in delete method for Filter Expressions does text search instead of exact-match, leading to false positives, e.g., E._R._Eddison.txt being returned for J._R._R._Tolkien.txt
+     * Deleting by UUID bypasses this
      * @param workspace The workspace to delete from
-     * @param fileId The id of the document the chunks to be deleted are from
+     * @param fileId The UUID of the file whose chunks should be deleted
      */
-    private void deleteDocumentsForFile(long workspace, String fileId) { // todo
+    private void deleteDocumentsForFile(long workspace, String fileId) {
         FilterExpressionBuilder expressionBuilder = new FilterExpressionBuilder();
         Filter.Expression filterExpression = expressionBuilder.and(
                 expressionBuilder.eq("workSpace", workspace),
@@ -348,17 +325,16 @@ public class FileLoader {
      *
      * @param workspace The id of the workspace to check
      * @return A map with two key-value pairs:
-     *         - "todo": The number of documents that are being indexed
+     *         - "totalFiles": The number of documents that are being indexed
      *         - "finishedFiles": A list of file paths that have been successfully processed
      */
     public Map<String, Object> allAdded(long workspace) {
-        CompletableFuture<Void> future = indexingTasks.get(workspace); // todo doesn't return indexed stuff, only stuff that has been indexed after addDoc was called last
         ConcurrentLinkedQueue<String> finishedQueue = finishedFiles.get(workspace);
         List<String> finishedList = finishedQueue != null ? new ArrayList<>(finishedQueue) : Collections.emptyList();
         int total = (allFilesToIndex.get(workspace) != null) ? allFilesToIndex.get(workspace).size() : 0;
 
         Map<String, Object> result = new HashMap<>();
-        result.put("todo", total); // todo think these through a bit more
+        result.put("totalFiles", total);
         result.put("finishedFiles", finishedList);
 
         return result;
@@ -376,6 +352,12 @@ public class FileLoader {
         System.out.println("Deleted workspace " + workspace);
     }
 
+    /**
+     * Overrides the system prompt template used when answering questions.
+     * Intended for use in tests.
+     *
+     * @param promptResource The resource containing the new prompt template
+     */
     public void setSystemPrompt(Resource promptResource) {
         this.askTemplateResource = promptResource;
     }
@@ -383,8 +365,7 @@ public class FileLoader {
     private String extractDocumentName(Document document) {
         Pattern pattern = Pattern.compile("<chunk source=\"([^\"]+)\">\\s*(.*?)\\s*</chunk>", Pattern.DOTALL);
 
-        Matcher matcher = pattern.matcher(document.getText());
-        String fileName = "";
+        Matcher matcher = pattern.matcher(Objects.requireNonNullElse(document.getText(), ""));        String fileName = "";
         if (matcher.find()) {
             fileName = matcher.group(1);
         }

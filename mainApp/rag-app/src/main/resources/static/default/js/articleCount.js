@@ -1,6 +1,6 @@
 const refresh_rate = 5000;
 let intervalId = null;
-let expectedTodo = -1; // -1 means "not waiting for a specific batch"
+let expectedFiles = -1; // -1 means "not waiting for a specific batch"
 
 function fetchArticleCount() {
     fetch(articleCountEndpoint)
@@ -9,19 +9,19 @@ function fetchArticleCount() {
             return response.json();
         })
         .then(data => {
-            const todo = data.todo;
+            const totalFiles = data.totalFiles;
             const done = data.finishedFiles.length;
-            const percent = todo === 0 ? 100 : Math.round((100 * done) / todo);
+            const percent = totalFiles === 0 ? 100 : Math.round((100 * done) / totalFiles);
 
-            document.getElementById('article-count').textContent = done + "/" + todo + " articles indexed (" + percent + "%)";
+            document.getElementById('article-count').textContent = done + "/" + totalFiles + " articles indexed (" + percent + "%)";
 
             const indexingStatus = document.getElementById('indexingStatus');
             if (!indexingStatus || !indexingStatus.classList.contains('active')) return;
 
-            if (expectedTodo !== -1 && todo === expectedTodo) return;
-            expectedTodo = -1;
+            if (expectedFiles !== -1 && totalFiles === expectedFiles) return;
+            expectedFiles = -1;
 
-            if (done === todo && todo > 0) {
+            if (done === totalFiles && totalFiles > 0) {
                 const statusText = indexingStatus.querySelector('strong');
                 if (statusText) {
                     statusText.textContent = 'Indexing complete!';
@@ -47,7 +47,7 @@ function startPolling() {
     fetch(articleCountEndpoint)
         .then(r => r.json())
         .then(data => {
-            expectedTodo = data.todo;
+            expectedFiles = data.totalFiles;
         })
         .catch(() => {})
         .finally(() => {
@@ -57,8 +57,8 @@ function startPolling() {
                 fetch(articleCountEndpoint)
                     .then(r => r.json())
                     .then(data => {
-                        if (data.todo !== expectedTodo) {
-                            expectedTodo = -1;
+                        if (data.totalFiles !== expectedFiles) {
+                            expectedFiles = -1;
                             fetchArticleCount();
                             intervalId = setInterval(fetchArticleCount, refresh_rate);
                         } else {

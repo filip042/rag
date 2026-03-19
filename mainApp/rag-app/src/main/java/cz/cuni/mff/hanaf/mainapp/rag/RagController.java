@@ -1,6 +1,5 @@
 package cz.cuni.mff.hanaf.mainapp.rag;
 
-import org.springframework.ai.document.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,10 +9,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
 @RestController
@@ -23,28 +20,13 @@ public class RagController {
     @Autowired
     private FileLoader fileLoader;
 
-    private final Map<String, CompletableFuture<Map<String, Object>>> tasks = new ConcurrentHashMap<>();
     private final Map<String, Map<String, Object>> taskProgress = new ConcurrentHashMap<>();
-
-
-    /**
-     * Performs a similaritySearch given the query and the documents in the workspace
-     *
-     * @param query The query being searched for
-     * @param workSpace The id of the workspace with the context being searched
-     * @param topK The amount of results to display
-     * @return A list of documents that are most similar to the query
-     */
-    @GetMapping("/search")
-    public List<Document> search(@RequestParam String query, @RequestParam long workSpace, @RequestParam int topK) {
-        return fileLoader.searchSimilarDocuments(query, workSpace, topK);
-    }
 
     /**
      * Passes the given query on to the LLM, which uses context from the given workspace to answer the question
      *
      * @param payload The map containing the query to be passed to the LLM under 'query' and the id of the workspace with the context being used under 'workSpace'
-     * @return The answer as a string, followed by comma-delimited sources on the last line // todo
+     * @return A map containing a generated task id under "taskId", which can be polled via /answer
      */
     @PostMapping("/ask")
     public Map<String, Object> search(@RequestBody Map<String, Object> payload) {
@@ -63,7 +45,14 @@ public class RagController {
         return Map.of("taskId", taskId);
     }
 
-    // todo docstring
+    /**
+     * Polls the status of an async "ask" task previously initiated by {@link #search}.
+     *
+     * @param payload A map containing the task identifier under "taskId"
+     * @return 200 OK with the full progress map (and removes the task) if the task is done,
+     *         202 Accepted with the current progress map if still in progress,
+     *         or 404 Not Found if no task with the given id exists
+     */
     @PostMapping("/answer")
     public ResponseEntity<?> getAskStatus(@RequestBody Map<String, String> payload) {
         String taskId = payload.get("taskId");
@@ -83,7 +72,7 @@ public class RagController {
 
     /**
      * Gets the status of the documents being added to the given workspace
-     * @param workSpace The id of the workspace being added toi
+     * @param workSpace The id of the workspace being added to
      * @return A map containing a list of indexed files under "finishedFiles" and a boolean value for if all files have been indexed under "done"
      */
     @GetMapping("/status")
@@ -91,7 +80,14 @@ public class RagController {
         return fileLoader.allAdded(workSpace);
     }
 
-    // todo
+    /**
+     * Uploads one or more files and begins asynchronously indexing them into the given workspace.
+     *
+     * @param files     The files to be indexed
+     * @param workSpace The id of the workspace the files should be added to
+     * @return 200 OK with "Upload started" if the process was successfully initiated,
+     *         or 500 Internal Server Error with an error message if an exception occurred
+     */
     @PostMapping("/add")
     public ResponseEntity<String> uploadFiles(@RequestParam("files") MultipartFile[] files,
             @RequestParam("workSpace") long workSpace) {
