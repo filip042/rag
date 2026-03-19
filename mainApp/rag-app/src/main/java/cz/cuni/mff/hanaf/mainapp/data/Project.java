@@ -48,6 +48,7 @@ public class Project {
         this.accessibleUsers = new HashSet<>();
         this.adminUsers = new HashSet<>();
         this.isPublic = false;
+        this.isArchived = false;
     }
 
     /**
@@ -119,6 +120,24 @@ public class Project {
      */
     public void setPublic(boolean isPublic) {
         this.isPublic = isPublic;
+    }
+
+    /**
+     * Checks if the project is archived
+     *
+     * @return true if the project is archived, false otherwise
+     */
+    public boolean isArchived() {
+        return isArchived;
+    }
+
+    /**
+     * Sets whether the project is archived
+     *
+     * @param isArchived Whether the project is archived
+     */
+    public void setArchived(boolean isArchived) {
+        this.isArchived = isArchived;
     }
 
     /**

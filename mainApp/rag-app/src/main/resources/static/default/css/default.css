@@ -159,18 +159,27 @@ div {
     margin-bottom: 10px;
 }
 
-.upload-type-selector {
+.settings-radio {
     margin-bottom: 15px;
 }
 
-.upload-type-selector label {
+.settings-radio label {
     display: inline;
     font-weight: normal;
     margin-right: 20px;
 }
 
-.upload-type-selector input[type="radio"] {
+.settings-radio input[type="radio"] {
     margin-right: 5px;
+}
+
+.button-feedback {
+    display: inline;
+    color: #4CAF50;
+    margin-left: 8px;
+    font-weight: bold;
+    opacity: 0;
+    transition: opacity 0.3s ease;
 }
 
 .hidden {
@@ -279,4 +288,8 @@ div {
 
 [data-color-scheme="dark"] #selected-files {
     color: #999;
+}
+
+[data-color-scheme="dark"] .button-feedback {
+    color: #66bb6a;
 }

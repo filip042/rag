@@ -65,6 +65,16 @@ public class FormResultsController {
         return Map.of("isPublic", isPublic);
     }
 
+    @PostMapping("/archive")
+    public Map<String, Object> setArchived(@RequestParam boolean isArchived, HttpSession session) {
+        Project sessionProject = (Project) session.getAttribute("project");
+        Project project = projectRepository.findById(sessionProject.getId())
+                .orElseThrow(() -> new IllegalStateException("Project not found"));
+        project.setArchived(isArchived);
+        projectRepository.save(project);
+        return Map.of("isArchived", isArchived);
+    }
+
     @PostMapping("/add")
     public Map<String, Object> addUser(@RequestParam Long userId, HttpSession session) {
         Project sessionProject = (Project) session.getAttribute("project");

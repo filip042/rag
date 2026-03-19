@@ -9,6 +9,11 @@
 <body>
 <div th:replace="~{fragments/header :: header}"></div>
 
+<div th:if="${project.isArchived()}" class="warning">
+    <strong>⚠ Warning:</strong> This project is archived. No questions can be asked at this time. Please contact a project administrator to unarchive the project.
+</div>
+
+<div th:unless="${project.isArchived()}">
   <div th:if="${project.getFiles().size() == 0 && admin}" class="warning">
     <strong>⚠ Warning:</strong> This project is empty. Please add documents in the settings before asking questions.
   </div>
@@ -24,6 +29,7 @@
   </form>
 
   <br>
+</div>
 
   <form action="#" th:action="@{/user/history}" method="get">
       <button type="submit">History</button>

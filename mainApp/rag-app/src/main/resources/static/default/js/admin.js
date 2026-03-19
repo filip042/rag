@@ -45,6 +45,12 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    function showSaveFeedback(form) {
+        const feedback = form.querySelector(".button-feedback");
+        feedback.style.opacity = "1";
+        setTimeout(() => feedback.style.opacity = "0", 2000);
+    }
+
     const isPublicOnLoad = document.querySelector("input[name='isPublic']:checked").value === "true";
     applyVisibilityToTable(isPublicOnLoad);
 
@@ -54,16 +60,29 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!data) {
             return;
         }
+        showSaveFeedback(e.target);
         document.getElementById("add-user-heading").textContent = data.isPublic ? "Add Admin to Project" : "Add User to Project";
         document.getElementById("current-users-heading").textContent = data.isPublic ? "Current Project Admins" : "Current Project Users";
         applyVisibilityToTable(data.isPublic);
+    });
+
+    document.querySelector(".ajax-form.archive").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const data = await submitForm(e.target);
+        if (!data) {
+            return;
+        }
+        showSaveFeedback(e.target);
     });
 
     document.querySelectorAll(".ajax-form.add-user").forEach(form => {
         form.addEventListener("submit", async (e) => {
             e.preventDefault();
             const data = await submitForm(form);
-            if (!data) return;
+            if (!data) {
+                return;
+            }
+            showSaveFeedback(form);
 
             const select = document.getElementById("users");
             const optionToRemove = select.querySelector(`option[value="${data.user.id}"]`);

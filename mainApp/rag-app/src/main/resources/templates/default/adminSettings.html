@@ -23,7 +23,7 @@
             <h3 class="step-title">Choose Upload Type</h3>
         </div>
         <div class="step-content">
-            <div class="upload-type-selector">
+            <div class="settings-radio">
                 <label>
                     <input type="radio" name="uploadType" value="files" checked> Upload Individual Files
                 </label>
@@ -86,7 +86,7 @@
 <h2>Project Visibility</h2>
 
 <form class="ajax-form visibility" th:action="@{/admin/visibility}" method="post">
-    <div class="upload-type-selector">
+    <div class="settings-radio">
         <label>
             <input type="radio" name="isPublic" value="true" th:checked="${project.isPublic}"> Public
         </label>
@@ -95,6 +95,24 @@
         </label>
     </div>
     <button type="submit">Save</button>
+    <span class="button-feedback">Saved!</span>
+</form>
+
+<br>
+
+<h2>Archive Project</h2>
+
+<form class="ajax-form archive" th:action="@{/admin/archive}" method="post">
+    <div class="settings-radio">
+        <label>
+            <input type="radio" name="isArchived" value="true" th:checked="${project.isArchived()}"> Archived
+        </label>
+        <label>
+            <input type="radio" name="isArchived" value="false" th:checked="${!project.isArchived()}"> Active
+        </label>
+    </div>
+    <button type="submit">Save</button>
+    <span class="button-feedback">Saved!</span>
 </form>
 
 <br>
@@ -113,6 +131,7 @@
     </select>
 
     <button type="submit">Add User</button>
+    <span class="button-feedback">Added!</span>
 </form>
 
 <br>
