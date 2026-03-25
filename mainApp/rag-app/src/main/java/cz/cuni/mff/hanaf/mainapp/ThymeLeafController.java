@@ -289,8 +289,10 @@ public class ThymeLeafController {
      * @return The view name for the form
      */
     @GetMapping("/newProject")
-    public String showNewProjectForm(Model model) {
+    public String showNewProjectForm(Model model, HttpSession session) {
+        User currentUser = (User) session.getAttribute("authenticatedUser");
         model.addAttribute("project", new Project());
+        model.addAttribute("currentUser", currentUser.getUsername());
         return "newProject";
     }
 
@@ -463,7 +465,9 @@ public class ThymeLeafController {
         }
 
         List<Question> questions = questionRepository.findByProject_Id(project.getId());
+        User currentUser = (User) session.getAttribute("authenticatedUser");
         model.addAttribute("questions", questions);
+        model.addAttribute("currentUser", currentUser.getUsername());
 
         return "history";
     }
