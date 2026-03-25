@@ -16,8 +16,8 @@ public class OllamaGenericMethodsFactory implements LlmMethodsFactory {
     }
 
     @Override
-    public boolean supports(String modelName) {
-        return modelName.startsWith("qwen3:");
+    public boolean supports(String providerName, String modelName) {
+        return providerName.equalsIgnoreCase("ollama") && modelName.toLowerCase().startsWith("qwen3:");
     }
 
     @Override

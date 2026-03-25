@@ -1,4 +1,4 @@
-package cz.cuni.mff.hanaf.llm.gpt4o;
+package cz.cuni.mff.hanaf.llm.openai.gpt4o;
 
 import cz.cuni.mff.hanaf.core.llm.LlmMethods;
 import cz.cuni.mff.hanaf.core.llm.LlmMethodsFactory;
@@ -15,8 +15,8 @@ public class Gpt4oMethodsFactory implements LlmMethodsFactory {
     }
 
     @Override
-    public boolean supports(String modelName) {
-        return modelName.startsWith("gpt-4o");
+    public boolean supports(String providerName, String modelName) {
+        return providerName.equalsIgnoreCase("openai") && modelName.toLowerCase().startsWith("gpt-4o");
     }
 
     @Override

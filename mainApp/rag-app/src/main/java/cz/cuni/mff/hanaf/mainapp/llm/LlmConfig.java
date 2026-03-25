@@ -12,11 +12,10 @@ import java.util.List;
 public class LlmConfig {
     @Bean
     public LlmMethods llmMethods(LlmProperties llmProperties, List<LlmMethodsFactory> factories) {
+        String providerName = llmProperties.getProvider();
         String modelName = llmProperties.getChat().getModel();
-        System.out.println("modelName: " + modelName);
-        System.out.println("factories: " + factories);
         return factories.stream()
-                .filter(f -> f.supports(modelName))
+                .filter(f -> f.supports(providerName, modelName))
                 .findFirst()
                 .map(f -> f.create(modelName))
                 .orElseThrow(() -> new IllegalArgumentException("Unknown model: " + modelName));

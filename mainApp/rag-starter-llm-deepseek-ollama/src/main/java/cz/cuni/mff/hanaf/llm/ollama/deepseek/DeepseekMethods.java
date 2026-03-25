@@ -1,4 +1,4 @@
-package cz.cuni.mff.hanaf.llm.qwen3;
+package cz.cuni.mff.hanaf.llm.ollama.deepseek;
 
 import cz.cuni.mff.hanaf.core.llm.LlmMethods;
 import org.springframework.ai.chat.prompt.Prompt;
@@ -7,17 +7,14 @@ import org.springframework.ai.ollama.api.OllamaChatOptions;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-public class Qwen3Methods implements LlmMethods {
+public class DeepseekMethods implements LlmMethods {
     private final OllamaChatModel ollamaChatModel;
     private final String model;
 
     @Value("classpath:/prompts/check-relevance.txt")
     private Resource systemResource;
 
-    public Qwen3Methods(OllamaChatModel ollamaChatModel, String model) {
+    public DeepseekMethods(OllamaChatModel ollamaChatModel, String model) {
         this.ollamaChatModel = ollamaChatModel;
         this.model = model;
     }
@@ -39,9 +36,12 @@ public class Qwen3Methods implements LlmMethods {
      * @return The output of the LLM without the thought process
      */
     public String removeThinking(String withThinking) {
-        Pattern pattern = Pattern.compile("<think>.*?</think>", Pattern.DOTALL);
-        Matcher matcher = pattern.matcher(withThinking);
-        return matcher.replaceFirst("");
+        String cleaned = withThinking.replaceAll("(?s)<think>.*?</think>", "");
+        cleaned = cleaned.replaceAll("(?is)^.*?\\banswer\\s*[:\\-–]\\s*", "");
+        cleaned = cleaned.replaceAll("\\bdone\\b", "");
+        cleaned = cleaned.replaceAll("\\*+", "");
+        cleaned = cleaned.replaceAll("\\s+", " ").trim();
+        return cleaned;
     }
 
     public String callWithoutThinking(String prompt) {

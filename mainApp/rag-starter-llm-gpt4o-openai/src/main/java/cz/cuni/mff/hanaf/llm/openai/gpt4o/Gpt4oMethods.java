@@ -1,21 +1,24 @@
-package cz.cuni.mff.hanaf.llm.deepseek;
+package cz.cuni.mff.hanaf.llm.openai.gpt4o;
 
 import cz.cuni.mff.hanaf.core.llm.LlmMethods;
 import org.springframework.ai.chat.prompt.Prompt;
-import org.springframework.ai.ollama.OllamaChatModel;
-import org.springframework.ai.ollama.api.OllamaChatOptions;
+import org.springframework.ai.openai.OpenAiChatModel;
+import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 
-public class DeepseekMethods implements LlmMethods {
-    private final OllamaChatModel ollamaChatModel;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+public class Gpt4oMethods implements LlmMethods {
+    private final OpenAiChatModel openAiChatModel;
     private final String model;
 
     @Value("classpath:/prompts/check-relevance.txt")
     private Resource systemResource;
 
-    public DeepseekMethods(OllamaChatModel ollamaChatModel, String model) {
-        this.ollamaChatModel = ollamaChatModel;
+    public Gpt4oMethods(OpenAiChatModel openAiChatModel, String model) {
+        this.openAiChatModel = openAiChatModel;
         this.model = model;
     }
 
@@ -35,23 +38,20 @@ public class DeepseekMethods implements LlmMethods {
      * @param withThinking The output of the LLM with the thought process
      * @return The output of the LLM without the thought process
      */
-    public String removeThinking(String withThinking) {
-        String cleaned = withThinking.replaceAll("(?s)<think>.*?</think>", "");
-        cleaned = cleaned.replaceAll("(?is)^.*?\\banswer\\s*[:\\-–]\\s*", "");
-        cleaned = cleaned.replaceAll("\\bdone\\b", "");
-        cleaned = cleaned.replaceAll("\\*+", "");
-        cleaned = cleaned.replaceAll("\\s+", " ").trim();
-        return cleaned;
+    public String removeThinking(String withThinking) { // todo
+        Pattern pattern = Pattern.compile("<think>.*?</think>", Pattern.DOTALL);
+        Matcher matcher = pattern.matcher(withThinking);
+        return matcher.replaceFirst("");
     }
 
     public String callWithoutThinking(String prompt) {
-        OllamaChatOptions options = OllamaChatOptions.builder()
+        OpenAiChatOptions options = OpenAiChatOptions.builder()
                 .model(model)
                 .temperature(0.7)
-                .disableThinking()
+                .maxTokens(1000)
                 .build();
 
         Prompt chatPrompt = new Prompt(prompt, options);
-        return ollamaChatModel.call(chatPrompt).getResult().getOutput().toString();
+        return openAiChatModel.call(chatPrompt).getResult().getOutput().getText();
     }
 }
