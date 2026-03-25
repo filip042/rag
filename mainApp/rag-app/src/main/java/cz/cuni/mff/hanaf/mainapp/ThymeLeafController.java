@@ -56,7 +56,7 @@ public class ThymeLeafController {
         model.addAttribute("currentUser", currentUser.getUsername());
         model.addAttribute("project", freshProject);
         model.addAttribute("admin", session.getAttribute("admin"));
-        return "load";
+        return "projectHome";
     }
 
     /**
