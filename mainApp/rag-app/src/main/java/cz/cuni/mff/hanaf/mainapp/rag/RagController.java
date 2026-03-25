@@ -18,7 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class RagController {
 
     @Autowired
-    private FileLoader fileLoader;
+    private RagService ragService;
 
     private final Map<String, Map<String, Object>> taskProgress = new ConcurrentHashMap<>();
 
@@ -41,7 +41,7 @@ public class RagController {
         progress.put("answer", "");
         progress.put("sources", new ArrayList<String>());
         taskProgress.put(taskId, progress);
-        fileLoader.ask(query, workSpace, progress);
+        ragService.ask(query, workSpace, progress);
         return Map.of("taskId", taskId);
     }
 
@@ -77,7 +77,7 @@ public class RagController {
      */
     @GetMapping("/status")
     public Map<String, Object> getIndexStatus(@RequestParam long workSpace) {
-        return fileLoader.allAdded(workSpace);
+        return ragService.allAdded(workSpace);
     }
 
     /**
@@ -92,7 +92,7 @@ public class RagController {
     public ResponseEntity<String> uploadFiles(@RequestParam("files") MultipartFile[] files,
             @RequestParam("workSpace") long workSpace) {
         try {
-            fileLoader.addDocuments(files, workSpace);
+            ragService.addDocuments(files, workSpace);
             return ResponseEntity.ok("Upload started");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -108,7 +108,7 @@ public class RagController {
     @PostMapping("/delete")
     public void deleteDocuments(@RequestBody Map<String, Long> payload) {
         long workSpace = payload.get("workSpace");
-        fileLoader.deleteWorkspace(workSpace);
+        ragService.deleteWorkspace(workSpace);
     }
 }
 

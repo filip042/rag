@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service
-public class FileLoader {
+public class RagService {
 
     private final VectorStore vectorStore;
     private final ChatModel chatModel;
@@ -46,7 +46,7 @@ public class FileLoader {
     private final LlmMethods llmMethods;
     private final Executor llmExecutor;
 
-    public FileLoader(VectorStore vectorStore, ChatModel chatModel, ProjectRepository projectRepository, QuestionRepository questionRepository, LlmMethods llmMethods, @Qualifier("llmExecutor") Executor llmExecutor) {
+    public RagService(VectorStore vectorStore, ChatModel chatModel, ProjectRepository projectRepository, QuestionRepository questionRepository, LlmMethods llmMethods, @Qualifier("llmExecutor") Executor llmExecutor) {
         this.vectorStore = new SynchronizedVectorStore(vectorStore);
         this.chatModel = chatModel;
         this.projectRepository = projectRepository;
@@ -110,9 +110,7 @@ public class FileLoader {
             progress.put("checked", count);
             progress.put("checked_all", verified);
 
-//            System.out.println("blam");
             List<Document> candidates = vectorStore.similaritySearch(request);
-//            System.out.println("blim");
 
             List<Document> relevant =
                     candidates.stream()
@@ -183,7 +181,7 @@ public class FileLoader {
      * Files whose hash matches an already-indexed version are skipped; files
      * whose hash has changed are re-indexed. Cleans up temporary storage once done.
      *
-     * @param files     The files to be indexed
+     * @param files     The files to be indexed. Files that are empty or don't have a name are ignored
      * @param workspace The id of the workspace to add the files to
      */
     public void addDocuments(MultipartFile[] files, long workspace) {
@@ -203,7 +201,7 @@ public class FileLoader {
 
             List<Path> toIndex = new ArrayList<>();
             for (MultipartFile file : files) {
-                if (!file.isEmpty()) {
+                if (!file.isEmpty() && file.getOriginalFilename() != null) {
                     Path filePath = tempDir.resolve(file.getOriginalFilename());
                     Files.createDirectories(filePath.getParent());
                     file.transferTo(filePath.toFile());

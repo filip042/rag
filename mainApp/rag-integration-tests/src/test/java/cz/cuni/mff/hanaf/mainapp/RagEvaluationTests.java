@@ -2,7 +2,7 @@ package cz.cuni.mff.hanaf.mainapp;
 
 import com.opencsv.CSVReader;
 import cz.cuni.mff.hanaf.mainapp.config.TestConfig;
-import cz.cuni.mff.hanaf.mainapp.rag.FileLoader;
+import cz.cuni.mff.hanaf.mainapp.rag.RagService;
 import com.opencsv.exceptions.CsvException;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -41,7 +41,7 @@ import java.util.stream.Collectors;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class RagEvaluationTests {
 
-    private final FileLoader fileLoader;
+    private final RagService ragService;
     private final OllamaApi ollamaApi;
     private final OpenAiApi openAiApi;
     private final RelevancyEvaluator relevancyEvaluator;
@@ -50,8 +50,8 @@ class RagEvaluationTests {
     private static final Path RESULT_PATH = Path.of("target/rag-eval-results.csv");
 
     @Autowired
-    RagEvaluationTests(FileLoader fileLoader, OllamaApi ollamaApi, OpenAiApi openAiApi, RelevancyEvaluator relevancyEvaluator, FactCheckingEvaluator factCheckingEvaluator) {
-        this.fileLoader = fileLoader;
+    RagEvaluationTests(RagService ragService, OllamaApi ollamaApi, OpenAiApi openAiApi, RelevancyEvaluator relevancyEvaluator, FactCheckingEvaluator factCheckingEvaluator) {
+        this.ragService = ragService;
         this.ollamaApi = ollamaApi;
         this.openAiApi = openAiApi;
         this.relevancyEvaluator = relevancyEvaluator;
@@ -67,7 +67,7 @@ class RagEvaluationTests {
         double f1Score = 0;
         for (int i = 0; i < repetitions; i++) {
             Map<String, Object> progress = new HashMap<>();
-            fileLoader.ask(query, workspace, progress, chatModel).join();
+            ragService.ask(query, workspace, progress, chatModel).join();
 
             String answer = (String) progress.get("answer");
             List<Document> context = (List<Document>) progress.get("documents");
@@ -123,7 +123,7 @@ class RagEvaluationTests {
         } else {
             promptResource = new ClassPathResource("prompts/" + prompt + ".txt");
         }
-        fileLoader.setSystemPrompt(promptResource);
+        ragService.setSystemPrompt(promptResource);
 
         if (provider.equals("openai")) {
             Thread.sleep(2000);
