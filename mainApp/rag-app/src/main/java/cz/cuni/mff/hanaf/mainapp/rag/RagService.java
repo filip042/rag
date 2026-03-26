@@ -95,46 +95,9 @@ public class RagService {
         ChatClient chatClient = ChatClient.builder(chatModel).build();
 
         return CompletableFuture.supplyAsync(() -> {
-            FilterExpressionBuilder expressionBuilder = new FilterExpressionBuilder();
-            Filter.Expression filterExpression = expressionBuilder.eq("workSpace", workSpace).build();
-            int size = 5;
-            progress.put("total", size);
-            SearchRequest request = SearchRequest.builder().query(query).filterExpression(filterExpression).topK(size).build();
-
-            System.out.println(query);
-
-            SystemPromptTemplate systemPromptTemplate = new SystemPromptTemplate(askTemplateResource);
-
-            AtomicInteger count =  new AtomicInteger(0);
-            AtomicBoolean verified = new AtomicBoolean(false);
-            progress.put("checked", count);
-            progress.put("checked_all", verified);
-
-            List<Document> candidates = vectorStore.similaritySearch(request);
-
-            List<Document> relevant =
-                    candidates.stream()
-                            .filter(doc -> {
-                                System.out.println(doc.getMetadata().get("source"));
-                                boolean isRelevant = llmMethods.verifySource(doc.getText(), query);
-                                count.incrementAndGet();
-                                return isRelevant;
-                            })
-                            .toList();
-
-            verified.set(true);
-
-            VerifyingQuestionAnswerAdvisor qaAdvisor;
-            try {
-                qaAdvisor = VerifyingQuestionAnswerAdvisor.builder(vectorStore)
-                        .promptTemplate(systemPromptTemplate)
-                        .doNotKnowPrompt(doNotKnowPromptResource.getContentAsString(StandardCharsets.UTF_8))
-                        .searchRequest(request)
-                        .documents(relevant)
-                        .build();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+            SearchRequest request = buildSearchRequest(query, workSpace, progress);
+            List<Document> relevant = filterRelevantDocuments(request, query, progress);
+            VerifyingQuestionAnswerAdvisor qaAdvisor = buildAdvisor(request, relevant);
 
             ChatClientResponse clientResponse = chatClient.prompt(query)
                     .advisors(qaAdvisor)
@@ -160,17 +123,7 @@ public class RagService {
             progress.put("documents", documents);
             progress.put("status", "done");
 
-            System.out.println(formattedAnswer);
-
-            projectRepository.findById(workSpace).ifPresent(project -> {
-                Question question = new Question();
-                question.setQuestion(query);
-                question.setAnswer(formattedAnswer);
-                question.setAnswerTime(Instant.now());
-                question.setSources(sources);
-                question.setProject(project);
-                questionRepository.save(question);
-            });
+            saveQuestion(query, formattedAnswer, sources, workSpace);
 
             return null;
         }, llmExecutor);
@@ -198,105 +151,26 @@ public class RagService {
             Map<String, FileInfo> existingFiles = new ConcurrentHashMap<>(Optional.ofNullable(project.getFiles()).orElse(Map.of()));
 
             Path tempDir = Files.createTempDirectory("uploads_" + workspace);
-
-            List<Path> toIndex = new ArrayList<>();
-            for (MultipartFile file : files) {
-                if (!file.isEmpty() && file.getOriginalFilename() != null) {
-                    Path filePath = tempDir.resolve(file.getOriginalFilename());
-                    Files.createDirectories(filePath.getParent());
-                    file.transferTo(filePath.toFile());
-                    toIndex.add(filePath);
-                }
-            }
-
+            List<Path> toIndex = saveUploadedFiles(files, tempDir);
             allFilesToIndex.put(workspace, toIndex);
 
-            Set<String> filesToRemove = toIndex.stream()
-                    .filter(f -> {
-                        String fileName = f.getFileName().toString();
-                        if (!existingFiles.containsKey(fileName)) {
-                            return false;
-                        }
-                        try {
-                            String newHash = computeHash(f);
-                            String storedHash = existingFiles.get(fileName).getHash();
-                            return !newHash.equals(storedHash);
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
-                    })
-                    .map(f -> existingFiles.get(f.getFileName().toString()).getFileId())
-                    .collect(Collectors.toSet());
-
-            if (!filesToRemove.isEmpty()) {
-                System.out.println("Removing old versions of " + filesToRemove.size() + " files");
-                for (String fileToRemove : filesToRemove) {
-                    deleteDocumentsForFile(workspace, fileToRemove);
-                }
-            }
+            removeStaleDocuments(toIndex, existingFiles, workspace);
 
             List<CompletableFuture<Void>> futures = toIndex.stream()
                     .filter(f -> {
-                        String fileName = f.getFileName().toString();
-                        try {
-                            String newHash = computeHash(f);
-                            if (existingFiles.containsKey(fileName) && newHash.equals(existingFiles.get(fileName).getHash())) {
-                                finishedQueue.add(fileName);
-                                return false;
-                            }
-                            return true;
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
+                        if (isAlreadyIndexed(f, existingFiles)) {
+                            finishedQueue.add(f.getFileName().toString());
+                            return false;
                         }
+                        return true;
                     })
-                    .map(f -> CompletableFuture.runAsync(() -> {
-                        String fileName = f.getFileName().toString();
-                        String fileId;
-                        if (existingFiles.containsKey(fileName)) {
-                            fileId = existingFiles.get(fileName).getFileId();
-                        } else {
-                            fileId = UUID.randomUUID().toString();
-                        }
-                        try {
-                            DocumentLoader loader = new DocumentLoader(vectorStore, chatModel);
-                            loader.load(f, workspace, indexingStartTime, fileId);
-                            System.out.println("Finished processing: " + f);
-                        } catch (Exception e) {
-                            System.err.println("Failed processing " + f + ": " + e.getMessage());
-                        }
-
-                        try {
-                            String hash = computeHash(f);
-                            existingFiles.put(fileName, new FileInfo(fileId, hash));
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
-
-                        finishedQueue.add(fileName);
-                    }, llmExecutor))
+                    .map(f -> CompletableFuture.runAsync(
+                            () -> indexFile(f, workspace, existingFiles, indexingStartTime, finishedQueue),
+                            llmExecutor))
                     .toList();
 
-            CompletableFuture<Void> allDone = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
-
-            allDone.thenRun(() -> {
-                Map<String, FileInfo> updatedFiles = new HashMap<>(existingFiles);
-                project.setFiles(updatedFiles);
-                projectRepository.save(project);
-
-                // Clean up temporary directory
-                try (Stream<Path> paths = Files.walk(tempDir)) {
-                    paths.sorted(Comparator.reverseOrder())
-                            .forEach(path -> {
-                                try {
-                                    Files.delete(path);
-                                } catch (IOException e) {
-                                    System.err.println("Failed to delete temp file: " + path);
-                                }
-                            });
-                } catch (IOException e) {
-                    System.err.println("Failed to clean up temp directory: " + e.getMessage());
-                }
-            });
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
+                    .thenRun(() -> onIndexingComplete(project, existingFiles, tempDir));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -363,7 +237,8 @@ public class RagService {
     private String extractDocumentName(Document document) {
         Pattern pattern = Pattern.compile("<chunk source=\"([^\"]+)\">\\s*(.*?)\\s*</chunk>", Pattern.DOTALL);
 
-        Matcher matcher = pattern.matcher(Objects.requireNonNullElse(document.getText(), ""));        String fileName = "";
+        Matcher matcher = pattern.matcher(Objects.requireNonNullElse(document.getText(), ""));
+        String fileName = "";
         if (matcher.find()) {
             fileName = matcher.group(1);
         }
@@ -374,6 +249,134 @@ public class RagService {
     private String computeHash(Path file) throws IOException {
         try (InputStream is = Files.newInputStream(file)) {
             return DigestUtils.md5DigestAsHex(is);
+        }
+    }
+
+    private SearchRequest buildSearchRequest(String query, long workSpace, Map<String, Object> progress) {
+        FilterExpressionBuilder expressionBuilder = new FilterExpressionBuilder();
+        Filter.Expression filterExpression = expressionBuilder.eq("workSpace", workSpace).build();
+        int size = 5; // todo should probably be constant
+        progress.put("total", size);
+        return SearchRequest.builder().query(query).filterExpression(filterExpression).topK(size).build();
+    }
+
+    private List<Document> filterRelevantDocuments(SearchRequest request, String query, Map<String, Object> progress) {
+        AtomicInteger count = new AtomicInteger(0);
+        AtomicBoolean verified = new AtomicBoolean(false);
+        progress.put("checked", count);
+        progress.put("checked_all", verified);
+
+        List<Document> relevant = vectorStore.similaritySearch(request).stream()
+                .filter(doc -> {
+                    boolean isRelevant = llmMethods.verifySource(doc.getText(), query);
+                    count.incrementAndGet();
+                    return isRelevant;
+                })
+                .toList();
+
+        verified.set(true);
+        return relevant;
+    }
+
+    private VerifyingQuestionAnswerAdvisor buildAdvisor(SearchRequest request, List<Document> relevant) {
+        try {
+            return VerifyingQuestionAnswerAdvisor.builder(vectorStore)
+                    .promptTemplate(new SystemPromptTemplate(askTemplateResource))
+                    .doNotKnowPrompt(doNotKnowPromptResource.getContentAsString(StandardCharsets.UTF_8))
+                    .searchRequest(request)
+                    .documents(relevant)
+                    .build();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void saveQuestion(String query, String answer, Set<String> sources, long workSpace) {
+        projectRepository.findById(workSpace).ifPresent(project -> {
+            Question question = new Question();
+            question.setQuestion(query);
+            question.setAnswer(answer);
+            question.setAnswerTime(Instant.now());
+            question.setSources(sources);
+            question.setProject(project);
+            questionRepository.save(question);
+        });
+    }
+
+    private List<Path> saveUploadedFiles(MultipartFile[] files, Path tempDir) throws IOException {
+        List<Path> toIndex = new ArrayList<>();
+        for (MultipartFile file : files) {
+            if (!file.isEmpty() && file.getOriginalFilename() != null) {
+                Path filePath = tempDir.resolve(file.getOriginalFilename());
+                Files.createDirectories(filePath.getParent());
+                file.transferTo(filePath.toFile());
+                toIndex.add(filePath);
+            }
+        }
+        return toIndex;
+    }
+
+    private void removeStaleDocuments(List<Path> toIndex, Map<String, FileInfo> existingFiles, long workspace) {
+        Set<String> filesToRemove = toIndex.stream()
+                .filter(f -> existingFiles.containsKey(f.getFileName().toString()) && !isAlreadyIndexed(f, existingFiles))
+                .map(f -> existingFiles.get(f.getFileName().toString()).getFileId())
+                .collect(Collectors.toSet());
+
+        if (!filesToRemove.isEmpty()) {
+            System.out.println("Removing old versions of " + filesToRemove.size() + " files");
+            filesToRemove.forEach(fileId -> deleteDocumentsForFile(workspace, fileId));
+        }
+    }
+
+    private boolean isAlreadyIndexed(Path f, Map<String, FileInfo> existingFiles) {
+        String fileName = f.getFileName().toString();
+        if (!existingFiles.containsKey(fileName)) {
+            return false;
+        }
+        try {
+            return computeHash(f).equals(existingFiles.get(fileName).getHash());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void indexFile(Path f, long workspace, Map<String, FileInfo> existingFiles, Instant indexingStartTime, ConcurrentLinkedQueue<String> finishedQueue) {
+        String fileName = f.getFileName().toString();
+        String fileId = existingFiles.containsKey(fileName) ? existingFiles.get(fileName).getFileId() : UUID.randomUUID().toString();
+
+        try {
+            new DocumentLoader(vectorStore, chatModel).load(f, workspace, indexingStartTime, fileId);
+            System.out.println("Finished processing: " + f);
+        } catch (Exception e) { // todo
+            System.err.println("Failed processing " + f + ": " + e.getMessage());
+        }
+
+        try {
+            existingFiles.put(fileName, new FileInfo(fileId, computeHash(f)));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        finishedQueue.add(fileName);
+    }
+
+    private void onIndexingComplete(Project project, Map<String, FileInfo> existingFiles, Path tempDir) {
+        project.setFiles(new HashMap<>(existingFiles));
+        projectRepository.save(project);
+        cleanUpTempDir(tempDir);
+    }
+
+    private void cleanUpTempDir(Path tempDir) {
+        try (Stream<Path> paths = Files.walk(tempDir)) {
+            paths.sorted(Comparator.reverseOrder()).forEach(path -> {
+                try {
+                    Files.delete(path);
+                } catch (IOException e) {
+                    System.err.println("Failed to delete temp file: " + path);
+                }
+            });
+        } catch (IOException e) {
+            System.err.println("Failed to clean up temp directory: " + e.getMessage());
         }
     }
 }
