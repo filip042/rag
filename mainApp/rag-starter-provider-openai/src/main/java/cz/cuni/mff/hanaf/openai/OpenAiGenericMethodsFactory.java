@@ -17,7 +17,7 @@ public class OpenAiGenericMethodsFactory implements LlmMethodsFactory {
 
     @Override
     public boolean supports(String providerName, String modelName) {
-        return providerName.equalsIgnoreCase("openai") && modelName.toLowerCase().startsWith("gpt-4o");
+        return providerName.equalsIgnoreCase("openai");
     }
 
     @Override
