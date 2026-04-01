@@ -18,7 +18,6 @@ public class TikaParserStrategy implements DocumentParserStrategy {
 
     @Override
     public List<Document> read(String filePath) {
-        System.out.println("DEBUG: TikaParserStrategy.read() called with filePath = " + filePath);
         return new TikaDocumentReader("file:" + filePath).get();
     }
 }
