@@ -45,14 +45,16 @@ public class RagService {
     private final QuestionRepository questionRepository;
     private final LlmMethods llmMethods;
     private final Executor llmExecutor;
+    private final DocumentLoader documentLoader;
 
-    public RagService(VectorStore vectorStore, ChatModel chatModel, ProjectRepository projectRepository, QuestionRepository questionRepository, LlmMethods llmMethods, @Qualifier("llmExecutor") Executor llmExecutor) {
+    public RagService(VectorStore vectorStore, ChatModel chatModel, ProjectRepository projectRepository, QuestionRepository questionRepository, LlmMethods llmMethods, @Qualifier("llmExecutor") Executor llmExecutor, DocumentLoader documentLoader) {
         this.vectorStore = new SynchronizedVectorStore(vectorStore);
         this.chatModel = chatModel;
         this.projectRepository = projectRepository;
         this.questionRepository = questionRepository;
         this.llmMethods = llmMethods;
         this.llmExecutor = llmExecutor;
+        this.documentLoader = documentLoader;
     }
 
     @Value("classpath:prompts/ask-template.txt")
@@ -345,7 +347,7 @@ public class RagService {
         String fileId = existingFiles.containsKey(fileName) ? existingFiles.get(fileName).getFileId() : UUID.randomUUID().toString();
 
         try {
-            new DocumentLoader(vectorStore, chatModel).load(f, workspace, indexingStartTime, fileId);
+            documentLoader.load(f, workspace, indexingStartTime, fileId);
             System.out.println("Finished processing: " + f);
         } catch (Exception e) { // todo
             System.err.println("Failed processing " + f + ": " + e.getMessage());

@@ -77,7 +77,7 @@ public class OverlapTextSplitter extends TextSplitter {
 
             return chunks;
         } else {
-            return new ArrayList();
+            return new ArrayList<>();
         }
     }
 
