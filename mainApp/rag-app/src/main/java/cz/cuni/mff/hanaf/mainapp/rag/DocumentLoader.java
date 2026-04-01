@@ -5,15 +5,11 @@ import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import cz.cuni.mff.hanaf.core.parser.DocumentParserStrategy;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.prompt.SystemPromptTemplate;
 import org.springframework.ai.document.Document;
-import org.springframework.ai.reader.markdown.MarkdownDocumentReader;
-import org.springframework.ai.reader.markdown.config.MarkdownDocumentReaderConfig;
-import org.springframework.ai.reader.tika.TikaDocumentReader;
 import org.springframework.ai.vectorstore.VectorStore;
-import org.springframework.ai.vectorstore.filter.Filter;
-import org.springframework.ai.vectorstore.filter.FilterExpressionBuilder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
@@ -22,6 +18,7 @@ import org.springframework.stereotype.Component;
 public class DocumentLoader{
     private final VectorStore vectorStore;
     private final ChatModel chatModel;
+    private final List<DocumentParserStrategy> parserStrategies;
 
     private final List<String> formats = List.of(".txt", ".html", ".pdf");
 
@@ -31,9 +28,10 @@ public class DocumentLoader{
     @Value("classpath:prompts/summarize-template.txt")
     private Resource summarizeResource;
 
-    public DocumentLoader(VectorStore vectorStore, ChatModel chatModel) {
+    public DocumentLoader(VectorStore vectorStore, ChatModel chatModel, List<DocumentParserStrategy> parserStrategies) {
         this.vectorStore = new SynchronizedVectorStore(vectorStore);
         this.chatModel = chatModel;
+        this.parserStrategies = parserStrategies;
     }
 
     /**
@@ -62,21 +60,14 @@ public class DocumentLoader{
     private List<Document> readAndSplitDocument(String filePath) {
         OverlapTextSplitter splitter = new OverlapTextSplitter(2000, 300, 50, 10000, true, 100);
 
-        if (filePath.endsWith(".md")) {
-            MarkdownDocumentReaderConfig config = MarkdownDocumentReaderConfig.builder()
-                    .withHorizontalRuleCreateDocument(true)
-                    .withIncludeCodeBlock(false)
-                    .withIncludeBlockquote(false)
-                    .build();
-
-            MarkdownDocumentReader reader = new MarkdownDocumentReader("file:" + filePath, config);
-            return splitter.apply(reader.get());
-        } else if (formats.stream().anyMatch(filePath::endsWith)) {
-            TikaDocumentReader reader = new TikaDocumentReader("file:" + filePath);
-            return splitter.apply(reader.get());
-        }
-
-        return new ArrayList<>();
+        return parserStrategies.stream()
+                .filter(p -> p.supports(filePath))
+                .findFirst()
+                .map(p -> splitter.apply(p.read(filePath)))
+                .orElseGet(() -> {
+                    System.out.println("No parser found for: " + filePath);
+                    return new ArrayList<>();
+                });
     }
 
     /**

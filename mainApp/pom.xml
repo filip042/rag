@@ -26,6 +26,8 @@
         <module>rag-starter-provider-openai</module>
         <module>rag-starter-llm-gpt4o-openai</module>
         <module>rag-starter-vectorstore-elasticsearch</module>
+        <module>rag-starter-parser-tika</module>
+        <module>rag-starter-parser-markdown</module>
         <module>rag-app</module>
         <module>rag-integration-tests</module>
     </modules>
@@ -94,6 +96,18 @@
             <dependency>
                 <groupId>cz.cuni.mff.hanaf</groupId>
                 <artifactId>rag-starter-vectorstore-elasticsearch</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>cz.cuni.mff.hanaf</groupId>
+                <artifactId>rag-starter-parser-tika</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>cz.cuni.mff.hanaf</groupId>
+                <artifactId>rag-starter-parser-markdown</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
