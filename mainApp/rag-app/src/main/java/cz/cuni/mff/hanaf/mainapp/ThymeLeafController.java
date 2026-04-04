@@ -53,7 +53,7 @@ public class ThymeLeafController {
             return "redirect:" + dashboardUrl;
         }
         Project freshProject = projectRepository.findById(currentProject.getId()).orElse(currentProject); // so the warning banner is accurate
-        model.addAttribute("currentUser", currentUser.getUsername());
+        model.addAttribute("currentUsername", currentUser.getUsername());
         model.addAttribute("project", freshProject);
         model.addAttribute("admin", session.getAttribute("admin"));
         return "projectHome";
@@ -110,7 +110,7 @@ public class ThymeLeafController {
 
         model.addAttribute("project", new Project());
         model.addAttribute("availableProjects", projects);
-        model.addAttribute("currentUser", user.getUsername());
+        model.addAttribute("currentUsername", user.getUsername());
         model.addAttribute("guest", session.getAttribute("guest"));
 
         return "dashboard";
@@ -220,7 +220,7 @@ public class ThymeLeafController {
         model.addAttribute("workSpace", project.getId());
         model.addAttribute("askUrl", askUrl);
         model.addAttribute("answerUrl", answerUrl);
-        model.addAttribute("currentUser", currentUser.getUsername());
+        model.addAttribute("currentUsername", currentUser.getUsername());
 
         return "answer";
     }
@@ -292,7 +292,7 @@ public class ThymeLeafController {
     public String showNewProjectForm(Model model, HttpSession session) {
         User currentUser = (User) session.getAttribute("authenticatedUser");
         model.addAttribute("project", new Project());
-        model.addAttribute("currentUser", currentUser.getUsername());
+        model.addAttribute("currentUsername", currentUser.getUsername());
         return "newProject";
     }
 
@@ -450,7 +450,7 @@ public class ThymeLeafController {
         model.addAttribute("articleCountEndpoint", url.concat(parameter));
         model.addAttribute("loadEndpoint", loadUrl);
         model.addAttribute("admin", session.getAttribute("admin"));
-        model.addAttribute("currentUser", currentUser.getUsername());
+        model.addAttribute("currentUsername", currentUser.getUsername());
         model.addAttribute("project", project);
 
         return "adminSettings";
@@ -467,7 +467,7 @@ public class ThymeLeafController {
         List<Question> questions = questionRepository.findByProject_Id(project.getId());
         User currentUser = (User) session.getAttribute("authenticatedUser");
         model.addAttribute("questions", questions);
-        model.addAttribute("currentUser", currentUser.getUsername());
+        model.addAttribute("currentUsername", currentUser.getUsername());
 
         return "history";
     }

@@ -13,14 +13,14 @@
                 🌙
             </button>
 
-            <span class="user-info" th:if="${currentUser}" th:text="${currentUser}"></span>
+            <span class="user-info" th:if="${currentUsername}" th:text="${currentUsername}"></span>
 
-            <form th:if="${currentUser != null}"
+            <form th:if="${currentUsername != null}"
                   th:action="@{/user/logout}" method="get" style="display: inline; margin: 0;">
                 <button type="submit" class="logout-btn">Logout</button>
             </form>
 
-            <a th:if="${currentUser == null}" th:href="@{/user/login}" class="header-btn login-btn">
+            <a th:if="${currentUsername == null}" th:href="@{/user/login}" class="header-btn login-btn">
                 Login
             </a>
         </div>
