@@ -14,7 +14,7 @@ public class OpenAiPropertyMapper implements EnvironmentPostProcessor {
     public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
         String provider = environment.getProperty("app.llm.provider", "").toLowerCase();
 
-        if (!"ollama".equals(provider)) {
+        if (!"openai".equals(provider)) {
             return;
         }
 
@@ -26,7 +26,7 @@ public class OpenAiPropertyMapper implements EnvironmentPostProcessor {
 
         if (!mappedProps.isEmpty()) {
             environment.getPropertySources().addFirst(
-                    new MapPropertySource("ollamaLlmMapping", mappedProps));
+                    new MapPropertySource("opennaiLlmMapping", mappedProps));
         }
     }
 
