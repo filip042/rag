@@ -106,6 +106,8 @@ public class RagService {
                     .call()
                     .chatClientResponse();
 
+            System.out.println(clientResponse);
+
             String answer = Optional.ofNullable(clientResponse.chatResponse())
                     .map(ChatResponse::getResult)
                     .map(Generation::getOutput)
@@ -259,6 +261,7 @@ public class RagService {
         Filter.Expression filterExpression = expressionBuilder.eq("workSpace", workSpace).build();
         int size = 5; // todo should probably be constant
         progress.put("total", size);
+        query = "search_query: " + query;
         return SearchRequest.builder().query(query).filterExpression(filterExpression).topK(size).build();
     }
 
@@ -268,8 +271,11 @@ public class RagService {
         progress.put("checked", count);
         progress.put("checked_all", verified);
 
+        System.out.println(request.getQuery());
+
         List<Document> relevant = vectorStore.similaritySearch(request).stream()
                 .filter(doc -> {
+                    System.out.println(doc);
                     boolean isRelevant = llmMethods.verifySource(doc.getText(), query);
                     count.incrementAndGet();
                     return isRelevant;

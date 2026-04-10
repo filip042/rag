@@ -9,7 +9,6 @@ public class AppConfig {
     private String baseUrl;
     private ApiUrls apiUrls = new ApiUrls();
     private FrontendUrls frontendUrls = new FrontendUrls();
-    private Ollama ollama;
 
     public String getBaseUrl() {
         return baseUrl;
@@ -33,14 +32,6 @@ public class AppConfig {
 
     public void setFrontendUrls(FrontendUrls frontendUrls) {
         this.frontendUrls = frontendUrls;
-    }
-
-    public Ollama getOllama() {
-        return ollama;
-    }
-
-    public void setOllama(Ollama ollama) {
-        this.ollama = ollama;
     }
 
     public static class ApiUrls {
@@ -190,27 +181,6 @@ public class AppConfig {
 
         public void setNewUser(String newUser) {
             this.newUser = newUser;
-        }
-    }
-
-    public static class Ollama {
-        private String username;
-        private String password;
-
-        public String getUsername() {
-            return username;
-        }
-
-        public void setUsername(String username) {
-            this.username = username;
-        }
-
-        public String getPassword() {
-            return password;
-        }
-
-        public void setPassword(String password) {
-            this.password = password;
         }
     }
 }

@@ -19,8 +19,7 @@ public class DocumentLoader{
     private final VectorStore vectorStore;
     private final ChatModel chatModel;
     private final List<DocumentParserStrategy> parserStrategies;
-
-    private final List<String> formats = List.of(".txt", ".html", ".pdf");
+    private final SplitterProperties splitterProperties;
 
     @Value("classpath:/prompts/add-context-template.txt")
     private Resource systemResource;
@@ -28,10 +27,11 @@ public class DocumentLoader{
     @Value("classpath:prompts/summarize-template.txt")
     private Resource summarizeResource;
 
-    public DocumentLoader(VectorStore vectorStore, ChatModel chatModel, List<DocumentParserStrategy> parserStrategies) {
+    public DocumentLoader(VectorStore vectorStore, ChatModel chatModel, List<DocumentParserStrategy> parserStrategies, SplitterProperties splitterProperties) {
         this.vectorStore = new SynchronizedVectorStore(vectorStore);
         this.chatModel = chatModel;
         this.parserStrategies = parserStrategies;
+        this.splitterProperties = splitterProperties;
     }
 
     /**
@@ -58,8 +58,14 @@ public class DocumentLoader{
      * @return A list of chunks created from the given document
      */
     private List<Document> readAndSplitDocument(String filePath) {
-        OverlapTextSplitter splitter = new OverlapTextSplitter(2000, 300, 50, 10000, true, 100);
-
+        OverlapTextSplitter splitter = new OverlapTextSplitter(
+                splitterProperties.getChunkSize(),
+                splitterProperties.getMinChunkSizeChars(),
+                splitterProperties.getMinChunkLengthToEmbed(),
+                splitterProperties.getMaxNumChunks(),
+                splitterProperties.isKeepSeparator(),
+                splitterProperties.getOverlapTokens()
+        );
         return parserStrategies.stream()
                 .filter(p -> p.supports(filePath))
                 .findFirst()
@@ -82,7 +88,7 @@ public class DocumentLoader{
     private List<Document> prepareDocumentsWithSource(String fileName, String fileId, long workspace, Instant processingTime, List<Document> splitDocuments) {
         return splitDocuments.stream()
                 .map(document -> {
-                    String textWithSource = "<chunk source=\"" + fileName + "\">\n" + document.getText() + "\n</chunk>";
+                    String textWithSource = "search_document: " + document.getText();
 
                     Map<String, Object> metadata = new HashMap<>(document.getMetadata());
                     metadata.put("workSpace", workspace);
