@@ -21,6 +21,18 @@
     </div>
 
     <div>
+        <label>Access:</label>
+        <div class="settings-radio">
+            <label>
+                <input type="radio" id="public" th:field="*{public}" th:value="true"> Public
+            </label>
+            <label>
+                <input type="radio" id="private" th:field="*{public}" th:value="false" checked> Private
+            </label>
+        </div>
+    </div>
+
+    <div>
         <input type="submit" value="Create Project">
     </div>
 </form>
