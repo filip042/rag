@@ -191,6 +191,12 @@ div {
     color: #666;
 }
 
+.button-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
 
 [data-color-scheme="dark"] body {
     background-color: #1a1a1a;

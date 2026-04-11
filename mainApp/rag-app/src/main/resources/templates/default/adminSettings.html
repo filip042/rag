@@ -177,9 +177,17 @@
 
 <br><br>
 
-<form action="#" th:action="@{/user/chat}" method="get">
-    <input type="submit" value="Return">
-</form>
+<div class="button-row">
+    <form action="#" th:action="@{/user/chat}" method="get">
+        <input type="submit" value="Return">
+    </form>
+
+    <br>
+
+    <form action="#" th:action="@{/user/deleteProject}" method="post" th:if="${admin}">
+        <button type="submit" class="delete" onclick="return confirm('Are you sure you want to delete this project?');">Delete Project</button>
+    </form>
+</div>
 
 <script th:src="@{/js/admin.js}"></script>
 
