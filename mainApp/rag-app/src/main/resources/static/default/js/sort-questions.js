@@ -10,3 +10,15 @@ function sortQuestions(order) {
 
     items.forEach(item => container.appendChild(item));
 }
+
+function filterQuestions() {
+    const query = document.getElementById('filterInput').value.toLowerCase();
+    const cards = document.querySelectorAll('.question-card');
+
+    cards.forEach(card => {
+        const question = card.querySelector('.question-section p')?.textContent.toLowerCase() ?? '';
+        const answer = card.querySelector('.answer-section p')?.textContent.toLowerCase() ?? '';
+        const matches = question.includes(query) || answer.includes(query);
+        card.style.display = matches ? '' : 'none';
+    });
+}

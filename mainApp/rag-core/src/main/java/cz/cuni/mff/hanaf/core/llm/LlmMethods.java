@@ -13,10 +13,6 @@ public interface LlmMethods {
      * @return The information from the answer in a map with the answer, sources, and done keys
      */
     default String prepareAnswer(String answer) {
-//        System.out.println("temp");
-//        System.out.println(answer); // todo test remove in future
-//        System.out.println("endTemp");
-
         answer = this.removeThinking(answer);
         return answer;
     }
@@ -35,7 +31,7 @@ public interface LlmMethods {
                 "document", document));
         String result = callWithoutThinking(prompt);
         System.out.println(result + " done");
-        return result != null && result.trim().equalsIgnoreCase("yes");
+        return result != null && result.trim().toLowerCase().contains("yes");
     }
 
     Resource getResource();
