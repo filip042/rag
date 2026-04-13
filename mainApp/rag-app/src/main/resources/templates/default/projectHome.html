@@ -9,6 +9,8 @@
 <body>
 <div th:replace="~{fragments/header :: header}"></div>
 
+<h2 th:text="${project.getName()}"></h2>
+
 <div th:if="${project.isArchived()}" class="warning">
     <strong>⚠ Warning:</strong> This project is archived. No questions can be asked at this time. Please contact a project administrator to unarchive the project.
 </div>
@@ -50,14 +52,14 @@
       <button type="submit">Return</button>
   </form>
 
-  <form th:if="${project.getAdminUsers().size() > 1}" action="#" th:action="@{/user/exitProject}" method="post">
+  <form th:if="${project.getAdminUsers().size() > 1 || !admin}" action="#" th:action="@{/user/exitProject}" method="post">
     <button type="submit" class="delete"
         onclick="return confirm('Are you sure you want to leave this project?')">
       Leave Project
     </button>
   </form>
 
-  <form th:unless="${project.getAdminUsers().size() > 1}" action="#" th:action="@{/user/deleteProject}" method="post">
+  <form th:unless="${project.getAdminUsers().size() > 1 && admin}" action="#" th:action="@{/user/deleteProject}" method="post">
     <button type="submit" class="delete"
             onclick="return confirm('Are you sure you want to leave? As the last admin, this will delete the project.')">
         Leave Project
