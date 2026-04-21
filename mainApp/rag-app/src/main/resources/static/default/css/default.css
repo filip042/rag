@@ -197,6 +197,37 @@ div {
     align-items: center;
 }
 
+.input-wrapper {
+    position: relative;
+    display: block;
+}
+
+.input-wrapper input {
+    box-sizing: border-box;
+    padding-right: 60px;
+}
+
+.input-counter {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.75rem;
+    color: #aaa;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.input-wrapper input:focus + .input-counter,
+.input-counter.visible {
+    opacity: 1;
+}
+
+.input-counter.near-limit {
+    color: orange;
+}
+
 
 [data-color-scheme="dark"] body {
     background-color: #1a1a1a;

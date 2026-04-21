@@ -24,11 +24,16 @@
       <strong>⚠ Warning:</strong> This project is empty. Please contact a project administrator to add documents.
   </div>
 
-  <form action="#" th:action="@{/user/answer}" method="post">
-    <label for="question">Question:</label>
-    <input type="text" id="question" name="question" required><br>
-    <input type="submit" value="Submit">
-  </form>
+    <form action="#" th:action="@{/user/answer}" method="post">
+        <label for="question">Question:</label>
+        <div class="input-wrapper">
+            <input type="text" id="question" name="question" required
+                   th:maxlength="${maxQueryLength}">
+            <span id="charCount" class="input-counter"></span>
+        </div><br>
+        <input type="submit" value="Submit">
+        <script th:src="@{/js/maxLength.js}"></script>
+    </form>
 
   <br>
 </div>

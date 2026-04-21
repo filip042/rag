@@ -56,6 +56,7 @@ public class ThymeLeafController {
         model.addAttribute("currentUsername", currentUser.getUsername());
         model.addAttribute("project", freshProject);
         model.addAttribute("admin", session.getAttribute("admin"));
+        model.addAttribute("maxQueryLength", 160);
         return "projectHome";
     }
 
