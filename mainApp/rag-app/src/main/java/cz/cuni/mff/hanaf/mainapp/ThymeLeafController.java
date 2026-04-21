@@ -1,6 +1,7 @@
 package cz.cuni.mff.hanaf.mainapp;
 
 import cz.cuni.mff.hanaf.mainapp.data.*;
+import cz.cuni.mff.hanaf.mainapp.rag.QueryProperties;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
@@ -16,14 +17,16 @@ import java.util.stream.Stream;
 public class ThymeLeafController {
 
     private final AppConfig appConfig;
+    private final QueryProperties queryProperties;
     private final RestTemplate restTemplate;
     private final UserRepository userRepository;
     private final ProjectRepository projectRepository;
     private final QuestionRepository questionRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public ThymeLeafController(AppConfig appConfig, RestTemplate restTemplate, UserRepository userRepository, ProjectRepository projectRepository, QuestionRepository questionRepository, PasswordEncoder passwordEncoder) {
+    public ThymeLeafController(AppConfig appConfig, QueryProperties queryProperties, RestTemplate restTemplate, UserRepository userRepository, ProjectRepository projectRepository, QuestionRepository questionRepository, PasswordEncoder passwordEncoder) {
         this.appConfig = appConfig;
+        this.queryProperties = queryProperties;
         this.restTemplate = restTemplate;
         this.userRepository = userRepository;
         this.projectRepository = projectRepository;
@@ -56,7 +59,7 @@ public class ThymeLeafController {
         model.addAttribute("currentUsername", currentUser.getUsername());
         model.addAttribute("project", freshProject);
         model.addAttribute("admin", session.getAttribute("admin"));
-        model.addAttribute("maxQueryLength", 160);
+        model.addAttribute("maxQueryLength", queryProperties.getMaxQueryLength());
         return "projectHome";
     }
 

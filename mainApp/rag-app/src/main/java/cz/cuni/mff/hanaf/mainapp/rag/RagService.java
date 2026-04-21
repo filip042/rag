@@ -46,8 +46,9 @@ public class RagService {
     private final LlmMethods llmMethods;
     private final Executor llmExecutor;
     private final DocumentLoader documentLoader;
+    private final QueryProperties queryProperties;
 
-    public RagService(VectorStore vectorStore, ChatModel chatModel, ProjectRepository projectRepository, QuestionRepository questionRepository, LlmMethods llmMethods, @Qualifier("llmExecutor") Executor llmExecutor, DocumentLoader documentLoader) {
+    public RagService(VectorStore vectorStore, ChatModel chatModel, ProjectRepository projectRepository, QuestionRepository questionRepository, LlmMethods llmMethods, @Qualifier("llmExecutor") Executor llmExecutor, DocumentLoader documentLoader, QueryProperties queryProperties) {
         this.vectorStore = new SynchronizedVectorStore(vectorStore);
         this.chatModel = chatModel;
         this.projectRepository = projectRepository;
@@ -55,6 +56,7 @@ public class RagService {
         this.llmMethods = llmMethods;
         this.llmExecutor = llmExecutor;
         this.documentLoader = documentLoader;
+        this.queryProperties = queryProperties;
     }
 
     @Value("classpath:prompts/ask-template.txt")
@@ -261,6 +263,10 @@ public class RagService {
         Filter.Expression filterExpression = expressionBuilder.eq("workSpace", workSpace).build();
         int size = 5; // todo should probably be constant
         progress.put("total", size);
+        int maxQueryLength = queryProperties.getMaxQueryLength();
+        if (query.length() > maxQueryLength) {
+            query = query.substring(0, maxQueryLength);
+        }
         query = "search_query: " + query;
         return SearchRequest.builder().query(query).filterExpression(filterExpression).topK(size).build();
     }
