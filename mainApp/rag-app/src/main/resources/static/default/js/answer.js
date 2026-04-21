@@ -65,7 +65,7 @@ async function fetchAnswer() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 query: question,
-                workSpace: workSpace
+                project: project
             })
         });
 

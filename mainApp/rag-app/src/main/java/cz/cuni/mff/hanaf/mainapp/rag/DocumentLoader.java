@@ -35,14 +35,14 @@ public class DocumentLoader{
     }
 
     /**
-     * Adds the document from the path to the database
+     * Adds the document from the path to the database todo
      */
-    protected void load(Path f, long workspace, Instant finalThisTime, String fileId) {
+    protected void load(Path f, long project, Instant finalThisTime, String fileId) {
         String fileName = f.getFileName().toString();
         String p = f.toString();
 
         List<Document> splitDocuments = readAndSplitDocument(p);
-        List<Document> documentsWithSource = prepareDocumentsWithSource(fileName, fileId, workspace, finalThisTime, splitDocuments);
+        List<Document> documentsWithSource = prepareDocumentsWithSource(fileName, fileId, project, finalThisTime, splitDocuments);
 
         if (!documentsWithSource.isEmpty()) {
             vectorStore.add(documentsWithSource);
@@ -80,18 +80,18 @@ public class DocumentLoader{
      * Adds an xml source tag and metadata for each chunk
      *
      * @param fileName The name of the chunk source file
-     * @param workspace The current workspace
+     * @param project The current project id
      * @param processingTime The current time
      * @param splitDocuments A list of chunks created by splitting documents
      * @return A list of modified Documents
      */
-    private List<Document> prepareDocumentsWithSource(String fileName, String fileId, long workspace, Instant processingTime, List<Document> splitDocuments) {
+    private List<Document> prepareDocumentsWithSource(String fileName, String fileId, long project, Instant processingTime, List<Document> splitDocuments) {
         return splitDocuments.stream()
                 .map(document -> {
                     String textWithSource = "search_document: " + document.getText();
 
                     Map<String, Object> metadata = new HashMap<>(document.getMetadata());
-                    metadata.put("workSpace", workspace);
+                    metadata.put("project", project);
                     metadata.put("lastReadTime", processingTime.getEpochSecond());
                     metadata.put("source", fileName);
                     metadata.put("fileId", fileId);

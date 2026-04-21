@@ -23,15 +23,15 @@ public class RagController {
     private final Map<String, Map<String, Object>> taskProgress = new ConcurrentHashMap<>();
 
     /**
-     * Passes the given query on to the LLM, which uses context from the given workspace to answer the question
+     * Passes the given query on to the LLM, which uses context from the given project to answer the question
      *
-     * @param payload The map containing the query to be passed to the LLM under 'query' and the id of the workspace with the context being used under 'workSpace'
+     * @param payload The map containing the query to be passed to the LLM under 'query' and the id of the project with the context being used under 'project'
      * @return A map containing a generated task id under "taskId", which can be polled via /answer
      */
     @PostMapping("/ask")
     public Map<String, Object> search(@RequestBody Map<String, Object> payload) {
         String query = (String) payload.get("query");
-        long workSpace = ((Number) payload.get("workSpace")).longValue();
+        long projectId = ((Number) payload.get("project")).longValue();
         String taskId = UUID.randomUUID().toString();
         Map<String, Object> progress = new ConcurrentHashMap<>();
         progress.put("status", "checking");
@@ -41,7 +41,7 @@ public class RagController {
         progress.put("answer", "");
         progress.put("sources", new ArrayList<String>());
         taskProgress.put(taskId, progress);
-        ragService.ask(query, workSpace, progress);
+        ragService.ask(query, projectId, progress);
         return Map.of("taskId", taskId);
     }
 
@@ -71,28 +71,28 @@ public class RagController {
     }
 
     /**
-     * Gets the status of the documents being added to the given workspace
-     * @param workSpace The id of the workspace being added to
+     * Gets the status of the documents being added to the given project
+     * @param projectId The id of the project being added to
      * @return A map containing a list of indexed files under "finishedFiles" and a boolean value for if all files have been indexed under "done"
      */
     @GetMapping("/status")
-    public Map<String, Object> getIndexStatus(@RequestParam long workSpace) {
-        return ragService.allAdded(workSpace);
+    public Map<String, Object> getIndexStatus(@RequestParam long projectId) {
+        return ragService.allAdded(projectId);
     }
 
     /**
-     * Uploads one or more files and begins asynchronously indexing them into the given workspace.
+     * Uploads one or more files and begins asynchronously indexing them into the given project.
      *
-     * @param files     The files to be indexed
-     * @param workSpace The id of the workspace the files should be added to
+     * @param files The files to be indexed
+     * @param projectId The id of the project the files should be added to
      * @return 200 OK with "Upload started" if the process was successfully initiated,
      *         or 500 Internal Server Error with an error message if an exception occurred
      */
     @PostMapping("/add")
     public ResponseEntity<String> uploadFiles(@RequestParam("files") MultipartFile[] files,
-            @RequestParam("workSpace") long workSpace) {
+            @RequestParam("project") long projectId) {
         try {
-            ragService.addDocuments(files, workSpace);
+            ragService.addDocuments(files, projectId);
             return ResponseEntity.ok("Upload started");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -101,14 +101,14 @@ public class RagController {
     }
 
     /**
-     * Deletes the workspace set in the payload
+     * Deletes the project set in the payload
      *
-     * @param payload The map containing the id of the workspace to be deleted
+     * @param payload The map containing the id of the project to be deleted
      */
     @PostMapping("/delete")
     public void deleteDocuments(@RequestBody Map<String, Long> payload) {
-        long workSpace = payload.get("workSpace");
-        ragService.deleteWorkspace(workSpace);
+        long projectId = payload.get("project");
+        ragService.deleteProject(projectId);
     }
 }
 

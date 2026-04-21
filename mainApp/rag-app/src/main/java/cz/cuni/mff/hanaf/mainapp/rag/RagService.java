@@ -69,37 +69,37 @@ public class RagService {
     private final Map<Long, List<Path>> allFilesToIndex = new ConcurrentHashMap<>();
 
     /**
-     * Get an answer to a question from the LLM using the documents in the workspace,
+     * Get an answer to a question from the LLM using the documents in the project,
      * using the default chat model. See {@link #ask(String, long, Map, ChatModel)} for full details.
      *
-     * @param query     The query to be answered
-     * @param workSpace The id of the workspace with the source documents
-     * @param progress  The map to be updated with task progress and results
+     * @param query The query to be answered
+     * @param projectId The id of the project with the source documents
+     * @param progress The map to be updated with task progress and results
      * @return A CompletableFuture that completes when the answer has been written to {@code progress}
      */
-    public CompletableFuture<Void> ask(String query, long workSpace, Map<String, Object> progress) {
-        return ask(query, workSpace, progress, null);
+    public CompletableFuture<Void> ask(String query, long projectId, Map<String, Object> progress) {
+        return ask(query, projectId, progress, null);
     }
 
     /**
-     * Get an answer to a question from the LLM using the documents in the workspace.
+     * Get an answer to a question from the LLM using the documents in the project.
      * Results are written into {@code progress} under "answer", "sources", "documents",
      * and "status" (set to "done" on completion).
      *
-     * @param query     The query to be answered
-     * @param workSpace The id of the workspace with the source documents
-     * @param progress  The map to be updated with task progress and results
+     * @param query The query to be answered
+     * @param projectId The id of the project with the source documents
+     * @param progress The map to be updated with task progress and results
      * @param chatModel The chat model to use, or null to use the default
      * @return A CompletableFuture that completes when the answer has been written to {@code progress}
      */
-    public CompletableFuture<Void> ask(String query, long workSpace, Map<String, Object> progress, ChatModel chatModel) {
+    public CompletableFuture<Void> ask(String query, long projectId, Map<String, Object> progress, ChatModel chatModel) {
         if (chatModel == null) {
             chatModel = this.chatModel;
         }
         ChatClient chatClient = ChatClient.builder(chatModel).build();
 
         return CompletableFuture.supplyAsync(() -> {
-            SearchRequest request = buildSearchRequest(query, workSpace, progress);
+            SearchRequest request = buildSearchRequest(query, projectId, progress);
             List<Document> relevant = filterRelevantDocuments(request, query, progress);
             VerifyingQuestionAnswerAdvisor qaAdvisor = buildAdvisor(request, relevant);
 
@@ -129,21 +129,21 @@ public class RagService {
             progress.put("documents", documents);
             progress.put("status", "done");
 
-            saveQuestion(query, formattedAnswer, sources, workSpace);
+            saveQuestion(query, formattedAnswer, sources, projectId);
 
             return null;
         }, llmExecutor);
     }
 
     /**
-     * Asynchronously indexes the given files into the given workspace.
+     * Asynchronously indexes the given files into the given project.
      * Files whose hash matches an already-indexed version are skipped; files
      * whose hash has changed are re-indexed. Cleans up temporary storage once done.
      *
-     * @param files     The files to be indexed. Files that are empty or don't have a name are ignored
-     * @param workspace The id of the workspace to add the files to
+     * @param files The files to be indexed. Files that are empty or don't have a name are ignored
+     * @param projectId The id of the project to add the files to
      */
-    public void addDocuments(MultipartFile[] files, long workspace) {
+    public void addDocuments(MultipartFile[] files, long projectId) {
         if (files == null || files.length == 0) {
             return;
         }
@@ -151,16 +151,16 @@ public class RagService {
         try {
             Instant indexingStartTime = Instant.now();
             ConcurrentLinkedQueue<String> finishedQueue = new ConcurrentLinkedQueue<>();
-            finishedFiles.put(workspace, finishedQueue);
+            finishedFiles.put(projectId, finishedQueue);
 
-            Project project = projectRepository.getReferenceById(workspace);
+            Project project = projectRepository.getReferenceById(projectId);
             Map<String, FileInfo> existingFiles = new ConcurrentHashMap<>(Optional.ofNullable(project.getFiles()).orElse(Map.of()));
 
-            Path tempDir = Files.createTempDirectory("uploads_" + workspace);
+            Path tempDir = Files.createTempDirectory("uploads_" + projectId);
             List<Path> toIndex = saveUploadedFiles(files, tempDir);
-            allFilesToIndex.put(workspace, toIndex);
+            allFilesToIndex.put(projectId, toIndex);
 
-            removeStaleDocuments(toIndex, existingFiles, workspace);
+            removeStaleDocuments(toIndex, existingFiles, projectId);
 
             List<CompletableFuture<Void>> futures = toIndex.stream()
                     .filter(f -> {
@@ -171,7 +171,7 @@ public class RagService {
                         return true;
                     })
                     .map(f -> CompletableFuture.runAsync(
-                            () -> indexFile(f, workspace, existingFiles, indexingStartTime, finishedQueue),
+                            () -> indexFile(f, projectId, existingFiles, indexingStartTime, finishedQueue),
                             llmExecutor))
                     .toList();
 
@@ -183,33 +183,33 @@ public class RagService {
     }
 
     /**
-     * Deletes the chunks in the given workspace from the given file.
+     * Deletes the chunks in the given project from the given file.
      * Spring AI's built-in delete method for Filter Expressions does text search instead of exact-match, leading to false positives, e.g., E._R._Eddison.txt being returned for J._R._R._Tolkien.txt
      * Deleting by UUID bypasses this
-     * @param workspace The workspace to delete from
+     * @param projectId The id of the project to delete from
      * @param fileId The UUID of the file whose chunks should be deleted
      */
-    private void deleteDocumentsForFile(long workspace, String fileId) {
+    private void deleteDocumentsForFile(long projectId, String fileId) {
         FilterExpressionBuilder expressionBuilder = new FilterExpressionBuilder();
         Filter.Expression filterExpression = expressionBuilder.and(
-                expressionBuilder.eq("workSpace", workspace),
+                expressionBuilder.eq("project", projectId),
                 expressionBuilder.eq("fileId", fileId)
         ).build();
         vectorStore.delete(filterExpression);
     }
 
     /**
-     * Returns the status and list of files processed for the given workspace.
+     * Returns the status and list of files processed for the given project.
      *
-     * @param workspace The id of the workspace to check
+     * @param projectId The id of the project to check
      * @return A map with two key-value pairs:
      *         - "totalFiles": The number of documents that are being indexed
      *         - "finishedFiles": A list of file paths that have been successfully processed
      */
-    public Map<String, Object> allAdded(long workspace) {
-        ConcurrentLinkedQueue<String> finishedQueue = finishedFiles.get(workspace);
+    public Map<String, Object> allAdded(long projectId) {
+        ConcurrentLinkedQueue<String> finishedQueue = finishedFiles.get(projectId);
         List<String> finishedList = finishedQueue != null ? new ArrayList<>(finishedQueue) : Collections.emptyList();
-        int total = (allFilesToIndex.get(workspace) != null) ? allFilesToIndex.get(workspace).size() : 0;
+        int total = (allFilesToIndex.get(projectId) != null) ? allFilesToIndex.get(projectId).size() : 0;
 
         Map<String, Object> result = new HashMap<>();
         result.put("totalFiles", total);
@@ -219,15 +219,15 @@ public class RagService {
     }
 
     /**
-     * Removes all documents in the given workspace from the database
+     * Removes all documents in the given project from the database
      *
-     * @param workspace The id of the workspace that is being deleted
+     * @param projectId The id of the project that is being deleted
      */
-    public void deleteWorkspace(long workspace) {
+    public void deleteProject(long projectId) {
         FilterExpressionBuilder expressionBuilder = new FilterExpressionBuilder();
-        Filter.Expression filterExpression = expressionBuilder.eq("workSpace", workspace).build();
+        Filter.Expression filterExpression = expressionBuilder.eq("project", projectId).build();
         vectorStore.delete(filterExpression);
-        System.out.println("Deleted workspace " + workspace);
+        System.out.println("Deleted project " + projectId);
     }
 
     /**
@@ -258,9 +258,9 @@ public class RagService {
         }
     }
 
-    private SearchRequest buildSearchRequest(String query, long workSpace, Map<String, Object> progress) {
+    private SearchRequest buildSearchRequest(String query, long projectId, Map<String, Object> progress) {
         FilterExpressionBuilder expressionBuilder = new FilterExpressionBuilder();
-        Filter.Expression filterExpression = expressionBuilder.eq("workSpace", workSpace).build();
+        Filter.Expression filterExpression = expressionBuilder.eq("project", projectId).build();
         int size = 5; // todo should probably be constant
         progress.put("total", size);
         int maxQueryLength = queryProperties.getMaxQueryLength();
@@ -305,8 +305,8 @@ public class RagService {
         }
     }
 
-    private void saveQuestion(String query, String answer, Set<String> sources, long workSpace) {
-        projectRepository.findById(workSpace).ifPresent(project -> {
+    private void saveQuestion(String query, String answer, Set<String> sources, long projectId) {
+        projectRepository.findById(projectId).ifPresent(project -> {
             Question question = new Question();
             question.setQuestion(query);
             question.setAnswer(answer);
@@ -330,7 +330,7 @@ public class RagService {
         return toIndex;
     }
 
-    private void removeStaleDocuments(List<Path> toIndex, Map<String, FileInfo> existingFiles, long workspace) {
+    private void removeStaleDocuments(List<Path> toIndex, Map<String, FileInfo> existingFiles, long projectId) {
         Set<String> filesToRemove = toIndex.stream()
                 .filter(f -> existingFiles.containsKey(f.getFileName().toString()) && !isAlreadyIndexed(f, existingFiles))
                 .map(f -> existingFiles.get(f.getFileName().toString()).getFileId())
@@ -338,7 +338,7 @@ public class RagService {
 
         if (!filesToRemove.isEmpty()) {
             System.out.println("Removing old versions of " + filesToRemove.size() + " files");
-            filesToRemove.forEach(fileId -> deleteDocumentsForFile(workspace, fileId));
+            filesToRemove.forEach(fileId -> deleteDocumentsForFile(projectId, fileId));
         }
     }
 
@@ -354,12 +354,12 @@ public class RagService {
         }
     }
 
-    private void indexFile(Path f, long workspace, Map<String, FileInfo> existingFiles, Instant indexingStartTime, ConcurrentLinkedQueue<String> finishedQueue) {
+    private void indexFile(Path f, long projectId, Map<String, FileInfo> existingFiles, Instant indexingStartTime, ConcurrentLinkedQueue<String> finishedQueue) {
         String fileName = f.getFileName().toString();
         String fileId = existingFiles.containsKey(fileName) ? existingFiles.get(fileName).getFileId() : UUID.randomUUID().toString();
 
         try {
-            documentLoader.load(f, workspace, indexingStartTime, fileId);
+            documentLoader.load(f, projectId, indexingStartTime, fileId);
             System.out.println("Finished processing: " + f);
         } catch (Exception e) { // todo
             System.err.println("Failed processing " + f + ": " + e.getMessage());

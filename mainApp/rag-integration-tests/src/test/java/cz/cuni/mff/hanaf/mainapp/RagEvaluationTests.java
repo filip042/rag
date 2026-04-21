@@ -47,7 +47,7 @@ class RagEvaluationTests {
     private final RelevancyEvaluator relevancyEvaluator;
     private final FactCheckingEvaluator factCheckingEvaluator;
 
-    private static final Path RESULT_PATH = Path.of("target/rag-eval-results.csv");
+    private static final Path RESULT_PATH = Path.of("target/temp-eval-results.csv");
 
     @Autowired
     RagEvaluationTests(RagService ragService, OllamaApi ollamaApi, OpenAiApi openAiApi, RelevancyEvaluator relevancyEvaluator, FactCheckingEvaluator factCheckingEvaluator) {
@@ -58,7 +58,7 @@ class RagEvaluationTests {
         this.factCheckingEvaluator = factCheckingEvaluator;
     }
 
-    void evaluateRagResponse(String id, String query, String expected, long workspace, int repetitions, ChatModel chatModel) throws Exception {
+    void evaluateRagResponse(String id, String query, String expected, long projectId, int repetitions, ChatModel chatModel) throws Exception {
         Set<String> expectedSet = Set.of(expected.split(";"));
         int relevant = 0;
         int factual = 0;
@@ -67,7 +67,7 @@ class RagEvaluationTests {
         double f1Score = 0;
         for (int i = 0; i < repetitions; i++) {
             Map<String, Object> progress = new HashMap<>();
-            ragService.ask(query, workspace, progress, chatModel).join();
+            ragService.ask(query, projectId, progress, chatModel).join();
 
             String answer = (String) progress.get("answer");
             List<Document> context = (List<Document>) progress.get("documents");
@@ -97,7 +97,7 @@ class RagEvaluationTests {
         writeResult(id, query, relevant, factual, repetitions, precision, recall, f1Score);
     }
 
-    private void runTestCasesForExperiment(String experimentId, ChatModel chatModel, long workspace, int repetitions) throws Exception {
+    private void runTestCasesForExperiment(String experimentId, ChatModel chatModel, long projectId, int repetitions) throws Exception {
 
         List<String[]> cases = loadTestCases();
 
@@ -105,13 +105,13 @@ class RagEvaluationTests {
             String query = row[1];
             String expected = row[2];
 
-            evaluateRagResponse(experimentId, query, expected, workspace, repetitions, chatModel);
+            evaluateRagResponse(experimentId, query, expected, projectId, repetitions, chatModel);
         }
     }
 
     @ParameterizedTest
-    @CsvFileSource(resources = "/rag-experiments.csv", numLinesToSkip = 1)
-    void runExperiment(String experimentId, String provider, String model, String prompt, double temperature, long workspace, int repetitions) throws Exception {
+    @CsvFileSource(resources = "/indexing-experiments.csv", numLinesToSkip = 1)
+    void runExperiment(String experimentId, String provider, String model, String prompt, double temperature, long projectId, int repetitions) throws Exception {
         if (experimentId.startsWith("#")) {
             return;
         }
@@ -129,7 +129,7 @@ class RagEvaluationTests {
             Thread.sleep(2000);
         }
 
-        runTestCasesForExperiment(experimentId, chatModel, workspace, repetitions);
+        runTestCasesForExperiment(experimentId, chatModel, projectId, repetitions);
     }
 
     private ChatModel createChatModel(String provider, String modelName, double temperature) {

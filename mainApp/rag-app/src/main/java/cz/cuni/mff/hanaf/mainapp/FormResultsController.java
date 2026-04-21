@@ -44,7 +44,7 @@ public class FormResultsController {
         for (MultipartFile file : files) {
             body.add("files", file.getResource());
         }
-        body.add("workSpace", project.getId());
+        body.add("project", project.getId());
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);

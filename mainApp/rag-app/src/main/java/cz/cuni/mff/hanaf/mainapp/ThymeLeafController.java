@@ -205,7 +205,7 @@ public class ThymeLeafController {
      *
      * @param question The question to be answered by the LLM
      * @param model The model to add the answer and sources to
-     * @param session The current http session with the current project // todo standardize workspace/project naming
+     * @param session The current http session with the current project
      * @return a view name or redirect string:
      *         - The answer display view if the session has a valid project
      *         - "redirect:/user/dashboard" otherwise
@@ -221,7 +221,7 @@ public class ThymeLeafController {
         String answerUrl = appConfig.getBaseUrl() + appConfig.getApiUrls().getBase() + appConfig.getApiUrls().getAnswer();
         User currentUser = (User) session.getAttribute("authenticatedUser");
         model.addAttribute("question", question);
-        model.addAttribute("workSpace", project.getId());
+        model.addAttribute("project", project.getId());
         model.addAttribute("askUrl", askUrl);
         model.addAttribute("answerUrl", answerUrl);
         model.addAttribute("currentUsername", currentUser.getUsername());
@@ -393,7 +393,7 @@ public class ThymeLeafController {
         projectRepository.deleteById(project.getId());
         String apiUrl = appConfig.getBaseUrl() + appConfig.getApiUrls().getBase() + appConfig.getApiUrls().getDelete();
         Map<String, Long> params = new HashMap<>();
-        params.put("workSpace", project.getId());
+        params.put("project", project.getId());
 
         restTemplate.postForObject(apiUrl, params, Void.class);
         return "redirect:" + url;
@@ -449,7 +449,7 @@ public class ThymeLeafController {
 
         String url = appConfig.getBaseUrl() + appConfig.getApiUrls().getBase() + appConfig.getApiUrls().getStatus();
         String loadUrl = appConfig.getBaseUrl() + "/admin" + appConfig.getFrontendUrls().getLoad(); // todo temp
-        String parameter = "?workSpace=" + sessionProject.getId();
+        String parameter = "?project=" + sessionProject.getId();
         User currentUser = (User) session.getAttribute("authenticatedUser");
         model.addAttribute("articleCountEndpoint", url.concat(parameter));
         model.addAttribute("loadEndpoint", loadUrl);
