@@ -72,12 +72,12 @@ public class RagController {
 
     /**
      * Gets the status of the documents being added to the given project
-     * @param projectId The id of the project being added to
+     * @param project The id of the project being added to
      * @return A map containing a list of indexed files under "finishedFiles" and a boolean value for if all files have been indexed under "done"
      */
     @GetMapping("/status")
-    public Map<String, Object> getIndexStatus(@RequestParam long projectId) {
-        return ragService.allAdded(projectId);
+    public Map<String, Object> getIndexStatus(@RequestParam long project) {
+        return ragService.allAdded(project);
     }
 
     /**

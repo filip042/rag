@@ -390,6 +390,7 @@ public class ThymeLeafController {
         if (project == null) {
             return "redirect:" + url;
         }
+        questionRepository.deleteByProjectId(project.getId());
         projectRepository.deleteById(project.getId());
         String apiUrl = appConfig.getBaseUrl() + appConfig.getApiUrls().getBase() + appConfig.getApiUrls().getDelete();
         Map<String, Long> params = new HashMap<>();
