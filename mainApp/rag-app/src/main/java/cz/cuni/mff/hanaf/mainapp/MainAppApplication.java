@@ -1,7 +1,7 @@
 package cz.cuni.mff.hanaf.mainapp;
 
 import cz.cuni.mff.hanaf.core.config.LlmProperties;
-import cz.cuni.mff.hanaf.core.vectorstore.VectorstoreProperties;
+import cz.cuni.mff.hanaf.core.config.VectorstoreProperties;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
