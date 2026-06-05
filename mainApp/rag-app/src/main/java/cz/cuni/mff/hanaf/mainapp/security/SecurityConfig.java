@@ -1,4 +1,4 @@
-package cz.cuni.mff.hanaf.mainapp.data;
+package cz.cuni.mff.hanaf.mainapp.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
