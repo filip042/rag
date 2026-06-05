@@ -11,8 +11,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class OllamaGenericMethods implements LlmMethods {
-    private final OllamaChatModel ollamaChatModel;
-    private final String model;
+    protected final OllamaChatModel ollamaChatModel;
+    protected final String model;
 
     @Value("classpath:/prompts/check-relevance.txt")
     private Resource systemResource;
@@ -52,7 +52,7 @@ public class OllamaGenericMethods implements LlmMethods {
                 .build();
 
         Prompt chatPrompt = new Prompt(prompt, options);
-        return ollamaChatModel.call(chatPrompt).getResult().getOutput().toString();
+        return ollamaChatModel.call(chatPrompt).getResult().getOutput().getText(); // todo
     }
 
 }

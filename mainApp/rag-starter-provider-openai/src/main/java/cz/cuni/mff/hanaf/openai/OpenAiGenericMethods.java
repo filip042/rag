@@ -11,8 +11,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class OpenAiGenericMethods implements LlmMethods {
-    private final OpenAiChatModel openAiChatModel;
-    private final String model;
+    protected final OpenAiChatModel openAiChatModel;
+    protected final String model;
 
     @Value("classpath:/prompts/check-relevance.txt")
     private Resource systemResource;

@@ -16,10 +16,6 @@
     <dependencies>
         <dependency>
             <groupId>cz.cuni.mff.hanaf</groupId>
-            <artifactId>rag-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>cz.cuni.mff.hanaf</groupId>
             <artifactId>rag-starter-provider-ollama</artifactId>
         </dependency>
     </dependencies>

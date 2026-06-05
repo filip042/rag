@@ -1,22 +1,20 @@
 package cz.cuni.mff.hanaf.llm.ollama.deepseek;
 
 import cz.cuni.mff.hanaf.core.llm.LlmMethods;
-import cz.cuni.mff.hanaf.core.llm.LlmMethodsFactory;
+import cz.cuni.mff.hanaf.ollama.OllamaGenericMethodsFactory;
 import org.springframework.ai.ollama.OllamaChatModel;
 import org.springframework.stereotype.Component;
 
 @Component
-public class DeepseekMethodsFactory implements LlmMethodsFactory {
-
-    private final OllamaChatModel ollamaChatModel;
+public class DeepseekMethodsFactory extends OllamaGenericMethodsFactory {
 
     public DeepseekMethodsFactory(OllamaChatModel ollamaChatModel) {
-        this.ollamaChatModel = ollamaChatModel;
+        super(ollamaChatModel);
     }
 
     @Override
     public boolean supports(String providerName, String modelName) {
-        return providerName.equalsIgnoreCase("ollama") && modelName.toLowerCase().startsWith("deepseek-r1:");
+        return super.supports(providerName, modelName) && modelName.toLowerCase().startsWith("deepseek-r1:");
     }
 
     @Override

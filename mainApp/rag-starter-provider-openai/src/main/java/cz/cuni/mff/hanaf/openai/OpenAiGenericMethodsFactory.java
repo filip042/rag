@@ -9,7 +9,7 @@ import org.springframework.core.annotation.Order;
 @Order(Ordered.LOWEST_PRECEDENCE)
 public class OpenAiGenericMethodsFactory implements LlmMethodsFactory {
 
-    private final OpenAiChatModel openAiChatModel;
+    protected final OpenAiChatModel openAiChatModel;
 
     public OpenAiGenericMethodsFactory(OpenAiChatModel openAiChatModel) {
         this.openAiChatModel = openAiChatModel;

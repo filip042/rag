@@ -26,7 +26,7 @@ public class OpenAiPropertyMapper implements EnvironmentPostProcessor {
 
         if (!mappedProps.isEmpty()) {
             environment.getPropertySources().addFirst(
-                    new MapPropertySource("opennaiLlmMapping", mappedProps));
+                    new MapPropertySource("openaiLlmMapping", mappedProps));
         }
     }
 

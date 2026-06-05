@@ -1,22 +1,20 @@
 package cz.cuni.mff.hanaf.llm.ollama.qwen3;
 
 import cz.cuni.mff.hanaf.core.llm.LlmMethods;
-import cz.cuni.mff.hanaf.core.llm.LlmMethodsFactory;
+import cz.cuni.mff.hanaf.ollama.OllamaGenericMethodsFactory;
 import org.springframework.ai.ollama.OllamaChatModel;
 import org.springframework.stereotype.Component;
 
 @Component
-public class Qwen3MethodsFactory implements LlmMethodsFactory {
-
-    private final OllamaChatModel ollamaChatModel;
+public class Qwen3MethodsFactory extends OllamaGenericMethodsFactory {
 
     public Qwen3MethodsFactory(OllamaChatModel ollamaChatModel) {
-        this.ollamaChatModel = ollamaChatModel;
+        super(ollamaChatModel);
     }
 
     @Override
     public boolean supports(String providerName, String modelName) {
-        return providerName.equalsIgnoreCase("ollama") && modelName.toLowerCase().startsWith("qwen3:");
+        return super.supports(providerName, modelName) && modelName.toLowerCase().startsWith("qwen3:");
     }
 
     @Override

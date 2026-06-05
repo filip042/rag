@@ -9,7 +9,7 @@ import org.springframework.core.annotation.Order;
 @Order(Ordered.LOWEST_PRECEDENCE)
 public class OllamaGenericMethodsFactory implements LlmMethodsFactory {
 
-    private final OllamaChatModel ollamaChatModel;
+    protected final OllamaChatModel ollamaChatModel;
 
     public OllamaGenericMethodsFactory(OllamaChatModel ollamaChatModel) {
         this.ollamaChatModel = ollamaChatModel;
