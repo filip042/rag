@@ -82,10 +82,10 @@ public class FormResultsController {
                 .orElseThrow(() -> new IllegalStateException("Project not found"));
         User user = userRepository.findById(userId).orElseThrow();
         if (project.isPublic()) {
-            project.getAccessibleUsers().remove(user);
-            project.getAdminUsers().add(user);
+            project.removeAccessibleUser(user);
+            project.addAdminUser(user);
         } else {
-            project.getAccessibleUsers().add(user);
+            project.addAccessibleUser(user);
         }
         projectRepository.save(project);
 
@@ -102,8 +102,8 @@ public class FormResultsController {
         Project project = projectRepository.findByIdWithUsers(sessionProject.getId())
                 .orElseThrow(() -> new IllegalStateException("Project not found"));
         User user = userRepository.findById(userId).orElseThrow();
-        project.getAdminUsers().add(user);
-        project.getAccessibleUsers().remove(user);
+        project.addAdminUser(user);
+        project.removeAccessibleUser(user);
         projectRepository.save(project);
 
         return Map.of("user", Map.of(
@@ -119,8 +119,8 @@ public class FormResultsController {
         Project project = projectRepository.findByIdWithUsers(sessionProject.getId())
                 .orElseThrow(() -> new IllegalStateException("Project not found"));
         User user = userRepository.findById(userId).orElseThrow();
-        project.getAdminUsers().remove(user);
-        project.getAccessibleUsers().remove(user);
+        project.removeAdminUser(user);
+        project.removeAccessibleUser(user);
         projectRepository.save(project);
 
         return Map.of("user", Map.of(
