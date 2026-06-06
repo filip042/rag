@@ -5,22 +5,20 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.*;
 
-
+/**
+ * JPA entity representing a project that groups indexed documents and manages user access.
+ * Projects are either public or private, and may be archived.
+ */
 @Entity
 public class Project {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String name;
-
     private boolean isPublic;
-
     private boolean isArchived;
-
-//    private boolean isTemporary;
-//
-//    private LocalDateTime expiresAt;
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "project_files", joinColumns = @JoinColumn(name = "project_id"))
@@ -43,6 +41,10 @@ public class Project {
     )
     private Set<User> adminUsers;
 
+    /**
+     * No-arg constructor required by JPA.
+     * Initializes files, accessibleUsers, and adminUsers to empty collections.
+     */
     public Project() {
         this.files = new HashMap<>();
         this.accessibleUsers = new HashSet<>();
@@ -52,25 +54,23 @@ public class Project {
     }
 
     /**
-     * Checks the two objects for equality using is, id possible
-     * @param o the object being checked for equality
-     * @return true if the two objects are equal, false otherwise
+     * Checks equality by identity first, then by id if both objects are {@link Project} instances.
+     *
+     * @param o the object to compare against
+     * @return {@code true} if the two objects are the same instance or share the same id;
+     *         {@code false} otherwise
      */
     @Override
     public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (!(o instanceof Project project)) {
-            return false;
-        }
+        if (this == o) return true;
+        if (!(o instanceof Project project)) return false;
         return Objects.equals(id, project.id);
     }
 
     /**
-     * Returns the hash code of the Project, computed from id if set
+     * Returns a hash code derived from id if set, or the identity hash code otherwise.
      *
-     * @return The hash code of the Project
+     * @return the hash code of this project
      */
     @Override
     public int hashCode() {
@@ -78,171 +78,172 @@ public class Project {
     }
 
     /**
-     * Get the id of the project
+     * Returns the unique identifier of this project, or {@code null} if not yet persisted.
      *
-     * @return The id of the project
+     * @return the project id
      */
     public Long getId() {
         return id;
     }
 
     /**
-     * Get the name of the project
+     * Returns the name of this project.
      *
-     * @return The project's name
+     * @return the project name
      */
     public String getName() {
-        return this.name;
+        return name;
     }
 
     /**
-     * Set the name of the project to the given name
+     * Sets the name of this project.
      *
-     * @param name The name to set
+     * @param name the name to set
      */
     public void setName(String name) {
         this.name = name;
     }
 
     /**
-     * Checks if the project is public
+     * Returns whether this project is publicly visible.
      *
-     * @return true if the project is public, false otherwise
+     * @return {@code true} if the project is public; {@code false} otherwise
      */
     public boolean isPublic() {
         return isPublic;
     }
 
     /**
-     * Sets whether the project is public
+     * Sets whether this project is publicly visible.
      *
-     * @param isPublic Whether the project is public
+     * @param isPublic {@code true} to make the project public; {@code false} to make it private
      */
     public void setPublic(boolean isPublic) {
         this.isPublic = isPublic;
     }
 
     /**
-     * Checks if the project is archived
+     * Returns whether this project is archived.
      *
-     * @return true if the project is archived, false otherwise
+     * @return {@code true} if the project is archived; {@code false} otherwise
      */
     public boolean isArchived() {
         return isArchived;
     }
 
     /**
-     * Sets whether the project is archived
+     * Sets whether this project is archived.
      *
-     * @param isArchived Whether the project is archived
+     * @param isArchived {@code true} to archive the project; {@code false} to unarchive it
      */
     public void setArchived(boolean isArchived) {
         this.isArchived = isArchived;
     }
 
     /**
-     * Get the files in the project and their info
+     * Returns the map of indexed files in this project, keyed by file name.
      *
-     * @return a map of the files in the project and their info
+     * @return a map from file name to {@link FileInfo}
      */
     public Map<String, FileInfo> getFiles() {
         return files;
     }
 
     /**
-     * Set the files in the project and their info
+     * Replaces the map of indexed files in this project.
      *
-     * @param files a map of files and their info
+     * @param files a map from file name to {@link FileInfo}
      */
     public void setFiles(Map<String, FileInfo> files) {
         this.files = files;
     }
 
     /**
-     * Add a file and its info to the project
+     * Adds or replaces the {@link FileInfo} entry for the given file name.
      *
-     * @param fileName the file's name
-     * @param fileInfo the file's info
+     * @param fileName the name of the file to add
+     * @param fileInfo the metadata to associate with the file
      */
     public void addFile(String fileName, FileInfo fileInfo) {
         this.files.put(fileName, fileInfo);
     }
 
     /**
-     * Remove the given file and its info
+     * Removes the file with the given name from this project, if present.
      *
-     * @param fileName the file's name
+     * @param fileName the name of the file to remove
      */
     public void removeFile(String fileName) {
         this.files.remove(fileName);
     }
+
     /**
-     * Returns the current set of users with access
+     * Returns the set of users with read access to this project.
      *
-     * @return The current set of users with access
+     * @return the set of accessible users
      */
     public Set<User> getAccessibleUsers() {
         return accessibleUsers;
     }
 
     /**
-     * Replaces the current set of users with acces with the given set of users
+     * Replaces the set of users with read access to this project.
      *
-     * @param accessibleUsers The new set of users with access
+     * @param accessibleUsers the new set of users
      */
     public void setAccessibleUsers(Set<User> accessibleUsers) {
         this.accessibleUsers = accessibleUsers;
     }
 
     /**
-     * Adds the given user to the set of users with access
+     * Grants read access to this project for the given user.
      *
-     * @param user The iser to add
+     * @param user the user to grant access to
      */
     public void addAccessibleUser(User user) {
         this.accessibleUsers.add(user);
     }
 
     /**
-     * Removes the current user from the set of users with access
+     * Revokes read access to this project from the given user.
      *
-     * @param user The user to remove
+     * @param user the user to revoke access from
      */
     public void removeAccessibleUser(User user) {
         this.accessibleUsers.remove(user);
     }
 
     /**
-     * Gets the current set of admins
+     * Returns the set of users with admin access to this project.
      *
-     * @return The current set of admins
+     * @return the set of admin users
      */
     public Set<User> getAdminUsers() {
         return adminUsers;
     }
 
     /**
-     * Replaces the current set of admins with the given set
+     * Replaces the set of users with admin access to this project.
      *
-     * @param adminUsers The new set of admins
+     * @param adminUsers the new set of admin users
      */
     public void setAdminUsers(Set<User> adminUsers) {
         this.adminUsers = adminUsers;
     }
 
     /**
-     * Adds the given user to the set of admins
+     * Grants admin access to this project for the given user.
      *
-     * @param user The user to add to admins
+     * @param user the user to grant admin access to
      */
     public void addAdminUser(User user) {
         this.adminUsers.add(user);
     }
 
     /**
-     * Removes the given admin
+     * Revokes admin access to this project from the given user.
      *
-     * @param user The admin to remove
+     * @param user the user to revoke admin access from
      */
     public void removeAdminUser(User user) {
         this.adminUsers.remove(user);

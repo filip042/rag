@@ -4,9 +4,13 @@ import jakarta.persistence.*;
 
 import java.util.Set;
 
+/**
+ * JPA entity representing an application user.
+ * Mapped to the "app_user" table to avoid conflicts with reserved SQL keywords.
+ */
 @Entity
 @Table(name = "app_user")
-public class User { // todo temp for testing thymeleaf, will add database soon
+public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -20,79 +24,81 @@ public class User { // todo temp for testing thymeleaf, will add database soon
     @ManyToMany(mappedBy = "adminUsers")
     private Set<Project> adminProjects;
 
-    public User() {
-
-    }
+    /**
+     * No-arg constructor required by JPA.
+     */
+    public User() {}
 
     /**
-     * Returns the user's id number
+     * Returns the unique identifier of this user, or {@code null} if not yet persisted.
      *
-     * @return the user's id
+     * @return the user id
      */
     public Long getId() {
         return id;
     }
 
     /**
-     * Returns the user's username
+     * Returns the username.
      *
-     * @return The user's username
+     * @return the username
      */
     public String getUsername() {
         return this.username;
     }
 
     /**
-     * Replaces the current username with the given one
+     * Sets the username.
      *
-     * @param username The new username
+     * @param username the username to set
      */
     public void setUsername(String username) {
         this.username = username;
     }
 
     /**
-     * Gets the user's password
+     * Returns the user's password. Holds the plaintext password before persistence
+     * and the encoded password after.
      *
-     * @return The user's password
+     * @return the password
      */
     public String getPassword() {
         return password;
     }
 
     /**
-     * Sets the user's password
+     * Sets the user's password.
      *
-     * @param password The new password
+     * @param password the password to set
      */
     public void setPassword(String password) {
         this.password = password;
     }
 
     /**
-     * Gets the set of projects the user has standard access to
+     * Returns the set of projects the user has standard access to.
      *
-     * @return The set of projects the user has standard access to
+     * @return the set of projects the user has standard access to
      */
     public Set<Project> getAccessibleProjects() {
         return accessibleProjects;
     }
 
     /**
-     * Gets the set of projects the user has admin access to
+     * Returns the set of projects the user has admin access to.
      *
-     * @return The set of projects the user has admin access to
+     * @return the set of projects the user has admin access to
      */
     public Set<Project> getAdminProjects() {
         return adminProjects;
     }
 
     /**
-     * Checks whether the given user is a guest
+     * Returns whether the given user is registered, i.e., not a guest
      *
-     * @return true if the user is a guest, false otherwise
+     * @return {@code true} if the user is registered, {@code false} otherwise
      */
-    public boolean isGuest() {
-        return id == null;
+    public boolean isRegistered() {
+        return id != null;
     }
 }

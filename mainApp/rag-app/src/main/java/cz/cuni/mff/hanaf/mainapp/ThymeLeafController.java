@@ -107,7 +107,7 @@ public class ThymeLeafController {
         }
 
         Set<Project> projects = new HashSet<>(projectRepository.findByIsPublicTrue());
-        if (!user.isGuest()) {
+        if (user.isRegistered()) {
             projects.addAll(projectRepository.findByAccessibleUsers_Id(user.getId()));
             projects.addAll(projectRepository.findByAdminUsers_Id(user.getId()));
         }
@@ -131,7 +131,7 @@ public class ThymeLeafController {
 
         projectRepository.findById(projectId).ifPresent(project -> {
             session.setAttribute("project", project);
-            session.setAttribute("admin", !user.isGuest() && projectRepository.findByAdminUsers_Id(user.getId()).contains(project));
+            session.setAttribute("admin", user.isRegistered() && projectRepository.findByAdminUsers_Id(user.getId()).contains(project));
         });
 
         String chatUrl = appConfig.getFrontendUrls().getBase() + appConfig.getFrontendUrls().getChat();
@@ -280,7 +280,7 @@ public class ThymeLeafController {
             session.setAttribute("authenticatedUser", savedUser);
             String dashboardUrl = appConfig.getFrontendUrls().getBase() + appConfig.getFrontendUrls().getDashboard();
             return "redirect:" + dashboardUrl;
-        } catch (Exception e) {
+        } catch (Exception e) { // todo
             model.addAttribute("error", "Error creating user");
             return "newUser";
         }
@@ -327,7 +327,7 @@ public class ThymeLeafController {
             session.setAttribute("admin", true);
             String url = appConfig.getFrontendUrls().getBase() + appConfig.getFrontendUrls().getChat();
             return "redirect:" + url;
-        } catch (Exception e) {
+        } catch (Exception e) { // todo
             model.addAttribute("error", "Error creating project");
             return "newProject";
         }
