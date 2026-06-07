@@ -257,15 +257,7 @@ public class RagService {
     }
 
     private String extractDocumentName(Document document) {
-        Pattern pattern = Pattern.compile("<chunk source=\"([^\"]+)\">\\s*(.*?)\\s*</chunk>", Pattern.DOTALL);
-
-        Matcher matcher = pattern.matcher(Objects.requireNonNullElse(document.getText(), ""));
-        String fileName = "";
-        if (matcher.find()) {
-            fileName = matcher.group(1);
-        }
-
-        return fileName;
+        return (String) document.getMetadata().getOrDefault("source", "");
     }
 
     private String computeHash(Path file) throws IOException {
@@ -283,7 +275,7 @@ public class RagService {
         if (query.length() > maxQueryLength) {
             query = query.substring(0, maxQueryLength);
         }
-        query = "search_query: " + query;
+        query = queryProperties.getSearchPrefix() + query;
         return SearchRequest.builder().query(query).filterExpression(filterExpression).topK(size).build();
     }
 

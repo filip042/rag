@@ -24,6 +24,7 @@ public class DocumentLoader{
     private final ChatModel chatModel;
     private final List<DocumentParserStrategy> parserStrategies;
     private final SplitterProperties splitterProperties;
+    private final QueryProperties queryProperties;
 
     @Value("classpath:/prompts/add-context-template.txt")
     private Resource systemResource;
@@ -39,11 +40,12 @@ public class DocumentLoader{
      * @param parserStrategies the list of available document parser strategies
      * @param splitterProperties configuration properties for the text splitter
      */
-    public DocumentLoader(VectorStore vectorStore, ChatModel chatModel, List<DocumentParserStrategy> parserStrategies, SplitterProperties splitterProperties) {
+    public DocumentLoader(VectorStore vectorStore, ChatModel chatModel, List<DocumentParserStrategy> parserStrategies, SplitterProperties splitterProperties, QueryProperties queryProperties) {
         this.vectorStore = new SynchronizedVectorStore(vectorStore);
         this.chatModel = chatModel;
         this.parserStrategies = parserStrategies;
         this.splitterProperties = splitterProperties;
+        this.queryProperties = queryProperties;
     }
 
     /**
@@ -107,7 +109,7 @@ public class DocumentLoader{
     private List<Document> prepareDocumentsWithSource(String fileName, String fileId, long project, Instant processingTime, List<Document> splitDocuments) {
         return splitDocuments.stream()
                 .map(document -> {
-                    String textWithSource = "search_document: " + document.getText();
+                    String textWithSource = queryProperties.getDocumentPrefix() + document.getText();
 
                     Map<String, Object> metadata = new HashMap<>(document.getMetadata());
                     metadata.put("project", project);

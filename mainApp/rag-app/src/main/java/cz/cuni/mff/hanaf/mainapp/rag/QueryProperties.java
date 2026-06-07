@@ -10,6 +10,8 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "app.rag.query")
 public class QueryProperties {
     private int maxQueryLength;
+    private String searchPrefix;
+    private String documentPrefix;
 
     /**
      * Returns the maximum allowed length for a query.
@@ -27,5 +29,41 @@ public class QueryProperties {
      */
     public void setMaxQueryLength(int maxQueryLength) {
         this.maxQueryLength = maxQueryLength;
+    }
+
+    /**
+     * Returns the prefix prepended to queries before embedding.
+     *
+     * @return the search prefix
+     */
+    public String getSearchPrefix() {
+        return searchPrefix;
+    }
+
+    /**
+     * Sets the prefix prepended to queries before embedding.
+     *
+     * @param searchPrefix the search prefix to set
+     */
+    public void setSearchPrefix(String searchPrefix) {
+        this.searchPrefix = searchPrefix;
+    }
+
+    /**
+     * Returns the prefix prepended to documents before embedding.
+     *
+     * @return the document prefix
+     */
+    public String getDocumentPrefix() {
+        return documentPrefix;
+    }
+
+    /**
+     * Sets the prefix prepended to documents before embedding.
+     *
+     * @param documentPrefix the document prefix to set
+     */
+    public void setDocumentPrefix(String documentPrefix) {
+        this.documentPrefix = documentPrefix;
     }
 }
