@@ -13,6 +13,9 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * REST controller handling document indexing and RAG query endpoints.
+ */
 @RestController
 @RequestMapping("/app")
 public class RagController {
@@ -23,10 +26,10 @@ public class RagController {
     private final Map<String, Map<String, Object>> taskProgress = new ConcurrentHashMap<>();
 
     /**
-     * Passes the given query on to the LLM, which uses context from the given project to answer the question
+     * Passes the given query on to the LLM, which uses context from the given project to answer the question.
      *
-     * @param payload The map containing the query to be passed to the LLM under 'query' and the id of the project with the context being used under 'project'
-     * @return A map containing a generated task id under "taskId", which can be polled via /answer
+     * @param payload a map containing the query under "query" and the project id under "project"
+     * @return a map containing a generated task id under "taskId", which can be polled via /answer
      */
     @PostMapping("/ask")
     public Map<String, Object> search(@RequestBody Map<String, Object> payload) {
@@ -48,7 +51,7 @@ public class RagController {
     /**
      * Polls the status of an async "ask" task previously initiated by {@link #search}.
      *
-     * @param payload A map containing the task identifier under "taskId"
+     * @param payload a map containing the task identifier under "taskId"
      * @return 200 OK with the full progress map (and removes the task) if the task is done,
      *         202 Accepted with the current progress map if still in progress,
      *         or 404 Not Found if no task with the given id exists
@@ -71,9 +74,10 @@ public class RagController {
     }
 
     /**
-     * Gets the status of the documents being added to the given project
-     * @param project The id of the project being added to
-     * @return A map containing a list of indexed files under "finishedFiles" and a boolean value for if all files have been indexed under "done"
+     * Gets the status of the documents being added to the given project.
+     *
+     * @param project the id of the project being added to
+     * @return a map containing the total number of files under "totalFiles" and a list of file that have finished indexing names under "finishedFiles"
      */
     @GetMapping("/status")
     public Map<String, Object> getIndexStatus(@RequestParam long project) {
@@ -83,8 +87,8 @@ public class RagController {
     /**
      * Uploads one or more files and begins asynchronously indexing them into the given project.
      *
-     * @param files The files to be indexed
-     * @param projectId The id of the project the files should be added to
+     * @param files the files to be indexed
+     * @param projectId the id of the project the files should be added to
      * @return 200 OK with "Upload started" if the process was successfully initiated,
      *         or 500 Internal Server Error with an error message if an exception occurred
      */
@@ -94,16 +98,16 @@ public class RagController {
         try {
             ragService.addDocuments(files, projectId);
             return ResponseEntity.ok("Upload started");
-        } catch (Exception e) {
+        } catch (Exception e) { // todo
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Upload failed: " + e.getMessage());
         }
     }
 
     /**
-     * Deletes the project set in the payload
+     * Deletes all documents indexed under the given project.
      *
-     * @param payload The map containing the id of the project to be deleted
+     * @param payload a map containing the id of the project to be deleted under "project"
      */
     @PostMapping("/delete")
     public void deleteDocuments(@RequestBody Map<String, Long> payload) {

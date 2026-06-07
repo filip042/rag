@@ -12,14 +12,25 @@ import java.util.Optional;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+/**
+ * Thread-safe decorator for {@link VectorStore} that serializes writes and allows concurrent reads.
+ */
 public class SynchronizedVectorStore implements VectorStore {
     private final VectorStore vectorStore;
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
+    /**
+     * Creates a new {@code SynchronizedVectorStore} wrapping the given vector store.
+     *
+     * @param vectorStore the vector store to wrap
+     */
     public SynchronizedVectorStore(VectorStore vectorStore) {
         this.vectorStore = vectorStore;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void add(@NonNull List<Document> documents) {
         lock.writeLock().lock();
@@ -30,6 +41,9 @@ public class SynchronizedVectorStore implements VectorStore {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void delete(@NonNull List<String> idList) {
         lock.writeLock().lock();
@@ -40,6 +54,9 @@ public class SynchronizedVectorStore implements VectorStore {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void delete(@NonNull Filter.Expression filterExpression) {
         lock.writeLock().lock();
@@ -50,6 +67,9 @@ public class SynchronizedVectorStore implements VectorStore {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void delete(@NonNull String filterExpression) {
         lock.writeLock().lock();
@@ -60,6 +80,9 @@ public class SynchronizedVectorStore implements VectorStore {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Nullable
     @Override
     public List<Document> similaritySearch(@Nullable SearchRequest request) {
@@ -71,6 +94,9 @@ public class SynchronizedVectorStore implements VectorStore {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Nullable
     @Override
     public List<Document> similaritySearch(@Nullable String query) {
@@ -82,17 +108,27 @@ public class SynchronizedVectorStore implements VectorStore {
         }
     }
 
+    /**
+     * Returns the name of the underlying vector store.
+     * Does not use a lock since this operation is stateless.
+     *
+     * @return the name of the underlying vector store
+     */
     @NonNull
     @Override
     public String getName() {
-        // getName is typically safe to call without locking
         return vectorStore.getName();
     }
 
+    /**
+     * Returns the native client of the underlying vector store, if available.
+     * Does not use a lock since this operation is stateless.
+     *
+     * @return the native client of the underlying vector store
+     */
     @NonNull
     @Override
     public <T> Optional<T> getNativeClient() {
-        // This is also typically safe
         return vectorStore.getNativeClient();
     }
 }

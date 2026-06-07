@@ -14,6 +14,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
+/**
+ * Loads documents from into the vector store by parsing, splitting,
+ * and attaching metadata to each chunk before indexing.
+ */
 @Component
 public class DocumentLoader{
     private final VectorStore vectorStore;
@@ -27,6 +31,14 @@ public class DocumentLoader{
     @Value("classpath:prompts/summarize-template.txt")
     private Resource summarizeResource;
 
+    /**
+     * Creates a new {@code DocumentLoader} with the required dependencies.
+     *
+     * @param vectorStore the vector store to index documents into
+     * @param chatModel the chat model used for context enrichment and summarization
+     * @param parserStrategies the list of available document parser strategies
+     * @param splitterProperties configuration properties for the text splitter
+     */
     public DocumentLoader(VectorStore vectorStore, ChatModel chatModel, List<DocumentParserStrategy> parserStrategies, SplitterProperties splitterProperties) {
         this.vectorStore = new SynchronizedVectorStore(vectorStore);
         this.chatModel = chatModel;
@@ -35,7 +47,13 @@ public class DocumentLoader{
     }
 
     /**
-     * Adds the document from the path to the database todo
+     * Parses, splits, and indexes the file at the given path into the vector store.
+     * Skips indexing if the file is empty.
+     *
+     * @param f the path to the file to index
+     * @param project the id of the project to index the file into
+     * @param finalThisTime the time at which indexing started, used to tag chunks
+     * @param fileId the unique identifier to associate with this file's chunks
      */
     protected void load(Path f, long project, Instant finalThisTime, String fileId) {
         String fileName = f.getFileName().toString();
@@ -77,13 +95,14 @@ public class DocumentLoader{
     }
 
     /**
-     * Adds an xml source tag and metadata for each chunk
+     * Formats each chunk and attaches project, source, and file ids, and time as metadata.
      *
-     * @param fileName The name of the chunk source file
-     * @param project The current project id
-     * @param processingTime The current time
-     * @param splitDocuments A list of chunks created by splitting documents
-     * @return A list of modified Documents
+     * @param fileName the name of the source file
+     * @param fileId the unique identifier of the source file
+     * @param project the id of the project the file belongs to
+     * @param processingTime the time at which the file was processed
+     * @param splitDocuments the list of chunks to process
+     * @return a list of documents with source metadata attached
      */
     private List<Document> prepareDocumentsWithSource(String fileName, String fileId, long project, Instant processingTime, List<Document> splitDocuments) {
         return splitDocuments.stream()
@@ -105,12 +124,12 @@ public class DocumentLoader{
     }
 
     /**
-     * Adds context to the current chunk for indexing using information from the previous and next ones
+     * Adds context to the current chunk for indexing using information from the previous and next chunks.
      *
-     * @param previous The previous chunk
-     * @param current The current chunk
-     * @param next The next chunk
-     * @return The current document with context added
+     * @param previous the previous chunk, or {@code null} if none exists
+     * @param current the current chunk
+     * @param next the next chunk, or {@code null} if none exists
+     * @return The current document with added context
      */
     private Document addContext(Document previous, Document current, Document next) { // todo add removeThinking here
         SystemPromptTemplate promptTemplate = new SystemPromptTemplate(systemResource);
@@ -123,10 +142,10 @@ public class DocumentLoader{
     }
 
     /**
-     * Summarizes the given document using an LLM so it can be added to indexed chunks as context
+     * Summarizes the given document using an LLM so it can be added to indexed chunks as context.
      *
-     * @param document The document being summarized
-     * @return The summarized document
+     * @param document The document to summarize
+     * @return the summarized document
      */
     private String summarizeDocument(Document document) { // todo check if using systemMessage is better
         // todo might be better to have in LLM-specific class

@@ -36,6 +36,11 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * Service handling document indexing and RAG queries.
+ * Manages asynchronous file indexing into a vector store and answering natural-language
+ * questions against indexed project documents using an LLM.
+ */
 @Service
 public class RagService {
 
@@ -48,6 +53,18 @@ public class RagService {
     private final DocumentLoader documentLoader;
     private final QueryProperties queryProperties;
 
+    /**
+     * Creates a new {@code RagService}.
+     *
+     * @param vectorStore the vector store used for document storage and similarity search
+     * @param chatModel the default chat model used for generating answers
+     * @param projectRepository repository for loading and persisting projects
+     * @param questionRepository repository for persisting answered questions
+     * @param llmMethods LLM methods for answer preparation and source verification
+     * @param llmExecutor the executor for async LLM and indexing
+     * @param documentLoader the loader used to parse and index documents
+     * @param queryProperties configuration properties for query handling
+     */
     public RagService(VectorStore vectorStore, ChatModel chatModel, ProjectRepository projectRepository, QuestionRepository questionRepository, LlmMethods llmMethods, @Qualifier("llmExecutor") Executor llmExecutor, DocumentLoader documentLoader, QueryProperties queryProperties) {
         this.vectorStore = new SynchronizedVectorStore(vectorStore);
         this.chatModel = chatModel;
@@ -69,28 +86,28 @@ public class RagService {
     private final Map<Long, List<Path>> allFilesToIndex = new ConcurrentHashMap<>();
 
     /**
-     * Get an answer to a question from the LLM using the documents in the project,
+     * Gets an answer to a question from the LLM using the documents in the project,
      * using the default chat model. See {@link #ask(String, long, Map, ChatModel)} for full details.
      *
-     * @param query The query to be answered
-     * @param projectId The id of the project with the source documents
-     * @param progress The map to be updated with task progress and results
-     * @return A CompletableFuture that completes when the answer has been written to {@code progress}
+     * @param query the query to be answered
+     * @param projectId the id of the project with the source documents
+     * @param progress the map to be updated with task progress and results
+     * @return a CompletableFuture that completes when the answer has been written to {@code progress}
      */
     public CompletableFuture<Void> ask(String query, long projectId, Map<String, Object> progress) {
         return ask(query, projectId, progress, null);
     }
 
     /**
-     * Get an answer to a question from the LLM using the documents in the project.
+     * Gets an answer to a question from the LLM using the documents in the project.
      * Results are written into {@code progress} under "answer", "sources", "documents",
      * and "status" (set to "done" on completion).
      *
-     * @param query The query to be answered
-     * @param projectId The id of the project with the source documents
-     * @param progress The map to be updated with task progress and results
-     * @param chatModel The chat model to use, or null to use the default
-     * @return A CompletableFuture that completes when the answer has been written to {@code progress}
+     * @param query the query to be answered
+     * @param projectId the id of the project with the source documents
+     * @param progress the map to be updated with task progress and results
+     * @param chatModel the chat model to use, or {@code null} to use the default
+     * @return a CompletableFuture that completes when the answer has been written to {@code progress}
      */
     public CompletableFuture<Void> ask(String query, long projectId, Map<String, Object> progress, ChatModel chatModel) {
         if (chatModel == null) {
@@ -137,11 +154,11 @@ public class RagService {
 
     /**
      * Asynchronously indexes the given files into the given project.
-     * Files whose hash matches an already-indexed version are skipped; files
-     * whose hash has changed are re-indexed. Cleans up temporary storage once done.
+     * Files whose hash matches an already indexed version are skipped.
+     * Files whose hash has changed are reindexed. Cleans up temporary storage once done.
      *
-     * @param files The files to be indexed. Files that are empty or don't have a name are ignored
-     * @param projectId The id of the project to add the files to
+     * @param files the files to be indexed. Files that are empty or don't have a name are ignored
+     * @param projectId the id of the project to add the files to
      */
     public void addDocuments(MultipartFile[] files, long projectId) {
         if (files == null || files.length == 0) {
@@ -184,10 +201,11 @@ public class RagService {
 
     /**
      * Deletes the chunks in the given project from the given file.
-     * Spring AI's built-in delete method for Filter Expressions does text search instead of exact-match, leading to false positives, e.g., E._R._Eddison.txt being returned for J._R._R._Tolkien.txt
-     * Deleting by UUID bypasses this
-     * @param projectId The id of the project to delete from
-     * @param fileId The UUID of the file whose chunks should be deleted
+     * Spring AI's built-in delete method for Filter Expressions does text search instead of exact-match in older versions, leading to false positives, e.g., E._R._Eddison.txt being returned for J._R._R._Tolkien.txt
+     * Deleting by UUID bypasses this.
+     *
+     * @param projectId the id of the project to delete from
+     * @param fileId the UUID of the file whose chunks should be deleted
      */
     private void deleteDocumentsForFile(long projectId, String fileId) {
         FilterExpressionBuilder expressionBuilder = new FilterExpressionBuilder();
@@ -201,10 +219,8 @@ public class RagService {
     /**
      * Returns the status and list of files processed for the given project.
      *
-     * @param projectId The id of the project to check
-     * @return A map with two key-value pairs:
-     *         - "totalFiles": The number of documents that are being indexed
-     *         - "finishedFiles": A list of file paths that have been successfully processed
+     * @param projectId the id of the project to check
+     * @return a map containing the total number of files under "totalFiles" and a list of finished file names under "finishedFiles"
      */
     public Map<String, Object> allAdded(long projectId) {
         ConcurrentLinkedQueue<String> finishedQueue = finishedFiles.get(projectId);
@@ -219,9 +235,9 @@ public class RagService {
     }
 
     /**
-     * Removes all documents in the given project from the database
+     * Removes all documents in the given project from the database.
      *
-     * @param projectId The id of the project that is being deleted
+     * @param projectId the id of the project that is being deleted
      */
     public void deleteProject(long projectId) {
         FilterExpressionBuilder expressionBuilder = new FilterExpressionBuilder();
@@ -234,7 +250,7 @@ public class RagService {
      * Overrides the system prompt template used when answering questions.
      * Intended for use in tests.
      *
-     * @param promptResource The resource containing the new prompt template
+     * @param promptResource the resource containing the new prompt template
      */
     public void setSystemPrompt(Resource promptResource) {
         this.askTemplateResource = promptResource;
@@ -294,10 +310,9 @@ public class RagService {
 
     private VerifyingQuestionAnswerAdvisor buildAdvisor(SearchRequest request, List<Document> relevant) {
         try {
-            return VerifyingQuestionAnswerAdvisor.builder(vectorStore)
+            return VerifyingQuestionAnswerAdvisor.builder()
                     .promptTemplate(new SystemPromptTemplate(askTemplateResource))
                     .doNotKnowPrompt(doNotKnowPromptResource.getContentAsString(StandardCharsets.UTF_8))
-                    .searchRequest(request)
                     .documents(relevant)
                     .build();
         } catch (IOException e) {

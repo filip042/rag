@@ -12,6 +12,11 @@ import java.util.List;
 import java.util.Objects;
 import org.springframework.util.Assert;
 
+/**
+ * Token-based text splitter that splits documents into overlapping chunks.
+ * Chunks are broken at sentence boundaries where possible, and consecutive chunks
+ * share a configurable number of tokens to preserve context across splits.
+ */
 public class OverlapTextSplitter extends TextSplitter {
     private final Encoding encoding;
     private final int chunkSize;
@@ -21,6 +26,16 @@ public class OverlapTextSplitter extends TextSplitter {
     private final boolean keepSeparator;
     private final int overlapTokens;
 
+    /**
+     * Creates a new {@code OverlapTextSplitter} with the given configuration.
+     *
+     * @param chunkSize the maximum number of tokens per chunk
+     * @param minChunkSizeChars the minimum number of characters a chunk must have when splitting by sentence boundary
+     * @param minChunkLengthToEmbed the number of characters a chunk must exceed to not be discarded
+     * @param maxNumChunks the maximum number of chunks to produce from a single document
+     * @param keepSeparator {@code true} to preserve line separators within chunks, and {@code false} to replace them with spaces
+     * @param overlapTokens the number of tokens from the end of each chunk to repeat at the start of the next
+     */
     public OverlapTextSplitter(int chunkSize, int minChunkSizeChars, int minChunkLengthToEmbed, int maxNumChunks, boolean keepSeparator, int overlapTokens) {
         EncodingRegistry registry = Encodings.newLazyEncodingRegistry();
         this.encoding = registry.getEncoding(EncodingType.CL100K_BASE);
@@ -32,10 +47,27 @@ public class OverlapTextSplitter extends TextSplitter {
         this.overlapTokens = overlapTokens;
     }
 
+    /**
+     * Splits the given text using the given chunk size.
+     *
+     * @param text the text to split
+     * @return the list of chunk strings
+     */
+    @Override
     protected List<String> splitText(String text) {
         return this.doSplit(text, this.chunkSize);
     }
 
+    /**
+     * Splits the given text into overlapping token-based chunks, trimming each to the
+     * nearest sentence boundary where possible. Chunks below {@code minChunkLengthToEmbed}
+     * are discarded. Any remaining tokens after {@code maxNumChunks} are appended as a
+     * final chunk if long enough.
+     *
+     * @param text the text to split
+     * @param chunkSize the maximum number of tokens per chunk
+     * @return the list of chunk strings
+     */
     protected List<String> doSplit(String text, int chunkSize) {
         if (text != null && !text.trim().isEmpty()) {
             List<Integer> tokens = this.getEncodedTokens(text);
