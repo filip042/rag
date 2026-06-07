@@ -1,11 +1,11 @@
-package cz.cuni.mff.hanaf.core.config;
+package cz.cuni.mff.hanaf.core.llm;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @ConfigurationProperties(prefix = "app.llm")
-public class LlmProperties {
+public class LlmConfig {
 
     private String provider;
     private String baseUrl;

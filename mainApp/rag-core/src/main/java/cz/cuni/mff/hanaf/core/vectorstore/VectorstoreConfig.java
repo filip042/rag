@@ -1,11 +1,11 @@
-package cz.cuni.mff.hanaf.core.config;
+package cz.cuni.mff.hanaf.core.vectorstore;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @ConfigurationProperties(prefix = "app.vectorstore")
-public class VectorstoreProperties {
+public class VectorstoreConfig {
 
     private String provider;
     private String uris;
