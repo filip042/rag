@@ -6,6 +6,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.BufferingClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 
+/**
+ * Configures the HTTP client used by Spring AI to support buffered response bodies.
+ */
 @Configuration
 public class AiHttpConfig {
 
