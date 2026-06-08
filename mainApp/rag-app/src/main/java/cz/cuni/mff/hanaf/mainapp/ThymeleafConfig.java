@@ -6,12 +6,20 @@ import org.springframework.context.annotation.Configuration;
 import org.thymeleaf.spring6.templateresolver.SpringResourceTemplateResolver;
 import org.thymeleaf.templatemode.TemplateMode;
 
+/**
+ * Configuration properties for the Thymeleaf template, bound from the {@code app.ui.theme} prefix.
+ */
 @Configuration
 public class ThymeleafConfig {
 
     @Value("${app.ui.theme:default}")
     private String theme;
 
+    /**
+     * Returns a {@link SpringResourceTemplateResolver} bean for the active UI theme.
+     *
+     * @return the custom template resolver
+     */
     @Bean
     public SpringResourceTemplateResolver customTemplateResolver() {
         SpringResourceTemplateResolver resolver = new SpringResourceTemplateResolver();
@@ -23,6 +31,11 @@ public class ThymeleafConfig {
         return resolver;
     }
 
+    /**
+     * Returns a fallback {@link SpringResourceTemplateResolver} bean for the default theme.
+     *
+     * @return the default template resolver
+     */
     @Bean
     public SpringResourceTemplateResolver defaultTemplateResolver() {
         SpringResourceTemplateResolver resolver = new SpringResourceTemplateResolver();

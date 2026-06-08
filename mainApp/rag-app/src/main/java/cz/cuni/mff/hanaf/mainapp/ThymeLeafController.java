@@ -12,6 +12,10 @@ import org.springframework.web.client.RestTemplate;
 import java.util.*;
 import java.util.stream.Stream;
 
+/**
+ * Thymeleaf controller handling page navigation, user authentication,
+ * and project management for the main application frontend.
+ */
 @Controller
 @RequestMapping("/user")
 public class ThymeLeafController {
@@ -24,6 +28,17 @@ public class ThymeLeafController {
     private final QuestionRepository questionRepository;
     private final PasswordEncoder passwordEncoder;
 
+    /**
+     * Creates a new {@code ThymeLeafController} with the required dependencies.
+     *
+     * @param appConfig the application configuration providing endpoint URLs
+     * @param queryProperties configuration properties for query handling
+     * @param restTemplate the REST template used to forward requests to the API
+     * @param userRepository repository for loading and persisting users
+     * @param projectRepository repository for loading and persisting projects
+     * @param questionRepository repository for loading question history
+     * @param passwordEncoder the encoder used to hash and verify passwords
+     */
     public ThymeLeafController(AppConfig appConfig, QueryProperties queryProperties, RestTemplate restTemplate, UserRepository userRepository, ProjectRepository projectRepository, QuestionRepository questionRepository, PasswordEncoder passwordEncoder) {
         this.appConfig = appConfig;
         this.queryProperties = queryProperties;
@@ -34,18 +49,22 @@ public class ThymeLeafController {
         this.passwordEncoder = passwordEncoder;
     }
 
+    /**
+     * Displays the landing page.
+     *
+     * @return the landing page view name
+     */
     @GetMapping("/")
     public String landingPage() {
         return "index";
     }
 
     /**
-     * Loads the form for working with the LLM
+     * Displays the chat interface for the project stored in the session.
      *
-     * @param session The http session with the current project, if such a project exists
-     * @return a view name or redirect string:
-     *         - The template name of the form if the project id is valid
-     *         - "redirect:/user/logout" otherwise
+     * @param session the current HTTP session, expected to contain the active project and authenticated user
+     * @param model the model to add project and user data to
+     * @return the chat view name, or a redirect to the dashboard if no project or user is in the session
      */
     @GetMapping("/chat")
     public String loadForm(HttpSession session, Model model) {
@@ -64,10 +83,10 @@ public class ThymeLeafController {
     }
 
     /**
-     * Displays the form for logging in
+     * Displays the login form.
      *
-     * @param session The current http session
-     * @param model The model to which the data for the form is added
+     * @param session the current HTTP session
+     * @param model The model to add form data to
      * @return The form's view name
      */
     @GetMapping("/login")
@@ -77,25 +96,16 @@ public class ThymeLeafController {
         return "chooseUser";
     }
 
-    /**
-     * Checks if the entered password matches the given user's password
-     *
-     * @param user The user being logged into
-     * @param rawPassword The entered password
-     * @return True if the user's password matches the entered password, false otherwise
-     */
     private boolean passwordMatches(User user, String rawPassword) {
         return passwordEncoder.matches(rawPassword, user.getPassword());
     }
 
     /**
-     * Displays the logged-in user's dashboard
+     * Displays the logged-in user's dashboard.
      *
-     * @param session The http session with the authenticated user
-     * @param model The model to add project form data to
-     * @return a view name or redirect string:
-     *         - "redirect:/user/logout" if the authenticated user is not set
-     *         - "dashboard" if the authenticated user is set
+     * @param session the HTTP session with the authenticated user
+     * @param model the model to add project form data to
+     * @return the dashboard view name, or a redirect to the logout page if no user is in the session
      */
     @GetMapping("/dashboard")
     public String showDashboard(HttpSession session, Model model) {
@@ -120,6 +130,13 @@ public class ThymeLeafController {
         return "dashboard";
     }
 
+    /**
+     * Sets the given project as the active project in the session and redirects to the chat page.
+     *
+     * @param projectId the id of the project to set in the session
+     * @param session the current HTTP session
+     * @return a redirect to the chat page or to the dashboard if no user is in the session
+     */
     @PostMapping("/dashboard")
     public String verifyProject(@RequestParam("projectId") Long projectId, HttpSession session) {
         User user = (User) session.getAttribute("authenticatedUser");
@@ -140,15 +157,13 @@ public class ThymeLeafController {
     }
 
     /**
-     * Checks if the login credentials are valid, and if they are, logs the user in
+     * Validates the submitted login credentials and logs the user in if correct.
      *
-     * @param username The username entered by the user
-     * @param password The password entered by the user
-     * @param model The model to add errors and form data to
-     * @param session The http session where the authenticated user is set
-     * @return a view name or redirect string:
-     *         - "redirect:/user/dashboard" if the user's login credentials are correct
-     *         - "chooseUser" if validation fails
+     * @param username the username entered by the user
+     * @param password the password entered by the user
+     * @param model the model to add error and form data to
+     * @param session the current HTTP session where the authenticated user is set on success
+     * @return a redirect to the dashboard if credentials are valid, or the login view if validation fails
      */
     @PostMapping("/login")
     public String verifyUser(
@@ -172,10 +187,10 @@ public class ThymeLeafController {
     }
 
     /**
-     * Logs the user in as a guest
+     * Logs the user in as a guest and redirect to to the dashboard.
      *
-     * @param session The http session where the authenticated user is set
-     * @return "redirect:/user/dashboard"
+     * @param session the http session where the authenticated user is set
+     * @return a redirect to the dashboard
      */
     @PostMapping("/guest")
     public String guestLogin(HttpSession session) {
@@ -188,10 +203,10 @@ public class ThymeLeafController {
     }
 
     /**
-     * Logs the current user out
+     * Logs out the current user by invalidating the HTTP session.
      *
-     * @param session The http session with the current user
-     * @return A redirect string to the login page
+     * @param session the HTTP session with the current user
+     * @return a redirect to the login page
      */
     @GetMapping("/logout")
     public String logout(HttpSession session) {
@@ -201,14 +216,12 @@ public class ThymeLeafController {
     }
 
     /**
-     * Gets the answer to the question from the LLM along with sources
+     * Prepares the answer page for the given question using the project stored in the session.
      *
-     * @param question The question to be answered by the LLM
-     * @param model The model to add the answer and sources to
-     * @param session The current http session with the current project
-     * @return a view name or redirect string:
-     *         - The answer display view if the session has a valid project
-     *         - "redirect:/user/dashboard" otherwise
+     * @param question the question to be answered by the LLM
+     * @param model the model to add the question, project, and API endpoint URLs to
+     * @param session the current HTTP session, expected to contain the active project
+     * @return the answer view name, or a redirect to the dashboard if no project is set in the session
      */
     @PostMapping("/answer")
     public String myPage(@RequestParam(name = "question") String question, Model model, HttpSession session) {
@@ -230,10 +243,10 @@ public class ThymeLeafController {
     }
 
     /**
-     * Displays the form for creating users
+     * Displays the user creation form.
      *
-     * @param model The model to which the user is added
-     * @return The view name for the form
+     * @param model the model to which the user is added
+     * @return the view name for the form
      */
     @GetMapping("/newUser")
     public String showNewUserForm(Model model) {
@@ -242,14 +255,14 @@ public class ThymeLeafController {
     }
 
     /**
-     * Creates and validates a new user from the data entered in the form
+     * Validates and creates a new user from the submitted form data.
+     * On success, stores the new user in the session and redirects to the dashboard.
      *
-     * @param user The user to be created, populated with data from the form
-     * @param confirmPassword The confirmation password entered in the form
-     * @param model The model to add error attributes to if validation fails
-     * @return a view name or redirect string:
-     *         - "redirect:/user/login" if the user is successfully created
-     *         - "newUser" if validation fails or an error occurs during project creation
+     * @param user the user to create, populated from the form
+     * @param confirmPassword the confirmation password entered in the form
+     * @param model the model to add error attributes to if validation fails
+     * @param session the current HTTP session
+     * @return a redirect to the dashboard if the user is successfully created, or the new user form view if validation fails or an error occurs
      */
     @PostMapping("/newUser")
     public String createNewUser(
@@ -290,6 +303,7 @@ public class ThymeLeafController {
      * Displays the form for creating projects
      *
      * @param model The model to which the project is added
+     * @param session the current HTTP session, expected to contain the authenticated user
      * @return The view name for the form
      */
     @GetMapping("/newProject")
@@ -301,14 +315,12 @@ public class ThymeLeafController {
     }
 
     /**
-     * Creates and validates a new project associated with the current user from the data entered in the form
+     * Creates and validates a new project associated with the current user from the data entered in the form.
      *
-     * @param project The Project object to be created, populated from the form
-     * @param session The current http session with the current authenticated user
-     * @param model The model to add error attributes to if validation fails
-     * @return a view name or redirect string:
-     *         - "redirect:/user/dashboard" if the project is successfully created
-     *         - "newProject" if validation fails or an error occurs during project creation
+     * @param project the project to create, populated from the form
+     * @param session the current HTTP session, expected to contain the authenticated user
+     * @param model the model to add error attributes to if validation fails
+     * @return a redirect to the chat page if the project is successfully created, or the new project form view if validation fails or an error occurs
      */
     @PostMapping("/newProject")
     public String createNewProject(
@@ -334,9 +346,9 @@ public class ThymeLeafController {
     }
 
     /**
-     * Deletes the logged-in user
+     * Deletes the logged-in user and all projects which they are the only admin of.
      *
-     * @param session The current http session
+     * @param session the current HTTP session, expected to contain the logged-in user
      * @return a redirect string to the logout page
      */
     @PostMapping("/deleteUser")
@@ -378,9 +390,9 @@ public class ThymeLeafController {
     }
 
     /**
-     * Deletes the project open in the current session
+     * Deletes the project open in the current session.
      *
-     * @param session The current http session
+     * @param session the current http session, expected to contain the current project
      * @return a redirect string to the dashboard view
      */
     @PostMapping("/deleteProject")
@@ -400,6 +412,12 @@ public class ThymeLeafController {
         return "redirect:" + url;
     }
 
+    /**
+     * Removes the authenticated user from the project stored in the session.
+     *
+     * @param session the current HTTP session, expected to contain the active project and authenticated user
+     * @return a redirect to the dashboard
+     */
     @PostMapping("/exitProject")
     public String exitProject(HttpSession session) {
         Project project = (Project) session.getAttribute("project");
@@ -414,6 +432,13 @@ public class ThymeLeafController {
         return "redirect:" + url;
     }
 
+    /**
+     * Displays the admin settings page for the current project.
+     *
+     * @param session the current HTTP session, expected to contain the current project and authenticated user
+     * @param model the model to add project, user, and endpoint data to
+     * @return the admin settings view name, or a redirect to the logout page if no project is in the session
+     */
     @PostMapping("/admin")
     public String adminSettings(HttpSession session, Model model) {
         Project sessionProject = (Project) session.getAttribute("project");
@@ -433,7 +458,7 @@ public class ThymeLeafController {
                 mapUsers(accessible, false).stream()
         ).toList();
 
-        Set<User> projectUsers = new HashSet<>();
+        Set<User> projectUsers = new HashSet<>(); // todo what is this?
         projectUsers.addAll(admins);
         projectUsers.addAll(accessible);
 
@@ -461,6 +486,13 @@ public class ThymeLeafController {
         return "adminSettings";
     }
 
+    /**
+     * Displays the question history for the current project.
+     *
+     * @param session the current HTTP session, expected to contain the current project
+     * @param model the model to add the question list and user data to
+     * @return the history view name, or a redirect to the logout page if no project is in the session
+     */
     @GetMapping("/history")
     public String showHistory(HttpSession session, Model model) {
         Project project = (Project) session.getAttribute("project");

@@ -16,6 +16,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Map;
 
+/**
+ * REST controller handling various form submissions.
+ */
 @RestController
 @RequestMapping("/admin")
 public class FormResultsController {
@@ -24,6 +27,14 @@ public class FormResultsController {
     private final UserRepository userRepository;
     private final ProjectRepository projectRepository;
 
+    /**
+     * Creates a new {@code FormResultsController} with the required dependencies.
+     *
+     * @param appConfig the application configuration providing endpoint URLs
+     * @param restTemplate the REST template used to forward file uploads to the API
+     * @param userRepository repository for loading users
+     * @param projectRepository repository for loading and persisting projects
+     */
     public FormResultsController(AppConfig appConfig, RestTemplate restTemplate, UserRepository userRepository, ProjectRepository projectRepository) {
         this.appConfig = appConfig;
         this.restTemplate = restTemplate;
@@ -31,7 +42,13 @@ public class FormResultsController {
         this.projectRepository = projectRepository;
     }
 
-    // todo
+    /**
+     * Forwards the uploaded files to the indexing API for the project stored in the session.
+     *
+     * @param files the files to upload
+     * @param session the current HTTP session, expected to contain the active project
+     * @return "OK" if a project is set in the session, or "NO_PROJECT" otherwise
+     */
     @PostMapping("/load")
     public String loadFiles(@RequestParam("files") MultipartFile[] files, HttpSession session) {
         String apiUrl = appConfig.getBaseUrl() + appConfig.getApiUrls().getBase() + appConfig.getApiUrls().getAdd();
@@ -54,6 +71,13 @@ public class FormResultsController {
         return "OK";
     }
 
+    /**
+     * Sets the visibility of the project stored in the session.
+     *
+     * @param isPublic {@code true} to make the project public, and {@code false} to make it private
+     * @param session the current HTTP session, expected to contain the active project
+     * @return a map containing the updated value under "isPublic"
+     */
     @PostMapping("/visibility")
     public Map<String, Object> setVisibility(@RequestParam boolean isPublic, HttpSession session) {
         Project sessionProject = (Project) session.getAttribute("project");
@@ -65,6 +89,13 @@ public class FormResultsController {
         return Map.of("isPublic", isPublic);
     }
 
+    /**
+     * Sets the archivation of the project stored in the session.
+     *
+     * @param isArchived {@code true} to archive the project, and {@code false} to unarchive it
+     * @param session the current HTTP session, expected to contain the active project
+     * @return a map containing the updated archivation under "isArchived"
+     */
     @PostMapping("/archive")
     public Map<String, Object> setArchived(@RequestParam boolean isArchived, HttpSession session) {
         Project sessionProject = (Project) session.getAttribute("project");
@@ -75,6 +106,14 @@ public class FormResultsController {
         return Map.of("isArchived", isArchived);
     }
 
+    /**
+     * Adds the given user to the project stored in the session.
+     * For public projects, the default is an admin, and for private projects, a regular user.
+     *
+     * @param userId the id of the user to add
+     * @param session the current HTTP session, expected to contain the active project
+     * @return a map containing the updated user's id, username, and admin status under "user"
+     */
     @PostMapping("/add")
     public Map<String, Object> addUser(@RequestParam Long userId, HttpSession session) {
         Project sessionProject = (Project) session.getAttribute("project");
@@ -96,6 +135,13 @@ public class FormResultsController {
         ));
     }
 
+    /**
+     * Promotes the given user to admin in the project stored in the session.
+     *
+     * @param userId the id of the user to promote
+     * @param session the current HTTP session, expected to contain the active project
+     * @return a map containing the updated user's id, username, and admin status under "user"
+     */
     @PostMapping("/promote")
     public Map<String, Object> promoteUser(@RequestParam Long userId, HttpSession session) {
         Project sessionProject = (Project) session.getAttribute("project");
@@ -113,6 +159,13 @@ public class FormResultsController {
         ));
     }
 
+    /**
+     * Adds the given user from the project stored in the session.
+     *
+     * @param userId the id of the user to remove
+     * @param session the current HTTP session, expected to contain the active project
+     * @return a map containing the updated user's id and username under "user"
+     */
     @PostMapping("/remove")
     public Map<String, Object> removeUser(@RequestParam Long userId, HttpSession session) {
         Project sessionProject = (Project) session.getAttribute("project");
