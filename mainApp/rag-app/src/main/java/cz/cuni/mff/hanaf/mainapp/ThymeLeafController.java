@@ -458,11 +458,7 @@ public class ThymeLeafController {
                 mapUsers(accessible, false).stream()
         ).toList();
 
-        Set<User> projectUsers = new HashSet<>(); // todo what is this?
-        projectUsers.addAll(admins);
-        projectUsers.addAll(accessible);
-
-        Set<User> unadded; // todo misleading name
+        Set<User> unadded;
         unadded = new HashSet<>(userRepository.findAll());
         unadded.removeAll(project.getAdminUsers());
         if (!project.isPublic()) {
