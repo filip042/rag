@@ -5,7 +5,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @ConfigurationProperties(prefix = "app.llm")
-public class LlmConfig {
+public class LlmProperties {
 
     private String provider;
     private String baseUrl;

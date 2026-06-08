@@ -22,7 +22,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/admin")
 public class FormResultsController {
-    private final AppConfig appConfig;
+    private final AppProperties appProperties;
     private final RestTemplate restTemplate;
     private final UserRepository userRepository;
     private final ProjectRepository projectRepository;
@@ -30,13 +30,13 @@ public class FormResultsController {
     /**
      * Creates a new {@code FormResultsController} with the required dependencies.
      *
-     * @param appConfig the application configuration providing endpoint URLs
+     * @param appProperties the application configuration providing endpoint URLs
      * @param restTemplate the REST template used to forward file uploads to the API
      * @param userRepository repository for loading users
      * @param projectRepository repository for loading and persisting projects
      */
-    public FormResultsController(AppConfig appConfig, RestTemplate restTemplate, UserRepository userRepository, ProjectRepository projectRepository) {
-        this.appConfig = appConfig;
+    public FormResultsController(AppProperties appProperties, RestTemplate restTemplate, UserRepository userRepository, ProjectRepository projectRepository) {
+        this.appProperties = appProperties;
         this.restTemplate = restTemplate;
         this.userRepository = userRepository;
         this.projectRepository = projectRepository;
@@ -51,7 +51,7 @@ public class FormResultsController {
      */
     @PostMapping("/load")
     public String loadFiles(@RequestParam("files") MultipartFile[] files, HttpSession session) {
-        String apiUrl = appConfig.getBaseUrl() + appConfig.getApiUrls().getBase() + appConfig.getApiUrls().getAdd();
+        String apiUrl = appProperties.getBaseUrl() + appProperties.getApiUrls().getBase() + appProperties.getApiUrls().getAdd();
         Project project = (Project) session.getAttribute("project");
         if (project == null) {
             return "NO_PROJECT";

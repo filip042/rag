@@ -1,7 +1,7 @@
 package cz.cuni.mff.hanaf.mainapp;
 
-import cz.cuni.mff.hanaf.core.llm.LlmConfig;
-import cz.cuni.mff.hanaf.core.vectorstore.VectorstoreConfig;
+import cz.cuni.mff.hanaf.core.llm.LlmProperties;
+import cz.cuni.mff.hanaf.core.vectorstore.VectorstoreProperties;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -13,7 +13,7 @@ import org.springframework.web.client.RestTemplate;
  * Main entry point for the application.
  */
 @SpringBootApplication
-@EnableConfigurationProperties({LlmConfig.class, VectorstoreConfig.class})
+@EnableConfigurationProperties({LlmProperties.class, VectorstoreProperties.class})
 public class MainAppApplication {
 
 	/**

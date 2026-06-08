@@ -5,7 +5,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @ConfigurationProperties(prefix = "app.vectorstore")
-public class VectorstoreConfig {
+public class VectorstoreProperties {
 
     private String provider;
     private String uris;

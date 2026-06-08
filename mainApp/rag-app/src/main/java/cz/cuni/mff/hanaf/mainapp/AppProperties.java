@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 @ConfigurationProperties(prefix = "app")
-public class AppConfig {
+public class AppProperties {
     private String baseUrl;
     private ApiUrls apiUrls = new ApiUrls();
     private FrontendUrls frontendUrls = new FrontendUrls();

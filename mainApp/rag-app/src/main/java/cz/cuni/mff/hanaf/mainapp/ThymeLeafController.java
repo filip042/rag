@@ -20,7 +20,7 @@ import java.util.stream.Stream;
 @RequestMapping("/user")
 public class ThymeLeafController {
 
-    private final AppConfig appConfig;
+    private final AppProperties appProperties;
     private final QueryProperties queryProperties;
     private final RestTemplate restTemplate;
     private final UserRepository userRepository;
@@ -31,7 +31,7 @@ public class ThymeLeafController {
     /**
      * Creates a new {@code ThymeLeafController} with the required dependencies.
      *
-     * @param appConfig the application configuration providing endpoint URLs
+     * @param appProperties the application configuration providing endpoint URLs
      * @param queryProperties configuration properties for query handling
      * @param restTemplate the REST template used to forward requests to the API
      * @param userRepository repository for loading and persisting users
@@ -39,8 +39,8 @@ public class ThymeLeafController {
      * @param questionRepository repository for loading question history
      * @param passwordEncoder the encoder used to hash and verify passwords
      */
-    public ThymeLeafController(AppConfig appConfig, QueryProperties queryProperties, RestTemplate restTemplate, UserRepository userRepository, ProjectRepository projectRepository, QuestionRepository questionRepository, PasswordEncoder passwordEncoder) {
-        this.appConfig = appConfig;
+    public ThymeLeafController(AppProperties appProperties, QueryProperties queryProperties, RestTemplate restTemplate, UserRepository userRepository, ProjectRepository projectRepository, QuestionRepository questionRepository, PasswordEncoder passwordEncoder) {
+        this.appProperties = appProperties;
         this.queryProperties = queryProperties;
         this.restTemplate = restTemplate;
         this.userRepository = userRepository;
@@ -71,7 +71,7 @@ public class ThymeLeafController {
         Project currentProject = (Project) session.getAttribute("project");
         User currentUser = (User) session.getAttribute("authenticatedUser");
         if (currentProject == null || currentUser == null) {
-            String dashboardUrl = appConfig.getFrontendUrls().getBase() + appConfig.getFrontendUrls().getDashboard();
+            String dashboardUrl = appProperties.getFrontendUrls().getBase() + appProperties.getFrontendUrls().getDashboard();
             return "redirect:" + dashboardUrl;
         }
         Project freshProject = projectRepository.findById(currentProject.getId()).orElse(currentProject); // so the warning banner is accurate
@@ -112,7 +112,7 @@ public class ThymeLeafController {
         session.removeAttribute("project");
         User user = (User) session.getAttribute("authenticatedUser");
         if (user == null) {
-            String logoutUrl = appConfig.getFrontendUrls().getBase() + appConfig.getFrontendUrls().getLogout();
+            String logoutUrl = appProperties.getFrontendUrls().getBase() + appProperties.getFrontendUrls().getLogout();
             return "redirect:" + logoutUrl;
         }
 
@@ -140,7 +140,7 @@ public class ThymeLeafController {
     @PostMapping("/dashboard")
     public String verifyProject(@RequestParam("projectId") Long projectId, HttpSession session) {
         User user = (User) session.getAttribute("authenticatedUser");
-        String dashboardUrl = appConfig.getFrontendUrls().getBase() + appConfig.getFrontendUrls().getDashboard();
+        String dashboardUrl = appProperties.getFrontendUrls().getBase() + appProperties.getFrontendUrls().getDashboard();
 
         if (user == null) {
             return "redirect:" + dashboardUrl;
@@ -151,7 +151,7 @@ public class ThymeLeafController {
             session.setAttribute("admin", user.isRegistered() && projectRepository.findByAdminUsers_Id(user.getId()).contains(project));
         });
 
-        String chatUrl = appConfig.getFrontendUrls().getBase() + appConfig.getFrontendUrls().getChat();
+        String chatUrl = appProperties.getFrontendUrls().getBase() + appProperties.getFrontendUrls().getChat();
 
         return "redirect:" + chatUrl;
     }
@@ -177,7 +177,7 @@ public class ThymeLeafController {
 
         if (existingUser != null && passwordMatches(existingUser, password)) {
             session.setAttribute("authenticatedUser", existingUser);
-            String dashboardUrl = appConfig.getFrontendUrls().getBase() + appConfig.getFrontendUrls().getDashboard();
+            String dashboardUrl = appProperties.getFrontendUrls().getBase() + appProperties.getFrontendUrls().getDashboard();
             return "redirect:" + dashboardUrl;
         } else {
             model.addAttribute("error", "Invalid username or password");
@@ -198,7 +198,7 @@ public class ThymeLeafController {
         guestUser.setUsername("Guest");
         session.setAttribute("authenticatedUser", guestUser);
         session.setAttribute("guest", true);
-        String dashboardUrl = appConfig.getFrontendUrls().getBase() + appConfig.getFrontendUrls().getDashboard();
+        String dashboardUrl = appProperties.getFrontendUrls().getBase() + appProperties.getFrontendUrls().getDashboard();
         return "redirect:" + dashboardUrl;
     }
 
@@ -211,7 +211,7 @@ public class ThymeLeafController {
     @GetMapping("/logout")
     public String logout(HttpSession session) {
         session.invalidate();
-        String loginUrl = appConfig.getFrontendUrls().getBase() + appConfig.getFrontendUrls().getLogin();
+        String loginUrl = appProperties.getFrontendUrls().getBase() + appProperties.getFrontendUrls().getLogin();
         return "redirect:" + loginUrl;
     }
 
@@ -227,11 +227,11 @@ public class ThymeLeafController {
     public String myPage(@RequestParam(name = "question") String question, Model model, HttpSession session) {
         Project project = (Project) session.getAttribute("project");
         if (project == null) {
-            String dashboardUrl = appConfig.getFrontendUrls().getBase() + appConfig.getFrontendUrls().getDashboard();
+            String dashboardUrl = appProperties.getFrontendUrls().getBase() + appProperties.getFrontendUrls().getDashboard();
             return "redirect:" + dashboardUrl;
         }
-        String askUrl = appConfig.getBaseUrl() + appConfig.getApiUrls().getBase() + appConfig.getApiUrls().getAsk();
-        String answerUrl = appConfig.getBaseUrl() + appConfig.getApiUrls().getBase() + appConfig.getApiUrls().getAnswer();
+        String askUrl = appProperties.getBaseUrl() + appProperties.getApiUrls().getBase() + appProperties.getApiUrls().getAsk();
+        String answerUrl = appProperties.getBaseUrl() + appProperties.getApiUrls().getBase() + appProperties.getApiUrls().getAnswer();
         User currentUser = (User) session.getAttribute("authenticatedUser");
         model.addAttribute("question", question);
         model.addAttribute("project", project.getId());
@@ -291,7 +291,7 @@ public class ThymeLeafController {
             user.setPassword(passwordEncoder.encode(user.getPassword()));
             User savedUser = userRepository.save(user);
             session.setAttribute("authenticatedUser", savedUser);
-            String dashboardUrl = appConfig.getFrontendUrls().getBase() + appConfig.getFrontendUrls().getDashboard();
+            String dashboardUrl = appProperties.getFrontendUrls().getBase() + appProperties.getFrontendUrls().getDashboard();
             return "redirect:" + dashboardUrl;
         } catch (Exception e) { // todo
             model.addAttribute("error", "Error creating user");
@@ -337,7 +337,7 @@ public class ThymeLeafController {
             Project savedProject = projectRepository.save(project);
             session.setAttribute("project", savedProject);
             session.setAttribute("admin", true);
-            String url = appConfig.getFrontendUrls().getBase() + appConfig.getFrontendUrls().getChat();
+            String url = appProperties.getFrontendUrls().getBase() + appProperties.getFrontendUrls().getChat();
             return "redirect:" + url;
         } catch (Exception e) { // todo
             model.addAttribute("error", "Error creating project");
@@ -354,7 +354,7 @@ public class ThymeLeafController {
     @PostMapping("/deleteUser")
     public String deleteUser(HttpSession session) {
         User user = (User) session.getAttribute("authenticatedUser");
-        String url = appConfig.getFrontendUrls().getBase() + appConfig.getFrontendUrls().getLogout();
+        String url = appProperties.getFrontendUrls().getBase() + appProperties.getFrontendUrls().getLogout();
         if (user == null) {
             return "redirect:" + url;
         }
@@ -398,13 +398,13 @@ public class ThymeLeafController {
     @PostMapping("/deleteProject")
     public String deleteProject(HttpSession session) {
         Project project = (Project) session.getAttribute("project");
-        String url = appConfig.getFrontendUrls().getBase() + appConfig.getFrontendUrls().getDashboard();
+        String url = appProperties.getFrontendUrls().getBase() + appProperties.getFrontendUrls().getDashboard();
         if (project == null) {
             return "redirect:" + url;
         }
         questionRepository.deleteByProjectId(project.getId());
         projectRepository.deleteById(project.getId());
-        String apiUrl = appConfig.getBaseUrl() + appConfig.getApiUrls().getBase() + appConfig.getApiUrls().getDelete();
+        String apiUrl = appProperties.getBaseUrl() + appProperties.getApiUrls().getBase() + appProperties.getApiUrls().getDelete();
         Map<String, Long> params = new HashMap<>();
         params.put("project", project.getId());
 
@@ -422,7 +422,7 @@ public class ThymeLeafController {
     public String exitProject(HttpSession session) {
         Project project = (Project) session.getAttribute("project");
         User user = (User) session.getAttribute("authenticatedUser");
-        String url = appConfig.getFrontendUrls().getBase() + appConfig.getFrontendUrls().getDashboard();
+        String url = appProperties.getFrontendUrls().getBase() + appProperties.getFrontendUrls().getDashboard();
         if (project == null || user == null) {
             return "redirect:" + url;
         }
@@ -443,7 +443,7 @@ public class ThymeLeafController {
     public String adminSettings(HttpSession session, Model model) {
         Project sessionProject = (Project) session.getAttribute("project");
         if (sessionProject == null) {
-            String logoutUrl = appConfig.getFrontendUrls().getBase() + appConfig.getFrontendUrls().getLogout();
+            String logoutUrl = appProperties.getFrontendUrls().getBase() + appProperties.getFrontendUrls().getLogout();
             return "redirect:" + logoutUrl;
         }
 
@@ -469,8 +469,8 @@ public class ThymeLeafController {
         model.addAttribute("unadded", unadded);
         model.addAttribute("users", usersList);
 
-        String url = appConfig.getBaseUrl() + appConfig.getApiUrls().getBase() + appConfig.getApiUrls().getStatus();
-        String loadUrl = appConfig.getBaseUrl() + "/admin" + appConfig.getFrontendUrls().getLoad(); // todo temp
+        String url = appProperties.getBaseUrl() + appProperties.getApiUrls().getBase() + appProperties.getApiUrls().getStatus();
+        String loadUrl = appProperties.getBaseUrl() + "/admin" + appProperties.getFrontendUrls().getLoad(); // todo temp
         String parameter = "?project=" + sessionProject.getId();
         User currentUser = (User) session.getAttribute("authenticatedUser");
         model.addAttribute("articleCountEndpoint", url.concat(parameter));
@@ -493,7 +493,7 @@ public class ThymeLeafController {
     public String showHistory(HttpSession session, Model model) {
         Project project = (Project) session.getAttribute("project");
         if (project == null) {
-            String logoutUrl = appConfig.getFrontendUrls().getBase() + appConfig.getFrontendUrls().getLogout();
+            String logoutUrl = appProperties.getFrontendUrls().getBase() + appProperties.getFrontendUrls().getLogout();
             return "redirect:" + logoutUrl;
         }
 
