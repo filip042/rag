@@ -10,22 +10,37 @@ import org.springframework.core.io.Resource;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * {@link LlmMethods} implementation for Ollama-hosted models.
+ */
 public class OllamaGenericMethods implements LlmMethods {
+
+    /**
+     * The Ollama chat model used to make LLM calls.
+     */
     protected final OllamaChatModel ollamaChatModel;
+
+    /**
+     * The model name passed in chat options when making LLM calls.
+     */
     protected final String model;
 
     @Value("classpath:/prompts/check-relevance.txt")
     private Resource systemResource;
 
+    /**
+     * Creates a new {@code OllamaGenericMethods} for the given model.
+     *
+     * @param ollamaChatModel the Ollama chat model to use
+     * @param model the model name to pass in chat options
+     */
     public OllamaGenericMethods(OllamaChatModel ollamaChatModel, String model) {
         this.ollamaChatModel = ollamaChatModel;
         this.model = model;
     }
 
     /**
-     * Gets the prompt template for relevance checking
-     *
-     * @return The prompt template for relevance checking
+     * {@inheritDoc}
      */
     @Override
     public Resource getResource() {
@@ -33,10 +48,7 @@ public class OllamaGenericMethods implements LlmMethods {
     }
 
     /**
-     * Removes the thought process from the given output
-     *
-     * @param withThinking The output of the LLM with the thought process
-     * @return The output of the LLM without the thought process
+     * {@inheritDoc}
      */
     public String removeThinking(String withThinking) {
         Pattern pattern = Pattern.compile("<think>.*?</think>", Pattern.DOTALL);
@@ -44,6 +56,9 @@ public class OllamaGenericMethods implements LlmMethods {
         return matcher.replaceFirst("");
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public String callWithoutThinking(String prompt) {
         OllamaChatOptions options = OllamaChatOptions.builder()
                 .model(model)
@@ -54,5 +69,4 @@ public class OllamaGenericMethods implements LlmMethods {
         Prompt chatPrompt = new Prompt(prompt, options);
         return ollamaChatModel.call(chatPrompt).getResult().getOutput().getText(); // todo
     }
-
 }

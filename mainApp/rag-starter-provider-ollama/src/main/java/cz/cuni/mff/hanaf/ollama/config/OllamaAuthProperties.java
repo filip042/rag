@@ -2,6 +2,9 @@ package cz.cuni.mff.hanaf.ollama.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+/**
+ * Authentication properties for the Ollama API, bound from the {@code app.ollama} prefix.
+ */
 @ConfigurationProperties(prefix = "app.ollama")
 public class OllamaAuthProperties {
     private String username;

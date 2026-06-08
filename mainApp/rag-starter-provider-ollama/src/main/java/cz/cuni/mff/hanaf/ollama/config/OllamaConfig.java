@@ -12,9 +12,24 @@ import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+/**
+ * Configures the {@link OllamaApi} bean with basic authentication headers.
+ * Necessary because Spring AI's Ollama integration does not natively support
+ * authentication, so credentials are injected manually into both the synchronous
+ * and reactive HTTP clients.
+ */
 @Configuration
 @EnableConfigurationProperties({OllamaConnectionProperties.class, OllamaAuthProperties.class})
 public class OllamaConfig {
+
+    /**
+     * Creates a primary {@link OllamaApi} bean configured with the Ollama base URL
+     * and authentication credentials from {@link OllamaAuthProperties}.
+     *
+     * @param ollamaProps the Ollama connection properties providing the base URL
+     * @param authProps the authentication properties providing the username and password
+     * @return a configured {@link OllamaApi} instance
+     */
     @Primary
     @Bean
     public OllamaApi ollamaApi(OllamaConnectionProperties ollamaProps, OllamaAuthProperties authProps) {

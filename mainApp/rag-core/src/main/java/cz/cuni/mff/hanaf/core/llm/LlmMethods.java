@@ -47,10 +47,10 @@ public interface LlmMethods {
     Resource getResource();
 
     /**
-     * Strips the thinking (e.g., {@code <think>...}) from the LLM output.
+     * Removes the thought process from the given output.
      *
-     * @param withThinking the raw output from the LLM containing thinking
-     * @return the cleaned output string
+     * @param withThinking the output of the LLM with the thought process
+     * @return the output of the LLM without the thought process
      */
     String removeThinking(String withThinking);
 
