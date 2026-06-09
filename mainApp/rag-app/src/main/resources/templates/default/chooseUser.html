@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <title>Login</title>
+    <link rel="stylesheet" th:href="@{/css/default.css}">
+    <link rel="stylesheet" th:href="@{/css/headerFooterLayout.css}">
+</head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+
+<div th:if="${error}" class="error">
+    <p th:text="${error}"></p>
+</div>
+
+<form action="#" th:action="@{/user/login}" method="post">
+    <label for="username">Username:</label>
+    <input type="text" id="username" name="username" th:value="${attemptedUsername}" required>
+    <br>
+    <label for="password">Password:</label>
+    <input type="password" id="password" name="password" required>
+    <br>
+    <input type="submit" value="Submit">
+</form>
+
+<br>
+
+<form action="#" th:action="@{/user/guest}" method="post">
+    <label for="username">Guest access:</label>
+    <input type="submit" value="Login as Guest">
+</form>
+
+<br>
+
+<form action="#" th:action="@{/user/newUser}" method="get">
+    <label>New User:</label>
+    <input type="submit" value="Create">
+</form>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+</body>
+</html>

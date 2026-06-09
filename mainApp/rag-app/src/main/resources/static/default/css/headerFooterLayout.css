@@ -1,0 +1,247 @@
+/* Header Styles */
+header {
+    background-color: white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    margin-bottom: 20px;
+}
+
+.header-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+}
+
+.logo {
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.3em;
+    font-weight: bold;
+    color: #4CAF50;
+    transition: color 0.3s ease;
+    margin: 0;
+}
+
+.logo:hover {
+    color: #388E3C;
+}
+
+.logo-icon {
+    font-size: 1.5em;
+}
+
+.logo-text {
+    color: #222;
+}
+
+.header-nav {
+    display: flex;
+    gap: 25px;
+    align-items: center;
+}
+
+.header-nav a {
+    text-decoration: none;
+    color: #333;
+    font-weight: 500;
+    padding: 8px 15px;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    margin: 0;
+}
+
+.header-nav a:hover {
+    background-color: #f0f0f0;
+    color: #4CAF50;
+}
+
+.header-nav a.active {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.header-right form {
+    margin: 0;
+    padding: 0;
+    background: none;
+    box-shadow: none;
+}
+
+.user-info {
+    color: #666;
+    font-weight: 500;
+    padding: 6px 12px;
+    background-color: #f9f9f9;
+    border-radius: 4px;
+    font-size: 0.95em;
+    border: 1px solid #e0e0e0;
+}
+
+.logout-btn {
+    background-color: #f44336;
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.95em;
+    font-weight: 500;
+    transition: background-color 0.3s ease;
+    display: inline-block;
+    margin: 0;
+}
+
+.logout-btn:hover {
+    background-color: #d32f2f;
+}
+
+.header-btn {
+    padding: 8px 16px;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 0.95em;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: inline-block;
+    margin: 0;
+}
+
+.create-btn {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.create-btn:hover {
+    background-color: #45a049;
+}
+
+.login-btn {
+    background-color: #2196F3;
+    color: white;
+}
+
+.login-btn:hover {
+    background-color: #1976D2;
+}
+
+.create-user-btn {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.create-user-btn:hover {
+    background-color: #45a049;
+}
+
+/* Footer Styles */
+footer {
+    background-color: white;
+    border-top: 1px solid #ddd;
+    margin-top: 40px;
+    padding: 20px 0;
+    text-align: center;
+}
+
+.footer-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.footer-content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.footer-copyright {
+    margin: 0;
+    color: #666;
+    font-size: 0.9em;
+}
+
+.footer-link {
+    color: #4CAF50;
+    text-decoration: none;
+    transition: color 0.3s ease;
+    margin: 0;
+}
+
+.footer-link:hover {
+    color: #388E3C;
+}
+
+.footer-version {
+    color: #999;
+    font-style: italic;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .header-container {
+        flex-direction: column;
+        gap: 15px;
+    }
+}
+
+[data-color-scheme="dark"] header {
+    background-color: #2d2d2d;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+[data-color-scheme="dark"] .logo-text {
+    color: #e0e0e0;
+}
+
+[data-color-scheme="dark"] .header-nav a {
+    color: #e0e0e0;
+}
+
+[data-color-scheme="dark"] .header-nav a:hover {
+    background-color: #383838;
+}
+
+[data-color-scheme="dark"] .user-info {
+    background-color: #383838;
+    color: #e0e0e0;
+    border-color: #555;
+}
+
+[data-color-scheme="dark"] footer {
+    background-color: #2d2d2d;
+    border-top: 1px solid #444;
+}
+
+[data-color-scheme="dark"] .footer-copyright {
+    color: #999;
+}
+
+[data-color-scheme="dark"] .footer-link {
+    color: #66bb6a;
+}
+
+[data-color-scheme="dark"] .footer-link:hover {
+    color: #81c784;
+}
+
+[data-color-scheme="dark"] .footer-version {
+    color: #777;
+}

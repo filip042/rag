@@ -1,0 +1,105 @@
+spring:
+  application:
+    name: mainApp
+  http:
+    client:
+      connect-timeout: 1200s
+      read-timeout: 1200s
+  ai:
+    retry:
+      max-attempts: 3
+      backoff:
+        initial-interval: 3s
+        multiplier: 2
+    openai:
+      api-key: <api key for tests>
+      chat:
+        options:
+          max-tokens: 1000 <might be unnecessary>
+  datasource:
+    url: jdbc:h2:mem:testdb #file:/data/demo
+    username: <username>
+    password: <password>
+    driverClassName: org.h2.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create
+    defer-datasource-initialization: true
+  h2:
+    console:
+      enabled: true
+  sql:
+    init:
+      mode: always
+  main:
+    allow-bean-definition-overriding: true <todo check if can be removed>
+app:
+  base-url: http://localhost:8080
+  llm:
+    provider: <provider>
+    base-url: <ollama base url>
+    api-key: <openAi api key>
+    chat:
+      model: <chat model>
+      temperature: <temperature>
+    embedding:
+      model: <embedding model>
+  vectorstore:
+    provider: <vector store provider>
+    uris: http://localhost:9200
+    username: <vector store password>
+    password: <vector store username>
+    initialize-schema: true
+    index-name: <index name>
+    dimensions: <index dimensions, corresponds to embedding model>
+    similarity: cosine
+  rag:
+    query:
+      max-query-length: 160
+    splitter:
+      chunk-size: 400
+      min-chunk-size-chars: 10
+      min-chunk-length-to-embed: 50
+      max-num-chunks: 10000
+      keep-separator: true
+      overlap-tokens: 50
+  api-urls:
+    base: /app
+    add: /add
+    answer: /answer
+    ask: /ask
+    delete: /delete
+    status: /status
+  frontend-urls:
+    base: /user
+    answer: /answer
+    chat: /chat
+    dashboard: /dashboard
+    delete-project: /deleteProject
+    load: /load
+    login: /login
+    logout: /logout
+    new-project: /newProject
+    new-user: /newUser
+  ollama:
+    username: <username>
+    password: <password>
+server:
+  error:
+    whitelabel:
+      enabled: false
+logging:
+  file:
+    name: logs/app.log
+  logback:
+    rollingpolicy:
+      max-file-size: 10MB
+      max-history: 30
+  level:
+    root: INFO
+    cz.cuni.mff.hanaf: DEBUG
+    org.springframework.ai.openai.api.OpenAiApi: TRACE
+    org.springframework.web.client.RestClient: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.orm.jdbc.bind: TRACE

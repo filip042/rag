@@ -1,0 +1,10 @@
+Determine whether the following document is relevant to the given user query.
+Relevance means that the document contains information that could contribute to answering the query, even if it only addresses part of it.
+
+Query:
+{query}
+
+Document:
+{document}
+
+Answer only with one word: "YES" if the document is relevant, or "NO" if it is not.

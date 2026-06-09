@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>cz.cuni.mff.hanaf</groupId>
+        <artifactId>mainApp</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>rag-starter-llm-qwen3-ollama</artifactId>
+    <name>RAG Starter - Qwen3 LLM (Ollama)</name>
+
+
+    <dependencies>
+        <dependency>
+            <groupId>cz.cuni.mff.hanaf</groupId>
+            <artifactId>rag-starter-provider-ollama</artifactId>
+        </dependency>
+    </dependencies>
+
+</project>

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <title>Create New User</title>
+    <link rel="stylesheet" th:href="@{/css/default.css}">
+    <link rel="stylesheet" th:href="@{/css/headerFooterLayout.css}">
+</head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+
+<h2>Create New User</h2>
+
+<div th:if="${error}" class="error">
+    <p th:text="${error}"></p>
+</div>
+
+<form th:object="${user}" th:action="@{/user/newUser}" method="post" autocomplete="off">
+    <div>
+        <label for="username">Username:</label>
+        <input type="text" id="username" th:field="*{username}" required autocomplete="off">
+    </div>
+
+    <div>
+        <label for="password">Password:</label>
+        <input type="password" id="password" th:field="*{password}" required autocomplete="new-password">
+    </div>
+
+    <div>
+        <label for="confirmPassword">Confirm Password:</label>
+        <input type="password" id="confirmPassword" name="confirmPassword" required autocomplete="new-password">
+    </div>
+
+    <div>
+        <input type="submit" value="Create User">
+    </div>
+</form>
+
+<br>
+
+<form action="#" th:action="@{/user/login}" method="get">
+    <input type="submit" value="Back to Login">
+</form>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+</body>
+</html>

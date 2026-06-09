@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+  <title>Answer</title>
+  <meta charset="UTF-8" />
+
+  <script th:inline="javascript">
+    const answerUrl = /*[[${answerUrl}]]*/ '';
+    const askUrl = /*[[${askUrl}]]*/ '';
+    const question = /*[[${question}]]*/ '';
+    const project = /*[[${project}]]*/ 0;
+  </script>
+
+  <link rel="stylesheet" th:href="@{/css/answer.css}">
+  <link rel="stylesheet" th:href="@{/css/default.css}">
+  <link rel="stylesheet" th:href="@{/css/headerFooterLayout.css}">
+</head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+
+<div id="question-area">
+  <h3>Question:</h3>
+  <p id="question-text" th:text="${question}"></p>
+</div>
+
+<div id="answer-area">
+  <h3>Answer:</h3>
+  <p id="answer-text">Loading answer. This may take several minutes.</p>
+  <div class="spinner" id="spinner"></div>
+</div>
+
+<div id="sources" style="display:none;">
+  <h3>Sources:</h3>
+  <ul id="sources-list"></ul>
+</div>
+
+<form action="#" th:action="@{/user/answer}" method="post" id="next-question" style="display: none">
+  <label for="question">Ask another question:</label>
+  <input type="text" id="question" name="question" required><br>
+  <input type="submit" value="Submit">
+</form>
+
+<form action="#" th:action="@{/user/chat}" method="get">
+  <input type="submit" value="Return">
+</form>
+
+<script th:src="@{/js/answer.js}"></script>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+</body>
+</html>

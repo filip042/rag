@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <title>Create New Project</title>
+    <link rel="stylesheet" th:href="@{/css/default.css}">
+    <link rel="stylesheet" th:href="@{/css/headerFooterLayout.css}">
+</head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+
+<h2>Create New Project</h2>
+
+<div th:if="${error}" class="error">
+    <p th:text="${error}"></p>
+</div>
+
+<form th:object="${project}" th:action="@{/user/newProject}" method="post">
+    <div>
+        <label for="name">Name:</label>
+        <input type="text" id="name" th:field="*{name}" required>
+    </div>
+
+    <div>
+        <label>Visibility:</label>
+        <div class="settings-radio">
+            <label>
+                <input type="radio" id="public" th:field="*{public}" th:value="true"> Public
+            </label>
+            <label>
+                <input type="radio" id="private" th:field="*{public}" th:value="false" checked> Private
+            </label>
+        </div>
+    </div>
+
+    <div>
+        <input type="submit" value="Create Project">
+    </div>
+</form>
+
+<br>
+
+<form action="#" th:action="@{/user/dashboard}" method="get">
+    <input type="submit" value="Back to Dashboard">
+</form>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+</body>
+</html>

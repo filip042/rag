@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Admin Settings</title>
+    <link rel="stylesheet" th:href="@{/css/default.css}">
+    <link rel="stylesheet" th:href="@{/css/headerFooterLayout.css}">
+    <link rel="stylesheet" th:href="@{/css/upload-steps.css}">
+</head>
+<body>
+
+<div th:replace="~{fragments/header :: header}"></div>
+
+<h1>Project Administration</h1>
+
+<form id="loadForm" th:if="${admin}">
+    <h2>Upload Files or Directory</h2>
+
+    <!-- Step 1: Choose Upload Type -->
+    <div class="step-container" id="step1">
+        <div class="step-header">
+            <div class="step-number">1</div>
+            <h3 class="step-title">Choose Upload Type</h3>
+        </div>
+        <div class="step-content">
+            <div class="settings-radio">
+                <label>
+                    <input type="radio" name="uploadType" value="files" checked> Upload Individual Files
+                </label>
+                <label>
+                    <input type="radio" name="uploadType" value="directory"> Upload Directory
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 2: Select Files -->
+    <div class="step-container" id="step2">
+        <div class="step-header">
+            <div class="step-number">2</div>
+            <h3 class="step-title">Select Files from Your Computer</h3>
+        </div>
+        <div class="step-content">
+            <div id="filesInputContainer">
+                <label for="fileInput">Select Files:</label>
+                <input type="file" id="fileInput" name="files" multiple>
+            </div>
+
+            <div id="directoryInputContainer" class="hidden">
+                <label for="directoryInput">Select Directory:</label>
+                <input type="file" id="directoryInput" name="directory" webkitdirectory>
+            </div>
+
+            <div id="selected-files" class="empty"></div>
+        </div>
+    </div>
+
+    <!-- Step 3: Index Files -->
+    <div class="step-container disabled" id="step3">
+        <div class="step-header">
+            <div class="step-number">3</div>
+            <h3 class="step-title">Index Files in Database</h3>
+        </div>
+        <div class="step-content">
+            <button type="submit" id="uploadButton" disabled>Upload and Index</button>
+
+            <div class="indexing-status" id="indexingStatus">
+                <strong>Indexing in progress...</strong>
+                <div id="article-count">0/0 articles indexed</div>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        const articleCountEndpoint = /*[[${articleCountEndpoint}]]*/ '';
+        const loadEndpoint = /*[[${loadEndpoint}]]*/ '';
+    </script>
+
+    <script th:src="@{/js/articleCount.js}"></script>
+    <script th:src="@{/js/loadDirectory.js}"></script>
+    <script th:src="@{/js/upload-steps.js}"></script>
+</form>
+
+<br>
+
+<h2>Project Visibility</h2>
+
+<form class="ajax-form visibility" th:action="@{/admin/visibility}" method="post">
+    <div class="settings-radio">
+        <label>
+            <input type="radio" name="isPublic" value="true" th:checked="${project.isPublic}"> Public
+        </label>
+        <label>
+            <input type="radio" name="isPublic" value="false" th:checked="${!project.isPublic}"> Private
+        </label>
+    </div>
+    <button type="submit">Save</button>
+    <span class="button-feedback">Saved!</span>
+</form>
+
+<br>
+
+<h2>Archive Project</h2>
+
+<form class="ajax-form archive" th:action="@{/admin/archive}" method="post">
+    <div class="settings-radio">
+        <label>
+            <input type="radio" name="isArchived" value="true" th:checked="${project.isArchived()}"> Archived
+        </label>
+        <label>
+            <input type="radio" name="isArchived" value="false" th:checked="${!project.isArchived()}"> Active
+        </label>
+    </div>
+    <button type="submit">Save</button>
+    <span class="button-feedback">Saved!</span>
+</form>
+
+<br>
+
+<h2 id="add-user-heading" th:text="${project.isPublic} ? 'Add Admin to Project' : 'Add User to Project'">Add User to Project</h2>
+
+<p th:if="${addUserError}"
+   th:text="${addUserError}"
+   style="color: red; margin-top: 5px;">
+</p>
+
+<form class="ajax-form add-user" th:action="@{/admin/add}" method="post">
+    <label for="users">Username:</label>
+    <select id="users" name="userId" required>
+        <option th:each="option : ${unadded}" th:value="${option.id}" th:text="${option.username}"/>
+    </select>
+
+    <button type="submit">Add User</button>
+    <span class="button-feedback">Added!</span>
+</form>
+
+<br>
+
+<h2 id="current-users-heading" th:text="${project.isPublic} ? 'Current Project Admins' : 'Current Project Users'">Current Project Users</h2>
+
+<table>
+    <thead>
+    <tr>
+        <th>Username</th>
+        <th>Role</th>
+        <th>Actions</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    <tr th:each="user : ${users}">
+        <td th:text="${user.username}"></td>
+
+        <td th:text="${user.admin ? 'Admin' : 'User'}"></td>
+
+        <td>
+            <input type="hidden" name="userId" th:value="${user.id}">
+
+            <form class="ajax-form promote-user" th:if="${!user.admin}"
+                  th:action="@{/admin/promote}" method="post" style="display:inline;">
+                <input type="hidden" name="userId" th:value="${user.id}">
+                <button type="submit">Promote</button>
+            </form>
+
+            <form class="ajax-form remove-user" th:if="${!user.admin}" id="delete" th:action="@{/admin/remove}" method="post" style="display:inline;">
+                <input type="hidden" name="userId" th:value="${user.id}">
+                <button type="submit" class="delete"
+                        onclick="return confirm('Remove this user from the project?');">
+                    Remove
+                </button>
+            </form>
+
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<br><br>
+
+<div class="button-row">
+    <form action="#" th:action="@{/user/chat}" method="get">
+        <input type="submit" value="Return">
+    </form>
+
+    <br>
+
+    <form action="#" th:action="@{/user/deleteProject}" method="post" th:if="${admin}">
+        <button type="submit" class="delete" onclick="return confirm('Are you sure you want to delete this project?');">Delete Project</button>
+    </form>
+</div>
+
+<script th:src="@{/js/admin.js}"></script>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+</body>
+</html>

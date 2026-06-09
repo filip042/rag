@@ -1,0 +1,28 @@
+<header th:fragment="header">
+    <script th:src="@{/js/theme-toggle.js}"></script>
+    <div class="header-container">
+        <div class="header-left">
+            <a th:href="@{/user/}" class="logo">
+                <span class="logo-icon">⌂</span>
+                <span class="logo-text">RAG Assistant</span>
+            </a>
+        </div>
+
+        <div class="header-right">
+            <button type="button" id="theme-toggle" class="header-btn theme-btn">
+                🌙
+            </button>
+
+            <span class="user-info" th:if="${currentUsername}" th:text="${currentUsername}"></span>
+
+            <form th:if="${currentUsername != null}"
+                  th:action="@{/user/logout}" method="get" style="display: inline; margin: 0;">
+                <button type="submit" class="logout-btn">Logout</button>
+            </form>
+
+            <a th:if="${currentUsername == null}" th:href="@{/user/login}" class="header-btn login-btn">
+                Login
+            </a>
+        </div>
+    </div>
+</header>
