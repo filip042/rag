@@ -1,5 +1,6 @@
-package cz.cuni.mff.hanaf.mainapp;
+package cz.cuni.mff.hanaf.mainapp.web;
 
+import cz.cuni.mff.hanaf.mainapp.AppProperties;
 import cz.cuni.mff.hanaf.mainapp.data.*;
 import cz.cuni.mff.hanaf.mainapp.rag.QueryProperties;
 import cz.cuni.mff.hanaf.mainapp.rag.dto.DeleteProjectRequest;
