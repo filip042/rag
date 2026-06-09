@@ -126,6 +126,28 @@
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <version>3.12.0</version>
                 <configuration>
+                    <groups>
+                        <group>
+                            <title>Core Framework</title>
+                            <packages>cz.cuni.mff.hanaf.core*</packages>
+                        </group>
+                        <group>
+                            <title>LLM Providers</title>
+                            <packages>cz.cuni.mff.hanaf.llm*</packages>
+                        </group>
+                        <group>
+                            <title>Document Parsers</title>
+                            <packages>cz.cuni.mff.hanaf.parser*</packages>
+                        </group>
+                        <group>
+                            <title>Vector Stores</title>
+                            <packages>cz.cuni.mff.hanaf.vectorstore*</packages>
+                        </group>
+                        <group>
+                            <title>Main Application</title>
+                            <packages>cz.cuni.mff.hanaf.mainapp*</packages>
+                        </group>
+                    </groups>
                     <overview>${project.basedir}/overview.html</overview>
                 </configuration>
             </plugin>
