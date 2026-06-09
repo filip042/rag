@@ -13,6 +13,9 @@ import org.springframework.core.annotation.Order;
 @Order(Ordered.LOWEST_PRECEDENCE)
 public class OpenAiGenericMethodsFactory implements LlmMethodsFactory {
 
+    /**
+     * The OpenAI chat model used to make LLM calls.
+     */
     protected final OpenAiChatModel openAiChatModel;
 
     /**

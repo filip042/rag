@@ -10,6 +10,13 @@ import java.util.List;
  * Extends {@link JpaRepository} with lookup and deletion by project.
  */
 public interface QuestionRepository extends JpaRepository<Question, Long> {
+
+    /**
+     * Returns all questions from the given project.
+     *
+     * @param id the id of the project
+     * @return a list of questions from the project
+     */
     List<Question> findByProject_Id(long id);
 
     /**

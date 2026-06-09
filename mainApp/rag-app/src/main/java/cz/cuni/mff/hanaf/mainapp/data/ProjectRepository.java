@@ -12,8 +12,28 @@ import java.util.Optional;
  * Extends {@link JpaRepository} with additional queries for user-based and public project lookup.
  */
 public interface ProjectRepository extends JpaRepository<Project, Long> {
+
+    /**
+     * Returns all projects the given user has default access to.
+     *
+     * @param id the id of the user
+     * @return a list of accessible projects
+     */
     List<Project> findByAccessibleUsers_Id(long id);
+
+    /**
+     * Returns all projects the given user has admin access to.
+     *
+     * @param id the id of the user
+     * @return a list of admin projects
+     */
     List<Project> findByAdminUsers_Id(long id);
+
+    /**
+     * Returns all public projects.
+     *
+     * @return a list of public projects
+     */
     List<Project> findByIsPublicTrue();
 
     /**
