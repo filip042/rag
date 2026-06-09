@@ -1,4 +1,4 @@
-package cz.cuni.mff.hanaf.mainapp.dto;
+package cz.cuni.mff.hanaf.mainapp.web.dto;
 
 /**
  * Represents a user's details and their administrative status within a specific project.
