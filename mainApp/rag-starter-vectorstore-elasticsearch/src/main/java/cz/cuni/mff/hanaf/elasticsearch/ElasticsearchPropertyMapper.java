@@ -8,8 +8,18 @@ import org.springframework.core.env.MapPropertySource;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * {@link EnvironmentPostProcessor} that maps {@code app.vectorstore.*} properties to their
+ * corresponding Spring AI Elasticsearch properties when the configured provider is Elasticsearch.
+ */
 public class ElasticsearchPropertyMapper implements EnvironmentPostProcessor {
 
+    /**
+     * Maps {@code app.vectorstore.*} properties to Spring AI Elasticsearch properties if the provider is Elasticsearch.
+     *
+     * @param environment the environment to post-process
+     * @param application the application instance
+     */
     @Override
     public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
         String provider = environment.getProperty("app.vectorstore.provider", "").toLowerCase();
