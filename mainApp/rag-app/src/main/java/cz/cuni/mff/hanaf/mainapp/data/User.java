@@ -25,11 +25,6 @@ public class User {
     private Set<Project> adminProjects;
 
     /**
-     * No-arg constructor required by JPA.
-     */
-    public User() {}
-
-    /**
      * Returns the unique identifier of this user, or {@code null} if not yet persisted.
      *
      * @return the user id

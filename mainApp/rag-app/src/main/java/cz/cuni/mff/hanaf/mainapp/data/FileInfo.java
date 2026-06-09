@@ -18,11 +18,6 @@ public class FileInfo {
     private String hash;
 
     /**
-     * No-arg constructor required by JPA.
-     */
-    public FileInfo() {}
-
-    /**
      * Creates a new {@code FileInfo} with the given file identifier and hash.
      *
      * @param fileId the unique identifier of the stored file; must not be {@code null}

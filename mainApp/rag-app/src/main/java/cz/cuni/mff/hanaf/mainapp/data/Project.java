@@ -17,13 +17,13 @@ public class Project {
     private Long id;
 
     private String name;
-    private boolean isPublic;
-    private boolean isArchived;
+    private boolean isPublic = false;
+    private boolean isArchived = false;
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "project_files", joinColumns = @JoinColumn(name = "project_id"))
     @MapKeyColumn(name = "file_name")
-    private Map<String, FileInfo> files;
+    private Map<String, FileInfo> files = new HashMap<>();
 
     @ManyToMany
     @JoinTable(
@@ -31,7 +31,7 @@ public class Project {
             joinColumns = @JoinColumn(name = "project_id"),
             inverseJoinColumns = @JoinColumn(name = "user_id")
     )
-    private Set<User> accessibleUsers;
+    private Set<User> accessibleUsers = new HashSet<>();
 
     @ManyToMany
     @JoinTable(
@@ -39,19 +39,7 @@ public class Project {
             joinColumns = @JoinColumn(name = "project_id"),
             inverseJoinColumns = @JoinColumn(name = "user_id")
     )
-    private Set<User> adminUsers;
-
-    /**
-     * No-arg constructor required by JPA.
-     * Initializes files, accessibleUsers, and adminUsers to empty collections.
-     */
-    public Project() {
-        this.files = new HashMap<>();
-        this.accessibleUsers = new HashSet<>();
-        this.adminUsers = new HashSet<>();
-        this.isPublic = false;
-        this.isArchived = false;
-    }
+    private Set<User> adminUsers = new HashSet<>();
 
     /**
      * Checks equality by identity first, then by id if both objects are {@link Project} instances.
