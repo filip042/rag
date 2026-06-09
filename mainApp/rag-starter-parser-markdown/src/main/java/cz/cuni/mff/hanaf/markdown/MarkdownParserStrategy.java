@@ -8,13 +8,23 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+/**
+ * {@link DocumentParserStrategy} implementation for Markdown files.
+ */
 @Component
 public class MarkdownParserStrategy implements DocumentParserStrategy {
+
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean supports(String filePath) {
         return filePath.endsWith(".md");
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<Document> read(String filePath) {
         MarkdownDocumentReaderConfig config = MarkdownDocumentReaderConfig.builder()
