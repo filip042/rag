@@ -4,6 +4,9 @@ import cz.cuni.mff.hanaf.mainapp.data.Project;
 import cz.cuni.mff.hanaf.mainapp.data.ProjectRepository;
 import cz.cuni.mff.hanaf.mainapp.data.User;
 import cz.cuni.mff.hanaf.mainapp.data.UserRepository;
+import cz.cuni.mff.hanaf.mainapp.dto.ArchiveResponse;
+import cz.cuni.mff.hanaf.mainapp.dto.UserResponse;
+import cz.cuni.mff.hanaf.mainapp.dto.VisibilityResponse;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -76,17 +79,17 @@ public class FormResultsController {
      *
      * @param isPublic {@code true} to make the project public, and {@code false} to make it private
      * @param session the current HTTP session, expected to contain the active project
-     * @return a map containing the updated value under "isPublic"
+     * @return a {@link VisibilityResponse} record
      */
     @PostMapping("/visibility")
-    public Map<String, Object> setVisibility(@RequestParam boolean isPublic, HttpSession session) {
+    public VisibilityResponse setVisibility(@RequestParam boolean isPublic, HttpSession session) {
         Project sessionProject = (Project) session.getAttribute("project");
         Project project = projectRepository.findById(sessionProject.getId())
                 .orElseThrow(() -> new IllegalStateException("Project not found"));
         project.setPublic(isPublic);
         projectRepository.save(project);
 
-        return Map.of("isPublic", isPublic);
+        return new VisibilityResponse(isPublic);
     }
 
     /**
@@ -94,16 +97,16 @@ public class FormResultsController {
      *
      * @param isArchived {@code true} to archive the project, and {@code false} to unarchive it
      * @param session the current HTTP session, expected to contain the active project
-     * @return a map containing the updated archivation under "isArchived"
+     * @return a {@link ArchiveResponse} record
      */
     @PostMapping("/archive")
-    public Map<String, Object> setArchived(@RequestParam boolean isArchived, HttpSession session) {
+    public ArchiveResponse setArchived(@RequestParam boolean isArchived, HttpSession session) {
         Project sessionProject = (Project) session.getAttribute("project");
         Project project = projectRepository.findById(sessionProject.getId())
                 .orElseThrow(() -> new IllegalStateException("Project not found"));
         project.setArchived(isArchived);
         projectRepository.save(project);
-        return Map.of("isArchived", isArchived);
+        return new ArchiveResponse(isArchived);
     }
 
     /**
@@ -112,10 +115,10 @@ public class FormResultsController {
      *
      * @param userId the id of the user to add
      * @param session the current HTTP session, expected to contain the active project
-     * @return a map containing the updated user's id, username, and admin status under "user"
+     * @return a {@link UserResponse} record
      */
     @PostMapping("/add")
-    public Map<String, Object> addUser(@RequestParam Long userId, HttpSession session) {
+    public UserResponse addUser(@RequestParam Long userId, HttpSession session) {
         Project sessionProject = (Project) session.getAttribute("project");
         Project project = projectRepository.findByIdWithUsers(sessionProject.getId())
                 .orElseThrow(() -> new IllegalStateException("Project not found"));
@@ -128,11 +131,7 @@ public class FormResultsController {
         }
         projectRepository.save(project);
 
-        return Map.of("user", Map.of(
-                "id", user.getId(),
-                "username", user.getUsername(),
-                "admin", project.isPublic()
-        ));
+        return new UserResponse(user.getId(), user.getUsername(), project.isPublic());
     }
 
     /**
@@ -140,10 +139,10 @@ public class FormResultsController {
      *
      * @param userId the id of the user to promote
      * @param session the current HTTP session, expected to contain the active project
-     * @return a map containing the updated user's id, username, and admin status under "user"
+     * @return a {@link UserResponse} record
      */
     @PostMapping("/promote")
-    public Map<String, Object> promoteUser(@RequestParam Long userId, HttpSession session) {
+    public UserResponse promoteUser(@RequestParam Long userId, HttpSession session) {
         Project sessionProject = (Project) session.getAttribute("project");
         Project project = projectRepository.findByIdWithUsers(sessionProject.getId())
                 .orElseThrow(() -> new IllegalStateException("Project not found"));
@@ -152,11 +151,7 @@ public class FormResultsController {
         project.removeAccessibleUser(user);
         projectRepository.save(project);
 
-        return Map.of("user", Map.of(
-                "id", user.getId(),
-                "username", user.getUsername(),
-                "admin", true
-        ));
+        return new UserResponse(user.getId(), user.getUsername(), true);
     }
 
     /**
@@ -164,10 +159,10 @@ public class FormResultsController {
      *
      * @param userId the id of the user to remove
      * @param session the current HTTP session, expected to contain the active project
-     * @return a map containing the updated user's id and username under "user"
+     * @return a {@link UserResponse} record
      */
     @PostMapping("/remove")
-    public Map<String, Object> removeUser(@RequestParam Long userId, HttpSession session) {
+    public UserResponse removeUser(@RequestParam Long userId, HttpSession session) {
         Project sessionProject = (Project) session.getAttribute("project");
         Project project = projectRepository.findByIdWithUsers(sessionProject.getId())
                 .orElseThrow(() -> new IllegalStateException("Project not found"));
@@ -176,9 +171,6 @@ public class FormResultsController {
         project.removeAccessibleUser(user);
         projectRepository.save(project);
 
-        return Map.of("user", Map.of(
-                "id", user.getId(),
-                "username", user.getUsername()
-        ));
+        return new UserResponse(user.getId(), user.getUsername(), false);
     }
 }

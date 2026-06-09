@@ -2,6 +2,7 @@ package cz.cuni.mff.hanaf.mainapp;
 
 import cz.cuni.mff.hanaf.mainapp.data.*;
 import cz.cuni.mff.hanaf.mainapp.rag.QueryProperties;
+import cz.cuni.mff.hanaf.mainapp.rag.dto.DeleteProjectRequest;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
@@ -405,10 +406,9 @@ public class ThymeLeafController {
         questionRepository.deleteByProjectId(project.getId());
         projectRepository.deleteById(project.getId());
         String apiUrl = appProperties.getBaseUrl() + appProperties.getApiUrls().getBase() + appProperties.getApiUrls().getDelete();
-        Map<String, Long> params = new HashMap<>();
-        params.put("project", project.getId());
+        DeleteProjectRequest request = new DeleteProjectRequest(project.getId());
 
-        restTemplate.postForObject(apiUrl, params, Void.class);
+        restTemplate.postForObject(apiUrl, request, Void.class);
         return "redirect:" + url;
     }
 

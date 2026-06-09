@@ -85,34 +85,34 @@ document.addEventListener("DOMContentLoaded", () => {
             showSaveFeedback(form);
 
             const select = document.getElementById("users");
-            const optionToRemove = select.querySelector(`option[value="${data.user.id}"]`);
+            const optionToRemove = select.querySelector(`option[value="${data.id}"]`);
             if (optionToRemove) optionToRemove.remove();
 
             const tbody = document.querySelector("table tbody");
             const newRow = document.createElement("tr");
             newRow.innerHTML = `
-                <td>${data.user.username}</td>
-                <td>${data.user.admin ? 'Admin' : 'User'}</td>
+                <td>${data.username}</td>
+                <td>${data.admin ? 'Admin' : 'User'}</td>
                 <td>
-                    ${!data.user.admin ? `
+                    ${!data.admin ? `
                         <form class="ajax-form promote-user" action="/admin/promote" method="post" style="display:inline;">
-                            <input type="hidden" name="userId" value="${data.user.id}">
+                            <input type="hidden" name="userId" value="${data.id}">
                             <button type="submit">Promote</button>
                         </form>
                         <form class="ajax-form remove-user" action="/admin/remove" method="post" style="display:inline;">
-                            <input type="hidden" name="userId" value="${data.user.id}">
+                            <input type="hidden" name="userId" value="${data.id}">
                             <button type="submit" class="delete" onclick="return confirm('Remove this user from the project?');">Remove</button>
                         </form>
                     ` : ''}
                 </td>
             `;
             const isPublic = document.querySelector("input[name='isPublic']:checked").value === "true";
-            if (isPublic && !data.user.admin) {
+            if (isPublic && !data.admin) {
                 newRow.style.display = "none";
             }
-            if (data.user.admin) {
+            if (data.admin) {
                 const existingRow = Array.from(tbody.querySelectorAll("tr")).find(row =>
-                    row.querySelector("input[name='userId']")?.value === String(data.user.id)
+                    row.querySelector("input[name='userId']")?.value === String(data.id)
                 );
                 if (existingRow) existingRow.remove();
             }
@@ -146,8 +146,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const select = document.getElementById("users");
         const option = document.createElement("option");
-        option.value = data.user.id;
-        option.textContent = data.user.username;
+        option.value = data.id;
+        option.textContent = data.username;
         select.appendChild(option);
     });
 });

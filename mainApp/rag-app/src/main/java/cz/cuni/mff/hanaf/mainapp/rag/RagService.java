@@ -2,6 +2,7 @@ package cz.cuni.mff.hanaf.mainapp.rag;
 
 import cz.cuni.mff.hanaf.mainapp.data.*;
 import cz.cuni.mff.hanaf.core.llm.LlmMethods;
+import cz.cuni.mff.hanaf.mainapp.rag.dto.IndexStatusResponse;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.ChatClientResponse;
 import org.springframework.ai.chat.messages.AbstractMessage;
@@ -220,18 +221,14 @@ public class RagService {
      * Returns the status and list of files processed for the given project.
      *
      * @param projectId the id of the project to check
-     * @return a map containing the total number of files under "totalFiles" and a list of finished file names under "finishedFiles"
+     * @return a {@link IndexStatusResponse} record
      */
-    public Map<String, Object> allAdded(long projectId) {
+    public IndexStatusResponse allAdded(long projectId) {
         ConcurrentLinkedQueue<String> finishedQueue = finishedFiles.get(projectId);
         List<String> finishedList = finishedQueue != null ? new ArrayList<>(finishedQueue) : Collections.emptyList();
         int total = (allFilesToIndex.get(projectId) != null) ? allFilesToIndex.get(projectId).size() : 0;
 
-        Map<String, Object> result = new HashMap<>();
-        result.put("totalFiles", total);
-        result.put("finishedFiles", finishedList);
-
-        return result;
+        return new IndexStatusResponse(total, finishedList);
     }
 
     /**

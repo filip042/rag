@@ -1,5 +1,6 @@
 package cz.cuni.mff.hanaf.mainapp.rag;
 
+import cz.cuni.mff.hanaf.mainapp.rag.dto.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,15 +27,15 @@ public class RagController {
     private final Map<String, Map<String, Object>> taskProgress = new ConcurrentHashMap<>();
 
     /**
-     * Passes the given query on to the LLM, which uses context from the given project to answer the question.
+     * Passes the query in the request on to the LLM, which uses context from the given project to answer the question.
      *
-     * @param payload a map containing the query under "query" and the project id under "project"
-     * @return a map containing a generated task id under "taskId", which can be polled via /answer
+     * @param askRequest an {@link AskRequest} record
+     * @return an {@link AskResponse} record containing a generated task id, which can be polled via /answer
      */
     @PostMapping("/ask")
-    public Map<String, Object> search(@RequestBody Map<String, Object> payload) {
-        String query = (String) payload.get("query");
-        long projectId = ((Number) payload.get("project")).longValue();
+    public AskResponse search(@RequestBody AskRequest askRequest) {
+        String query = askRequest.query();
+        long projectId = askRequest.project();
         String taskId = UUID.randomUUID().toString();
         Map<String, Object> progress = new ConcurrentHashMap<>();
         progress.put("status", "checking");
@@ -45,20 +46,20 @@ public class RagController {
         progress.put("sources", new ArrayList<String>());
         taskProgress.put(taskId, progress);
         ragService.ask(query, projectId, progress);
-        return Map.of("taskId", taskId);
+        return new AskResponse(taskId);
     }
 
     /**
      * Polls the status of an async "ask" task previously initiated by {@link #search}.
      *
-     * @param payload a map containing the task identifier under "taskId"
+     * @param answerRequest an {@link AnswerRequest} record
      * @return 200 OK with the full progress map (and removes the task) if the task is done,
      *         202 Accepted with the current progress map if still in progress,
      *         or 404 Not Found if no task with the given id exists
      */
     @PostMapping("/answer")
-    public ResponseEntity<?> getAskStatus(@RequestBody Map<String, String> payload) {
-        String taskId = payload.get("taskId");
+    public ResponseEntity<?> getAskStatus(@RequestBody AnswerRequest answerRequest) {
+        String taskId = answerRequest.taskId();
         Map<String, Object> progress = taskProgress.get(taskId);
         if (progress == null) {
             return ResponseEntity.notFound().build();
@@ -77,10 +78,10 @@ public class RagController {
      * Gets the status of the documents being added to the given project.
      *
      * @param project the id of the project being added to
-     * @return a map containing the total number of files under "totalFiles" and a list of file that have finished indexing names under "finishedFiles"
+     * @return an {@link IndexStatusResponse} record
      */
     @GetMapping("/status")
-    public Map<String, Object> getIndexStatus(@RequestParam long project) {
+    public IndexStatusResponse getIndexStatus(@RequestParam long project) {
         return ragService.allAdded(project);
     }
 
@@ -107,11 +108,11 @@ public class RagController {
     /**
      * Deletes all documents indexed under the given project.
      *
-     * @param payload a map containing the id of the project to be deleted under "project"
+     * @param deleteProjectRequest a {@link DeleteProjectRequest} record
      */
     @PostMapping("/delete")
-    public void deleteDocuments(@RequestBody Map<String, Long> payload) {
-        long projectId = payload.get("project");
+    public void deleteDocuments(@RequestBody DeleteProjectRequest deleteProjectRequest) {
+        long projectId = deleteProjectRequest.project();
         ragService.deleteProject(projectId);
     }
 }
