@@ -23,11 +23,7 @@
         <!-- Choose your LLM provider + model -->
         <dependency>
             <groupId>cz.cuni.mff.hanaf</groupId>
-            <artifactId>rag-starter-provider-openai</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>cz.cuni.mff.hanaf</groupId>
-            <artifactId>rag-starter-llm-gpt4o-openai</artifactId>
+            <artifactId>rag-starter-llm-deepseek-ollama</artifactId>
         </dependency>
 
         <!-- Choose your vector store -->
@@ -98,6 +94,20 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <!-- Documentation -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>2.8.17</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.github.therapi</groupId>
+            <artifactId>therapi-runtime-javadoc</artifactId>
+            <version>0.15.0</version>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -107,6 +117,19 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
                     <skip>true</skip>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>com.github.therapi</groupId>
+                            <artifactId>therapi-runtime-javadoc-scribe</artifactId>
+                            <version>0.15.0</version>
+                        </path>
+                    </annotationProcessorPaths>
                 </configuration>
             </plugin>
         </plugins>
