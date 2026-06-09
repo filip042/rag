@@ -1,4 +1,4 @@
-package cz.cuni.mff.hanaf.elasticsearch;
+package cz.cuni.mff.hanaf.vectorstore.elasticsearch;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.env.EnvironmentPostProcessor;

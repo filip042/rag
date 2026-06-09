@@ -1,4 +1,4 @@
-package cz.cuni.mff.hanaf.tika;
+package cz.cuni.mff.hanaf.parser.tika;
 
 import cz.cuni.mff.hanaf.core.parser.DocumentParserStrategy;
 import org.springframework.ai.document.Document;

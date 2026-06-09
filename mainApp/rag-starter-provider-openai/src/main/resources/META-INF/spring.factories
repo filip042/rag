@@ -1,2 +1,2 @@
 org.springframework.boot.env.EnvironmentPostProcessor=\
-cz.cuni.mff.hanaf.openai.OpenAiPropertyMapper
+cz.cuni.mff.hanaf.llm.openai.OpenAiPropertyMapper

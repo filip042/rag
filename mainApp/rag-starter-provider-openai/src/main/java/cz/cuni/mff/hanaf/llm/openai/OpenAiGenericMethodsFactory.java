@@ -1,4 +1,4 @@
-package cz.cuni.mff.hanaf.openai;
+package cz.cuni.mff.hanaf.llm.openai;
 
 import cz.cuni.mff.hanaf.core.llm.LlmMethods;
 import cz.cuni.mff.hanaf.core.llm.LlmMethodsFactory;

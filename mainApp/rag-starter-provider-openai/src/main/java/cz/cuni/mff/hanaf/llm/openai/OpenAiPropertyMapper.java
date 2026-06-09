@@ -1,4 +1,4 @@
-package cz.cuni.mff.hanaf.ollama;
+package cz.cuni.mff.hanaf.llm.openai;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.env.EnvironmentPostProcessor;
@@ -10,12 +10,12 @@ import java.util.Map;
 
 /**
  * {@link EnvironmentPostProcessor} that maps {@code app.llm.*} properties to their
- * corresponding Spring AI Ollama properties when the configured provider is Ollama.
+ * corresponding Spring AI OpenAI properties when the configured provider is OpenAI.
  */
-public class OllamaPropertyMapper implements EnvironmentPostProcessor {
+public class OpenAiPropertyMapper implements EnvironmentPostProcessor {
 
     /**
-     * Maps {@code app.llm.*} properties to Spring AI Ollama properties if the provider is Ollama.
+     * Maps {@code app.llm.*} properties to Spring AI OpenAI properties if the provider is OpenAI.
      *
      * @param environment the environment to post-process
      * @param application the application instance
@@ -24,19 +24,19 @@ public class OllamaPropertyMapper implements EnvironmentPostProcessor {
     public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
         String provider = environment.getProperty("app.llm.provider", "").toLowerCase();
 
-        if (!"ollama".equals(provider)) {
+        if (!"openai".equals(provider)) {
             return;
         }
 
         Map<String, Object> mappedProps = new HashMap<>();
-        mapProperty(environment, mappedProps, "app.llm.base-url", "spring.ai.ollama.base-url");
-        mapProperty(environment, mappedProps, "app.llm.chat.model", "spring.ai.ollama.chat.options.model");
-        mapProperty(environment, mappedProps, "app.llm.chat.temperature", "spring.ai.ollama.chat.options.temperature");
-        mapProperty(environment, mappedProps, "app.llm.embedding.model", "spring.ai.ollama.embedding.options.model");
+        mapProperty(environment, mappedProps, "app.llm.api-key", "spring.ai.openai.api-key");
+        mapProperty(environment, mappedProps, "app.llm.chat.model", "spring.ai.openai.chat.options.model");
+        mapProperty(environment, mappedProps, "app.llm.chat.temperature", "spring.ai.openai.chat.options.temperature");
+        mapProperty(environment, mappedProps, "app.llm.embedding.model", "spring.ai.openai.embedding.options.model");
 
         if (!mappedProps.isEmpty()) {
             environment.getPropertySources().addFirst(
-                    new MapPropertySource("ollamaLlmMapping", mappedProps));
+                    new MapPropertySource("openaiLlmMapping", mappedProps));
         }
     }
 

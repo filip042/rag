@@ -1,9 +1,9 @@
-package cz.cuni.mff.hanaf.ollama;
+package cz.cuni.mff.hanaf.llm.openai;
 
 import cz.cuni.mff.hanaf.core.llm.LlmMethods;
 import org.springframework.ai.chat.prompt.Prompt;
-import org.springframework.ai.ollama.OllamaChatModel;
-import org.springframework.ai.ollama.api.OllamaChatOptions;
+import org.springframework.ai.openai.OpenAiChatModel;
+import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 
@@ -11,14 +11,14 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * {@link LlmMethods} implementation for Ollama-hosted models.
+ * {@link LlmMethods} implementation for OpenAI-hosted models.
  */
-public class OllamaGenericMethods implements LlmMethods {
+public class OpenAiGenericMethods implements LlmMethods {
 
     /**
-     * The Ollama chat model used to make LLM calls.
+     * The OpenAI chat model used to make LLM calls.
      */
-    protected final OllamaChatModel ollamaChatModel;
+    protected final OpenAiChatModel openAiChatModel;
 
     /**
      * The model name passed in chat options when making LLM calls.
@@ -29,13 +29,13 @@ public class OllamaGenericMethods implements LlmMethods {
     private Resource systemResource;
 
     /**
-     * Creates a new {@code OllamaGenericMethods} for the given model.
+     * Creates a new {@code OpenAiGenericMethods} for the given model.
      *
-     * @param ollamaChatModel the Ollama chat model to use
+     * @param openAiChatModel the OpenAI chat model to use
      * @param model the model name to pass in chat options
      */
-    public OllamaGenericMethods(OllamaChatModel ollamaChatModel, String model) {
-        this.ollamaChatModel = ollamaChatModel;
+    public OpenAiGenericMethods(OpenAiChatModel openAiChatModel, String model) {
+        this.openAiChatModel = openAiChatModel;
         this.model = model;
     }
 
@@ -50,7 +50,7 @@ public class OllamaGenericMethods implements LlmMethods {
     /**
      * {@inheritDoc}
      */
-    public String removeThinking(String withThinking) {
+    public String removeThinking(String withThinking) { // todo
         Pattern pattern = Pattern.compile("<think>.*?</think>", Pattern.DOTALL);
         Matcher matcher = pattern.matcher(withThinking);
         return matcher.replaceFirst("");
@@ -60,13 +60,13 @@ public class OllamaGenericMethods implements LlmMethods {
      * {@inheritDoc}
      */
     public String callWithoutThinking(String prompt) {
-        OllamaChatOptions options = OllamaChatOptions.builder()
+        OpenAiChatOptions options = OpenAiChatOptions.builder()
                 .model(model)
                 .temperature(0.7)
-                .disableThinking()
+                .maxTokens(1000)
                 .build();
 
         Prompt chatPrompt = new Prompt(prompt, options);
-        return ollamaChatModel.call(chatPrompt).getResult().getOutput().getText(); // todo
+        return openAiChatModel.call(chatPrompt).getResult().getOutput().getText();
     }
 }

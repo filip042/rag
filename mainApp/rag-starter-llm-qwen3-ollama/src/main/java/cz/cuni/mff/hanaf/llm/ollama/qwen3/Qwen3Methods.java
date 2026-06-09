@@ -1,6 +1,6 @@
 package cz.cuni.mff.hanaf.llm.ollama.qwen3;
 
-import cz.cuni.mff.hanaf.ollama.OllamaGenericMethods;
+import cz.cuni.mff.hanaf.llm.ollama.OllamaGenericMethods;
 import org.springframework.ai.ollama.OllamaChatModel;
 
 /**

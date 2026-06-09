@@ -1,4 +1,4 @@
-package cz.cuni.mff.hanaf.ollama;
+package cz.cuni.mff.hanaf.llm.ollama;
 
 import cz.cuni.mff.hanaf.core.llm.LlmMethods;
 import cz.cuni.mff.hanaf.core.llm.LlmMethodsFactory;

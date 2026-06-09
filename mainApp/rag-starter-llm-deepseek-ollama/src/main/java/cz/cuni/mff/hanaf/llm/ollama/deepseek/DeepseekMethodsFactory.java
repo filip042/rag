@@ -1,7 +1,7 @@
 package cz.cuni.mff.hanaf.llm.ollama.deepseek;
 
 import cz.cuni.mff.hanaf.core.llm.LlmMethods;
-import cz.cuni.mff.hanaf.ollama.OllamaGenericMethodsFactory;
+import cz.cuni.mff.hanaf.llm.ollama.OllamaGenericMethodsFactory;
 import org.springframework.ai.ollama.OllamaChatModel;
 import org.springframework.stereotype.Component;
 

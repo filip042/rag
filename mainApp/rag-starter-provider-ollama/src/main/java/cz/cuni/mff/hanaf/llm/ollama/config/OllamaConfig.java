@@ -1,4 +1,4 @@
-package cz.cuni.mff.hanaf.ollama.config;
+package cz.cuni.mff.hanaf.llm.ollama.config;
 
 import org.springframework.ai.model.ollama.autoconfigure.OllamaConnectionProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;

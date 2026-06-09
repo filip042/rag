@@ -1,4 +1,4 @@
-package cz.cuni.mff.hanaf.markdown;
+package cz.cuni.mff.hanaf.parser.markdown;
 
 import cz.cuni.mff.hanaf.core.parser.DocumentParserStrategy;
 import org.springframework.ai.document.Document;

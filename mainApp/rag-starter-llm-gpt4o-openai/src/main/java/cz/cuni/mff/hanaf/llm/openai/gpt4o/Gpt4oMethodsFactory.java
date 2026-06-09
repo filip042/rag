@@ -1,7 +1,7 @@
 package cz.cuni.mff.hanaf.llm.openai.gpt4o;
 
 import cz.cuni.mff.hanaf.core.llm.LlmMethods;
-import cz.cuni.mff.hanaf.openai.OpenAiGenericMethodsFactory;
+import cz.cuni.mff.hanaf.llm.openai.OpenAiGenericMethodsFactory;
 import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.stereotype.Component;
 
