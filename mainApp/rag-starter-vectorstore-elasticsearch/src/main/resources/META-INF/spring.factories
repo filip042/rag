@@ -1,2 +1,2 @@
 org.springframework.boot.env.EnvironmentPostProcessor=\
-cz.cuni.mff.hanaf.elasticsearch.ElasticsearchPropertyMapper
+cz.cuni.mff.hanaf.vectorstore.elasticsearch.ElasticsearchPropertyMapper
