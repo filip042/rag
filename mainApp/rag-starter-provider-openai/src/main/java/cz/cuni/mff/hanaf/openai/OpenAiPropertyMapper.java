@@ -8,8 +8,18 @@ import org.springframework.core.env.MapPropertySource;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * {@link EnvironmentPostProcessor} that maps {@code app.llm.*} properties to their
+ * corresponding Spring AI OpenAI properties when the configured provider is OpenAI.
+ */
 public class OpenAiPropertyMapper implements EnvironmentPostProcessor {
 
+    /**
+     * Maps {@code app.llm.*} properties to Spring AI OpenAI properties if the provider is OpenAI.
+     *
+     * @param environment the environment to post-process
+     * @param application the application instance
+     */
     @Override
     public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
         String provider = environment.getProperty("app.llm.provider", "").toLowerCase();
