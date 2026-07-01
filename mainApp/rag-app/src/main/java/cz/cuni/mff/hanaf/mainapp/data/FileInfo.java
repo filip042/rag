@@ -18,6 +18,13 @@ public class FileInfo {
     private String hash;
 
     /**
+     * Default constructor required by JPA/Hibernate for reflective instantiation.
+     * Not intended for direct use.
+     */
+    protected FileInfo() {
+    }
+
+    /**
      * Creates a new {@code FileInfo} with the given file identifier and hash.
      *
      * @param fileId the unique identifier of the stored file; must not be {@code null}
