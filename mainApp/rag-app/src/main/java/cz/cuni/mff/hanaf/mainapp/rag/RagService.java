@@ -3,6 +3,8 @@ package cz.cuni.mff.hanaf.mainapp.rag;
 import cz.cuni.mff.hanaf.mainapp.data.*;
 import cz.cuni.mff.hanaf.core.llm.LlmMethods;
 import cz.cuni.mff.hanaf.mainapp.rag.dto.IndexStatusResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.ChatClientResponse;
 import org.springframework.ai.chat.messages.AbstractMessage;
@@ -53,6 +55,7 @@ public class RagService {
     private final Executor llmExecutor;
     private final DocumentLoader documentLoader;
     private final QueryProperties queryProperties;
+    private static final Logger logger = LoggerFactory.getLogger(RagService.class);
 
     /**
      * Creates a new {@code RagService}.
@@ -126,7 +129,7 @@ public class RagService {
                     .call()
                     .chatClientResponse();
 
-            System.out.println(clientResponse);
+            logger.debug("Chat client response: {}", clientResponse);
 
             String answer = Optional.ofNullable(clientResponse.chatResponse())
                     .map(ChatResponse::getResult)
@@ -194,7 +197,11 @@ public class RagService {
                     .toList();
 
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
-                    .thenRun(() -> onIndexingComplete(project, existingFiles, tempDir));
+                    .thenRun(() -> onIndexingComplete(project, existingFiles, tempDir))
+                    .exceptionally(ex -> {
+                        logger.error("Failed to finalize indexing for project {}", projectId, ex);
+                        return null;
+                    });
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -240,7 +247,7 @@ public class RagService {
         FilterExpressionBuilder expressionBuilder = new FilterExpressionBuilder();
         Filter.Expression filterExpression = expressionBuilder.eq("project", projectId).build();
         vectorStore.delete(filterExpression);
-        System.out.println("Deleted project " + projectId);
+        logger.info("Deleted project {}", projectId);
     }
 
     /**
@@ -282,11 +289,11 @@ public class RagService {
         progress.put("checked", count);
         progress.put("checked_all", verified);
 
-        System.out.println(request.getQuery());
+        logger.debug("Search request query: {}", request.getQuery());
 
         List<Document> relevant = vectorStore.similaritySearch(request).stream()
                 .filter(doc -> {
-                    System.out.println(doc);
+                    logger.trace("Evaluating document: {}", doc);
                     boolean isRelevant = llmMethods.verifySource(doc.getText(), query);
                     count.incrementAndGet();
                     return isRelevant;
@@ -341,7 +348,7 @@ public class RagService {
                 .collect(Collectors.toSet());
 
         if (!filesToRemove.isEmpty()) {
-            System.out.println("Removing old versions of " + filesToRemove.size() + " files");
+            logger.info("Removing old versions of {} files", filesToRemove.size());
             filesToRemove.forEach(fileId -> deleteDocumentsForFile(projectId, fileId));
         }
     }
@@ -364,9 +371,9 @@ public class RagService {
 
         try {
             documentLoader.load(f, projectId, indexingStartTime, fileId);
-            System.out.println("Finished processing: " + f);
+            logger.debug("Finished processing: {}", f);
         } catch (Exception e) { // todo
-            System.err.println("Failed processing " + f + ": " + e.getMessage());
+            logger.error("Failed processing {}", f, e);
         }
 
         try {
@@ -390,11 +397,11 @@ public class RagService {
                 try {
                     Files.delete(path);
                 } catch (IOException e) {
-                    System.err.println("Failed to delete temp file: " + path);
+                    logger.warn("Failed to delete temp file: {}", path);
                 }
             });
         } catch (IOException e) {
-            System.err.println("Failed to clean up temp directory: " + e.getMessage());
+            logger.warn("Failed to clean up temp directory: {}", tempDir, e);
         }
     }
 }
