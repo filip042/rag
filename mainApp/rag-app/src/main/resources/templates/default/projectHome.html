@@ -44,6 +44,12 @@
 
   <br>
 
+  <form action="#" th:action="@{/user/documents}" method="get">
+      <button type="submit">Document List</button>
+  </form>
+
+  <br>
+
   <div th:if="${admin}">
   <form action="#" th:action="@{/user/admin}" method="post">
       <button type="submit">Settings</button>

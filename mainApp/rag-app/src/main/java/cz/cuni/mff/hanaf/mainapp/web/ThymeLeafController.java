@@ -77,6 +77,7 @@ public class ThymeLeafController {
             return "redirect:" + dashboardUrl;
         }
         Project freshProject = projectRepository.findById(currentProject.getId()).orElse(currentProject); // so the warning banner is accurate
+        // todo maybe method for previous line
         model.addAttribute("currentUsername", currentUser.getUsername());
         model.addAttribute("project", freshProject);
         model.addAttribute("admin", session.getAttribute("admin"));
@@ -504,6 +505,32 @@ public class ThymeLeafController {
         model.addAttribute("currentUsername", currentUser.getUsername());
 
         return "history";
+    }
+
+    /**
+     * Displays the question history for the current project.
+     *
+     * @param session the current HTTP session, expected to contain the current project
+     * @param model the model to add the question list and user data to
+     * @return the history view name, or a redirect to the logout page if no project is in the session
+     */
+    @GetMapping("/documents")
+    public String showDocuments(HttpSession session, Model model) {
+        Project project = (Project) session.getAttribute("project");
+        if (project == null) {
+            String logoutUrl = appProperties.getFrontendUrls().getBase() + appProperties.getFrontendUrls().getLogout();
+            return "redirect:" + logoutUrl;
+        }
+
+        Project freshProject = projectRepository.findByIdWithFiles(project.getId())
+                .orElseThrow(() -> new IllegalStateException("Project not found"));
+
+        Set<String> documents = freshProject.getFiles().keySet();
+        User currentUser = (User) session.getAttribute("authenticatedUser");
+        model.addAttribute("documents", documents);
+        model.addAttribute("currentUsername", currentUser.getUsername());
+
+        return "documents";
     }
 
     private List<Map<String, Object>> mapUsers(Set<User> users, boolean isAdmin) {

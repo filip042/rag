@@ -48,4 +48,16 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
             "LEFT JOIN FETCH p.adminUsers " +
             "WHERE p.id = :id")
     Optional<Project> findByIdWithUsers(@Param("id") Long id);
+
+    /**
+     * Returns the project with the given id, with files eagerly fetched.
+     * Use instead of {@link #findById(Object)} when the file collection is needed, to avoid lazy-loading issues.
+     *
+     * @param id the id of the project to find
+     * @return the project, or an empty {@link Optional} if not found
+     */
+    @Query("SELECT p FROM Project p " +
+            "LEFT JOIN FETCH p.files " +
+            "WHERE p.id = :id")
+    Optional<Project> findByIdWithFiles(@Param("id") Long id);
 }

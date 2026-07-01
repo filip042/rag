@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>Documents</title>
+    <link rel="stylesheet" th:href="@{/css/default.css}">
+    <link rel="stylesheet" th:href="@{/css/history.css}">
+    <link rel="stylesheet" th:href="@{/css/headerFooterLayout.css}">
+</head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+
+<h2>Indexed Documents</h2>
+
+<div id="questionList">
+    <div th:each="document : ${documents}" class="question-card">
+        <div class="question-section">
+            <p th:text="${document}">Document</p>
+        </div>
+    </div>
+</div>
+
+<form action="#" th:action="@{/user/chat}" method="get">
+    <input type="submit" value="Return">
+</form>
+
+<script th:src="@{/js/sort-questions.js}"></script>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+</body>
+</html>
