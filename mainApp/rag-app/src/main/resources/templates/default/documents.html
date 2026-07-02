@@ -12,13 +12,18 @@
 
 <h2>Indexed Documents</h2>
 
-<div id="questionList">
-    <div th:each="document : ${documents}" class="question-card">
-        <div class="question-section">
-            <p th:text="${document}">Document</p>
-        </div>
-    </div>
-</div>
+<table>
+    <tr>
+        <th>Document</th>
+        <th>Indexation Time</th>
+    </tr>
+    <tr th:each="document : ${documents}">
+        <td th:text="${document.getKey()}">Document</td>
+        <td th:text="${document.getValue().getFormattedIndexTime()()}">Indexed at</td>
+    </tr>
+</table>
+
+<br>
 
 <form action="#" th:action="@{/user/chat}" method="get">
     <input type="submit" value="Return">

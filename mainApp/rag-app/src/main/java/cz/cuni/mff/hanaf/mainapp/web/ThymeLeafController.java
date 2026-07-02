@@ -525,7 +525,7 @@ public class ThymeLeafController {
         Project freshProject = projectRepository.findByIdWithFiles(project.getId())
                 .orElseThrow(() -> new IllegalStateException("Project not found"));
 
-        Set<String> documents = freshProject.getFiles().keySet();
+        Map<String, FileInfo> documents = freshProject.getFiles();
         User currentUser = (User) session.getAttribute("authenticatedUser");
         model.addAttribute("documents", documents);
         model.addAttribute("currentUsername", currentUser.getUsername());
