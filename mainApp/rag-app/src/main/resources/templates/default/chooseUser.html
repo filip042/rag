@@ -19,22 +19,20 @@
     <label for="password">Password:</label>
     <input type="password" id="password" name="password" required>
     <br>
-    <input type="submit" value="Submit">
+    <button type="submit">Submit</button>
 </form>
 
 <br>
 
-<form action="#" th:action="@{/user/guest}" method="post">
-    <label for="username">Guest access:</label>
-    <input type="submit" value="Login as Guest">
-</form>
+<div class="button-row">
+    <form class="button-row-form" action="#" th:action="@{/user/newUser}" method="get">
+        <button type="submit">Create Account</button>
+    </form>
 
-<br>
-
-<form action="#" th:action="@{/user/newUser}" method="get">
-    <label>New User:</label>
-    <input type="submit" value="Create">
-</form>
+    <form class="button-row-form" action="#" th:action="@{/user/guest}" method="post">
+        <button type="submit">Login as Guest</button>
+    </form>
+</div>
 
 <div th:replace="~{fragments/footer :: footer}"></div>
 

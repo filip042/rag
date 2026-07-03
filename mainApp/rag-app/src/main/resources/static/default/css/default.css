@@ -193,8 +193,23 @@ div {
 
 .button-row {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    gap: 16px;
+    background-color: white;
+    padding: 25px 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+.button-row-form {
+    all: unset;
+    display: flex;
+    flex: 1 1 0;
+}
+
+.button-row-form button {
+    width: 100%;
+    padding: 12px;
 }
 
 .input-wrapper {
@@ -325,6 +340,11 @@ div {
 
 [data-color-scheme="dark"] #selected-files {
     color: #999;
+}
+
+[data-color-scheme="dark"] .button-row {
+    background-color: #2d2d2d;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
 }
 
 [data-color-scheme="dark"] .button-feedback {

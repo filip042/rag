@@ -20,9 +20,12 @@
     <span th:case="500">Internal Server Error – Something went wrong on the server.</span>
     <span th:case="*">An unexpected error occurred.</span>
 </p>
-<form action="#" th:action="@{/user/logout}" method="get">
-    <input type="submit" value="Return">
-</form>
+
+<div class="button-row">
+    <form class="button-row-form" action="#" th:action="@{/user/logout}" method="get">
+        <button type="submit">Return</button>
+    </form>
+</div>
 
 <div th:replace="~{fragments/footer :: footer}"></div>
 

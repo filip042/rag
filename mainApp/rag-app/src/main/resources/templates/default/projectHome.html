@@ -38,39 +38,36 @@
   <br>
 </div>
 
-  <form action="#" th:action="@{/user/history}" method="get">
-      <button type="submit">History</button>
-  </form>
+<div class="button-row">
+    <form class="button-row-form" th:action="@{/user/history}" method="get">
+        <button type="submit">History</button>
+    </form>
+    <form class="button-row-form" th:action="@{/user/documents}" method="get">
+        <button type="submit">Document List</button>
+    </form>
+</div>
 
-  <br>
+<div class="button-row" th:if="${admin}">
+    <form class="button-row-form" th:action="@{/user/admin}" method="post">
+        <button type="submit">Settings</button>
+    </form>
+</div>
 
-  <form action="#" th:action="@{/user/documents}" method="get">
-      <button type="submit">Document List</button>
-  </form>
-
-  <br>
-
-  <div th:if="${admin}">
-  <form action="#" th:action="@{/user/admin}" method="post">
-      <button type="submit">Settings</button>
-  </form>
-
-  <br>
-  </div>
+<br>
 
   <div class="button-row">
-  <form action="#" th:action="@{/user/dashboard}" method="get">
+  <form class="button-row-form" action="#" th:action="@{/user/dashboard}" method="get">
       <button type="submit">Return</button>
   </form>
 
-  <form th:if="${project.getAdminUsers().size() > 1 || !admin}" action="#" th:action="@{/user/exitProject}" method="post">
+  <form class="button-row-form" th:if="${project.getAdminUsers().size() > 1 || !admin}" action="#" th:action="@{/user/exitProject}" method="post">
     <button type="submit" class="delete"
         onclick="return confirm('Are you sure you want to leave this project?')">
       Leave Project
     </button>
   </form>
 
-  <form th:unless="${project.getAdminUsers().size() > 1 && admin}" action="#" th:action="@{/user/deleteProject}" method="post">
+  <form class="button-row-form" th:unless="${project.getAdminUsers().size() > 1 && admin}" action="#" th:action="@{/user/deleteProject}" method="post">
     <button type="submit" class="delete"
             onclick="return confirm('Are you sure you want to leave? As the last admin, this will delete the project.')">
         Leave Project

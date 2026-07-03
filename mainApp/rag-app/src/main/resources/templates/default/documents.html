@@ -25,9 +25,11 @@
 
 <br>
 
-<form action="#" th:action="@{/user/chat}" method="get">
-    <input type="submit" value="Return">
-</form>
+<div class="button-row">
+    <form class="button-row-form" action="#" th:action="@{/user/chat}" method="get">
+        <button type="submit">Return</button>
+    </form>
+</div>
 
 <script th:src="@{/js/sort-questions.js}"></script>
 

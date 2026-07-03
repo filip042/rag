@@ -21,26 +21,22 @@
     <br>
 </div>
 
-<div th:if="${!guest}">
-<form action="#" th:action="@{/user/newProject}" method="get" th:object="${users}">
-    <label>New Project:</label>
-    <input type="submit" value="Create">
-</form>
-
-<br>
-</div>
-
-<form action="#" th:action="@{/user/logout}" method="get">
-    <input type="submit" value="Logout">
-</form>
-
-<div th:if="${!guest}">
-<br>
-
-<form action="#" th:action="@{/user/deleteUser}" method="post">
-    <button type="submit" class="delete" onclick="return confirm('Are you sure you want to delete this user?');">Delete User</button>
+<div class="button-row" th:if="${!guest}">
+<form class="button-row-form" action="#" th:action="@{/user/newProject}" method="get" th:object="${users}">
+    <button type="submit">New Project</button>
 </form>
 </div>
+
+<div class="button-row">
+    <form class="button-row-form" action="#" th:action="@{/user/logout}" method="get">
+        <button type="submit">Log Out</button>
+    </form>
+
+    <form class="button-row-form" th:if="${!guest}" action="#" th:action="@{/user/deleteUser}" method="post">
+        <button type="submit" class="delete" onclick="return confirm('Are you sure you want to delete this user?');">Delete User</button>
+    </form>
+</div>
+
 <div th:replace="~{fragments/footer :: footer}"></div>
 
 </body>

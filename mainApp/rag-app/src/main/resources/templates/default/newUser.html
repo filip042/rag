@@ -37,9 +37,11 @@
 
 <br>
 
-<form action="#" th:action="@{/user/login}" method="get">
-    <input type="submit" value="Back to Login">
-</form>
+<div class="button-row">
+    <form class="button-row-form" action="#" th:action="@{/user/login}" method="get">
+        <button type="submit">Return</button>
+    </form>
+</div>
 
 <div th:replace="~{fragments/footer :: footer}"></div>
 
