@@ -19,7 +19,7 @@
     </tr>
     <tr th:each="document : ${documents}">
         <td th:text="${document.getKey()}">Document</td>
-        <td th:text="${document.getValue().getFormattedIndexTime()()}">Indexed at</td>
+        <td th:text="${document.getValue().getFormattedIndexTime()}">Indexed at</td>
     </tr>
 </table>
 
