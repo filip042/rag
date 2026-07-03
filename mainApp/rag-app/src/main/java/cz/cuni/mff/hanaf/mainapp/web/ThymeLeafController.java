@@ -526,8 +526,15 @@ public class ThymeLeafController {
                 .orElseThrow(() -> new IllegalStateException("Project not found"));
 
         Map<String, FileInfo> documents = freshProject.getFiles();
+
+        List<Map.Entry<String, FileInfo>> sortedDocuments = documents.entrySet().stream()
+                .sorted(Comparator
+                        .comparing((Map.Entry<String, FileInfo> e) -> e.getValue().getIndexTime()).reversed()
+                        .thenComparing(Map.Entry.comparingByKey()))
+                .toList();
+
         User currentUser = (User) session.getAttribute("authenticatedUser");
-        model.addAttribute("documents", documents);
+        model.addAttribute("documents", sortedDocuments);
         model.addAttribute("currentUsername", currentUser.getUsername());
 
         return "documents";
