@@ -72,4 +72,36 @@ function startPolling() {
         });
 }
 
-startPolling();
+function restoreIndexingStateIfNeeded() {
+    fetch(articleCountEndpoint)
+        .then(r => r.json())
+        .then(data => {
+            const totalFiles = data.totalFiles;
+            const done = data.finishedFiles.length;
+
+            document.getElementById('article-count').textContent = done + "/" + totalFiles + " articles indexed (" +
+                (totalFiles === 0 ? 100 : Math.round((100 * done) / totalFiles)) + "%)";
+
+            if (totalFiles > 0 && done < totalFiles) {
+                const step3 = document.getElementById('step3');
+                const indexingStatus = document.getElementById('indexingStatus');
+
+                if (step3) step3.classList.remove('disabled');
+                if (indexingStatus) {
+                    indexingStatus.classList.add('active');
+                    const statusText = indexingStatus.querySelector('strong');
+                    if (statusText) {
+                        statusText.textContent = 'Indexing in progress...';
+                        statusText.style.color = '';
+                    }
+                }
+
+                startPolling();
+            }
+        })
+        .catch(error => {
+            console.error('Failed to check initial indexing state:', error);
+        });
+}
+
+restoreIndexingStateIfNeeded();
