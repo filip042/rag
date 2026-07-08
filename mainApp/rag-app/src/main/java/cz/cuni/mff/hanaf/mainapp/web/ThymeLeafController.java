@@ -77,7 +77,6 @@ public class ThymeLeafController {
             return "redirect:" + dashboardUrl;
         }
         Project freshProject = projectRepository.findById(currentProject.getId()).orElse(currentProject); // so the warning banner is accurate
-        // todo maybe method for previous line
         model.addAttribute("currentUsername", currentUser.getUsername());
         model.addAttribute("project", freshProject);
         model.addAttribute("admin", session.getAttribute("admin"));

@@ -67,6 +67,6 @@ public class OllamaGenericMethods implements LlmMethods {
                 .build();
 
         Prompt chatPrompt = new Prompt(prompt, options);
-        return ollamaChatModel.call(chatPrompt).getResult().getOutput().getText(); // todo
+        return ollamaChatModel.call(chatPrompt).getResult().getOutput().getText();
     }
 }
