@@ -6,6 +6,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import cz.cuni.mff.hanaf.core.parser.DocumentParserStrategy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.prompt.SystemPromptTemplate;
 import org.springframework.ai.document.Document;
@@ -19,12 +21,13 @@ import org.springframework.stereotype.Component;
  * and attaching metadata to each chunk before indexing.
  */
 @Component
-public class DocumentLoader{
+public class DocumentLoader {
     private final VectorStore vectorStore;
     private final ChatModel chatModel;
     private final List<DocumentParserStrategy> parserStrategies;
     private final SplitterProperties splitterProperties;
     private final QueryProperties queryProperties;
+    private static final Logger logger = LoggerFactory.getLogger(DocumentLoader.class);
 
     @Value("classpath:/prompts/add-context-template.txt")
     private Resource systemResource;
@@ -67,7 +70,7 @@ public class DocumentLoader{
         if (!documentsWithSource.isEmpty()) {
             vectorStore.add(documentsWithSource);
         } else {
-            System.out.println(fileName + " is empty");
+            logger.warn("{} is empty", fileName);
         }
     }
 
@@ -91,7 +94,7 @@ public class DocumentLoader{
                 .findFirst()
                 .map(p -> splitter.apply(p.read(filePath)))
                 .orElseGet(() -> {
-                    System.out.println("No parser found for: " + filePath);
+                    logger.warn("No parser found for: {}", filePath);
                     return new ArrayList<>();
                 });
     }
@@ -131,8 +134,7 @@ public class DocumentLoader{
      * @param document The document to summarize
      * @return the summarized document
      */
-    private String summarizeDocument(Document document) { // todo check if using systemMessage is better
-        // todo might be better to have in LLM-specific class
+    private String summarizeDocument(Document document) {
         SystemPromptTemplate promptTemplate = new SystemPromptTemplate(summarizeResource);
 
         assert document.getText() != null;
