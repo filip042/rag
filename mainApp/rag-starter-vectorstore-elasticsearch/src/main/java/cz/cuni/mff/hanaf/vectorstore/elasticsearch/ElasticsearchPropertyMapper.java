@@ -1,5 +1,7 @@
 package cz.cuni.mff.hanaf.vectorstore.elasticsearch;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.env.EnvironmentPostProcessor;
 import org.springframework.core.env.ConfigurableEnvironment;
@@ -13,6 +15,8 @@ import java.util.Map;
  * corresponding Spring AI Elasticsearch properties when the configured provider is Elasticsearch.
  */
 public class ElasticsearchPropertyMapper implements EnvironmentPostProcessor {
+
+    private static final Logger logger = LoggerFactory.getLogger(ElasticsearchPropertyMapper.class);
 
     /**
      * Maps {@code app.vectorstore.*} properties to Spring AI Elasticsearch properties if the provider is Elasticsearch.
@@ -38,7 +42,7 @@ public class ElasticsearchPropertyMapper implements EnvironmentPostProcessor {
         mapProperty(environment, mappedProps, "app.vectorstore.dimensions", "spring.ai.vectorstore.elasticsearch.dimensions");
         mapProperty(environment, mappedProps, "app.vectorstore.similarity", "spring.ai.vectorstore.elasticsearch.similarity");
 
-        System.out.println("DEBUG: Mapped properties = " + mappedProps);
+        logger.debug("Mapped properties = {}", mappedProps);
 
         if (!mappedProps.isEmpty()) {
             environment.getPropertySources().addFirst(

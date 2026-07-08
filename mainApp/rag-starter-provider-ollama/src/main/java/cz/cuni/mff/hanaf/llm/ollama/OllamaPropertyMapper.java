@@ -1,5 +1,7 @@
 package cz.cuni.mff.hanaf.llm.ollama;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.env.EnvironmentPostProcessor;
 import org.springframework.core.env.ConfigurableEnvironment;
@@ -13,6 +15,8 @@ import java.util.Map;
  * corresponding Spring AI Ollama properties when the configured provider is Ollama.
  */
 public class OllamaPropertyMapper implements EnvironmentPostProcessor {
+
+    private static final Logger logger = LoggerFactory.getLogger(OllamaPropertyMapper.class);
 
     /**
      * Maps {@code app.llm.*} properties to Spring AI Ollama properties if the provider is Ollama.
@@ -33,6 +37,8 @@ public class OllamaPropertyMapper implements EnvironmentPostProcessor {
         mapProperty(environment, mappedProps, "app.llm.chat.model", "spring.ai.ollama.chat.options.model");
         mapProperty(environment, mappedProps, "app.llm.chat.temperature", "spring.ai.ollama.chat.options.temperature");
         mapProperty(environment, mappedProps, "app.llm.embedding.model", "spring.ai.ollama.embedding.options.model");
+
+        logger.debug("Mapped properties = {}", mappedProps);
 
         if (!mappedProps.isEmpty()) {
             environment.getPropertySources().addFirst(
