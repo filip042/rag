@@ -5,5 +5,6 @@ multi_source_synthesis,What was the relationship between Robert Howard and H. P.
 multi_source_comparison,Who was born earlier: Lord Dunsany or Lewis Carroll?,Edward_Plunkett.txt;Lewis_Carroll.txt
 out_of_corpus,What temperature does paper burn at?,
 distractor,Who is the original author of the Cthulhu Mythos?,Cthulhu_Mythos.txt;H._P._Lovecraft.txt
-absence,Did Tolkien ever write a sequel to The Lord of the Rings?,J._R._R._Tolkien.txt;The_Lord_of_the_Rings.txt
-vague,What fantasy worlds were created in the early 20th century?,
+absence,Did Tolkien ever write a sequel to The Lord of the Rings?,J._R._R._Tolkien.txt
+vague,What fantasy worlds were created in the early 20th century?,Conan_the_Barbarian.txt;Cthulhu_Mythos.txt;Lud-in-the-Mist.txt;The_King_of_Elfland's_Daughter_(Novel).txt;The_Worm_Ouroboros.txt
+vague2,Who is Alice?,Alice's_Adventures_in_Wonderland.txt
