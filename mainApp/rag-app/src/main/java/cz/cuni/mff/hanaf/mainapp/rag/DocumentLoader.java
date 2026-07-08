@@ -126,24 +126,6 @@ public class DocumentLoader{
     }
 
     /**
-     * Adds context to the current chunk for indexing using information from the previous and next chunks.
-     *
-     * @param previous the previous chunk, or {@code null} if none exists
-     * @param current the current chunk
-     * @param next the next chunk, or {@code null} if none exists
-     * @return The current document with added context
-     */
-    private Document addContext(Document previous, Document current, Document next) { // todo add removeThinking here
-        SystemPromptTemplate promptTemplate = new SystemPromptTemplate(systemResource);
-
-        String prompt = promptTemplate.render(Map.of(
-                "previous", Optional.ofNullable(previous).map(Document::getText).orElse("No previous document exists."),
-                "current", Optional.ofNullable(current).map(Document::getText).orElse("This document doesn't exist"),
-                "next", Optional.ofNullable(next).map(Document::getText).orElse("No next document exists.")));
-        return new Document(chatModel.call(prompt)); // todo check if works
-    }
-
-    /**
      * Summarizes the given document using an LLM so it can be added to indexed chunks as context.
      *
      * @param document The document to summarize
