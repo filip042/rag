@@ -1,12 +1,16 @@
 package cz.cuni.mff.hanaf.llm.ollama.deepseek;
 
 import cz.cuni.mff.hanaf.llm.ollama.OllamaGenericMethods;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.ai.ollama.OllamaChatModel;
 
 /**
  * {@link OllamaGenericMethods} specialization for DeepSeek models.
  */
 public class DeepseekMethods extends OllamaGenericMethods {
+
+    private static final Logger logger = LoggerFactory.getLogger(DeepseekMethods.class);
 
     /**
      * Creates a new {@code DeepseekMethods} for the given model.
@@ -39,7 +43,7 @@ public class DeepseekMethods extends OllamaGenericMethods {
      */
     @Override
     public String callWithoutThinking(String prompt) {
-        System.out.println("deepseek");
+        logger.debug("Deepseek called without thinking: {}", prompt);
         return super.callWithoutThinking(prompt);
     }
 }

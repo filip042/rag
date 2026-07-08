@@ -50,7 +50,7 @@ public class OpenAiGenericMethods implements LlmMethods {
     /**
      * {@inheritDoc}
      */
-    public String removeThinking(String withThinking) { // todo
+    public String removeThinking(String withThinking) {
         Pattern pattern = Pattern.compile("<think>.*?</think>", Pattern.DOTALL);
         Matcher matcher = pattern.matcher(withThinking);
         return matcher.replaceFirst("");
