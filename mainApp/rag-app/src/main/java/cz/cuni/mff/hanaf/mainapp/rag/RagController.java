@@ -99,7 +99,7 @@ public class RagController {
         try {
             ragService.addDocuments(files, projectId);
             return ResponseEntity.ok("Upload started");
-        } catch (Exception e) { // todo
+        } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Upload failed: " + e.getMessage());
         }
