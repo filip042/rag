@@ -1,3 +1,3 @@
-Briefly summarize the following document in one to three sentences:
+Summarize the following article in 2–3 concise sentences. Focus on the main points and avoid minor details:
 
 {document}
