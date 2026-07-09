@@ -12,51 +12,52 @@ spring:
         initial-interval: 3s
         multiplier: 2
     openai:
-      api-key: <api key for tests>
+      api-key: ${OPENAI_API_KEY:}
       chat:
         options:
-          max-tokens: 1000 <might be unnecessary>
+          max-tokens: 1000
+    anthropic:
+      api-key: ${ANTHROPIC_API_KEY}
   datasource:
-    url: jdbc:h2:mem:testdb #file:/data/demo
-    username: <username>
-    password: <password>
-    driverClassName: org.h2.Driver
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/appdb}
+    username: ${SPRING_DATASOURCE_USERNAME:appuser}
+    password: ${SPRING_DATASOURCE_PASSWORD:apppass}
+    driverClassName: org.postgresql.Driver
   jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
     defer-datasource-initialization: true
-  h2:
-    console:
-      enabled: true
   sql:
     init:
-      mode: always
+      mode: never
   main:
-    allow-bean-definition-overriding: true <todo check if can be removed>
+    allow-bean-definition-overriding: true
 app:
   base-url: http://localhost:8080
   llm:
-    provider: <provider>
-    base-url: <ollama base url>
-    api-key: <openAi api key>
+    provider: ollama
+    base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
+    api-key: ${OPENAI_API_KEY:}
     chat:
-      model: <chat model>
-      temperature: <temperature>
+      model: ${OLLAMA_CHAT_MODEL:deepseek-r1:1.5b}
+      temperature: 0.2
     embedding:
-      model: <embedding model>
+      model: ${OLLAMA_EMBED_MODEL:mxbai-embed-large:latest}
   vectorstore:
-    provider: <vector store provider>
-    uris: http://localhost:9200
-    username: <vector store password>
-    password: <vector store username>
+    provider: elasticsearch
+    uris: ${SPRING_ELASTICSEARCH_URIS:http://localhost:9200}
+    username:
+    password:
     initialize-schema: true
-    index-name: <index name>
-    dimensions: <index dimensions, corresponds to embedding model>
+    index-name: rag_idx
+    dimensions: 1024
     similarity: cosine
   rag:
     query:
       max-query-length: 160
+      search-prefix: "Represent this sentence for searching relevant passages: "
+      document-prefix: "search_document: "
     splitter:
       chunk-size: 400
       min-chunk-size-chars: 10
