@@ -1,0 +1,11 @@
+version: "3.9"
+
+# Used when the rag-starter-provider-openai module is active instead of
+# Ollama. No extra container is needed since OpenAI is a remote API --
+# this overlay just wires the API key and model names through to the app.
+
+services:
+  app:
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_CHAT_MODEL=${OPENAI_CHAT_MODEL:-gpt-4o}

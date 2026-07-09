@@ -1,0 +1,41 @@
+# Base stack: app + db, always present regardless of which LLM provider /
+# vector store modules are compiled into rag-app. Combine with the relevant
+# overlay file(s) below to match your active Maven module selection:
+#
+#   docker compose -f docker-compose.yml -f docker-compose.ollama.yml -f docker-compose.elasticsearch.yml up --build
+#   docker compose -f docker-compose.yml -f docker-compose.openai.yml -f docker-compose.elasticsearch.yml up --build
+
+services:
+  app:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/appdb
+      - SPRING_DATASOURCE_USERNAME=appuser
+      - SPRING_DATASOURCE_PASSWORD=apppass
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+    ports:
+      - "8080:8080"
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_DB=appdb
+      - POSTGRES_USER=appuser
+      - POSTGRES_PASSWORD=apppass
+    ports:
+      - "5432:5432"
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U appuser -d appdb"]
+      interval: 5s
+      retries: 10
+    # Note: schema/data are seeded by Spring Boot itself (schema.sql / data.sql,
+    # sql.init.mode: always) rather than Postgres's docker-entrypoint-initdb.d,
+    # since the app already manages init that way.
+
+volumes:
+  dbdata:

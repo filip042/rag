@@ -1,0 +1,40 @@
+version: "3.9"
+
+services:
+  app:
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    environment:
+      - SPRING_ELASTICSEARCH_URIS=http://elasticsearch:9200
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.0
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    ports:
+      - "9200:9200"
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:9200/_cluster/health || exit 1"]
+      interval: 10s
+      retries: 10
+
+  es-init:
+    image: alpine:3.20
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    volumes:
+      - ./es-init:/scripts
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        apk add --no-cache curl jq
+        /scripts/create-index.sh
+
+volumes:
+  esdata:
