@@ -34,6 +34,8 @@ public class OllamaPropertyMapper implements EnvironmentPostProcessor {
 
         Map<String, Object> mappedProps = new HashMap<>();
         mapProperty(environment, mappedProps, "app.llm.base-url", "spring.ai.ollama.base-url");
+        mapProperty(environment, mappedProps, "app.llm.username", "app.ollama.username");
+        mapProperty(environment, mappedProps, "app.llm.password", "app.ollama.password");
         mapProperty(environment, mappedProps, "app.llm.chat.model", "spring.ai.ollama.chat.options.model");
         mapProperty(environment, mappedProps, "app.llm.chat.temperature", "spring.ai.ollama.chat.options.temperature");
         mapProperty(environment, mappedProps, "app.llm.embedding.model", "spring.ai.ollama.embedding.options.model");

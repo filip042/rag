@@ -39,6 +39,8 @@ app:
     provider: ollama
     base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
     api-key: ${OPENAI_API_KEY:}
+    username: <username>
+    password: <password>
     chat:
       model: ${OLLAMA_CHAT_MODEL:deepseek-r1:1.5b}
       temperature: 0.2
@@ -83,9 +85,6 @@ app:
     logout: /logout
     new-project: /newProject
     new-user: /newUser
-  ollama:
-    username: <username>
-    password: <password>
 server:
   error:
     whitelabel:
