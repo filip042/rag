@@ -4,7 +4,10 @@ import cz.cuni.mff.hanaf.mainapp.AppProperties;
 import cz.cuni.mff.hanaf.mainapp.data.*;
 import cz.cuni.mff.hanaf.mainapp.rag.QueryProperties;
 import cz.cuni.mff.hanaf.mainapp.rag.dto.DeleteProjectRequest;
+import cz.cuni.mff.hanaf.mainapp.security.AccessGuard;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -29,6 +32,7 @@ public class ThymeLeafController {
     private final ProjectRepository projectRepository;
     private final QuestionRepository questionRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AccessGuard accessGuard;
 
     /**
      * Creates a new {@code ThymeLeafController} with the required dependencies.
@@ -40,8 +44,9 @@ public class ThymeLeafController {
      * @param projectRepository repository for loading and persisting projects
      * @param questionRepository repository for loading question history
      * @param passwordEncoder the encoder used to hash and verify passwords
+     * @param accessGuard the access guard for verifying permission for accesing specific projects
      */
-    public ThymeLeafController(AppProperties appProperties, QueryProperties queryProperties, RestTemplate restTemplate, UserRepository userRepository, ProjectRepository projectRepository, QuestionRepository questionRepository, PasswordEncoder passwordEncoder) {
+    public ThymeLeafController(AppProperties appProperties, QueryProperties queryProperties, RestTemplate restTemplate, UserRepository userRepository, ProjectRepository projectRepository, QuestionRepository questionRepository, PasswordEncoder passwordEncoder, AccessGuard accessGuard) {
         this.appProperties = appProperties;
         this.queryProperties = queryProperties;
         this.restTemplate = restTemplate;
@@ -49,6 +54,7 @@ public class ThymeLeafController {
         this.projectRepository = projectRepository;
         this.questionRepository = questionRepository;
         this.passwordEncoder = passwordEncoder;
+        this.accessGuard = accessGuard;
     }
 
     /**
@@ -137,21 +143,24 @@ public class ThymeLeafController {
      *
      * @param projectId the id of the project to set in the session
      * @param session the current HTTP session
-     * @return a redirect to the chat page or to the dashboard if no user is in the session
+     * @return a redirect to the chat page or to the dashboard if the user lacks access to the project
      */
     @PostMapping("/dashboard")
     public String verifyProject(@RequestParam("projectId") Long projectId, HttpSession session) {
-        User user = (User) session.getAttribute("authenticatedUser");
+        User user = accessGuard.currentUser(session);
         String dashboardUrl = appProperties.getFrontendUrls().getBase() + appProperties.getFrontendUrls().getDashboard();
 
         if (user == null) {
             return "redirect:" + dashboardUrl;
         }
 
-        projectRepository.findById(projectId).ifPresent(project -> {
-            session.setAttribute("project", project);
-            session.setAttribute("admin", user.isRegistered() && projectRepository.findByAdminUsers_Id(user.getId()).contains(project));
-        });
+        Project project = projectRepository.findById(projectId).orElse(null);
+        if (project == null || !accessGuard.hasAccess(user, project)) {
+            return "redirect:" + dashboardUrl;
+        }
+
+        session.setAttribute("project", project);
+        session.setAttribute("admin", accessGuard.isAdmin(user, project));
 
         String chatUrl = appProperties.getFrontendUrls().getBase() + appProperties.getFrontendUrls().getChat();
 
@@ -401,15 +410,14 @@ public class ThymeLeafController {
     public String deleteProject(HttpSession session) {
         Project project = (Project) session.getAttribute("project");
         String url = appProperties.getFrontendUrls().getBase() + appProperties.getFrontendUrls().getDashboard();
-        if (project == null) {
+        if (project == null || !accessGuard.isAdminOfSessionProject(session)) {
             return "redirect:" + url;
         }
         questionRepository.deleteByProjectId(project.getId());
         projectRepository.deleteById(project.getId());
         String apiUrl = appProperties.getBaseUrl() + appProperties.getApiUrls().getBase() + appProperties.getApiUrls().getDelete();
-        DeleteProjectRequest request = new DeleteProjectRequest(project.getId());
-
-        restTemplate.postForObject(apiUrl, request, Void.class);
+        HttpEntity<DeleteProjectRequest> entity = new HttpEntity<>(new DeleteProjectRequest(project.getId()), withSessionCookie(session));
+        restTemplate.postForObject(apiUrl, entity, Void.class);
         return "redirect:" + url;
     }
 
@@ -438,12 +446,12 @@ public class ThymeLeafController {
      *
      * @param session the current HTTP session, expected to contain the current project and authenticated user
      * @param model the model to add project, user, and endpoint data to
-     * @return the admin settings view name, or a redirect to the logout page if no project is in the session
+     * @return the admin settings view name, or a redirect to the logout page if no project is in the session or the given user is not an admin in the project
      */
     @PostMapping("/admin")
     public String adminSettings(HttpSession session, Model model) {
         Project sessionProject = (Project) session.getAttribute("project");
-        if (sessionProject == null) {
+        if (sessionProject == null || !accessGuard.isAdminOfSessionProject(session)) {
             String logoutUrl = appProperties.getFrontendUrls().getBase() + appProperties.getFrontendUrls().getLogout();
             return "redirect:" + logoutUrl;
         }
@@ -547,5 +555,11 @@ public class ThymeLeafController {
             row.put("admin", isAdmin);
             return row;
         }).toList();
+    }
+
+    private HttpHeaders withSessionCookie(HttpSession session) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.COOKIE, "JSESSIONID=" + session.getId());
+        return headers;
     }
 }
