@@ -2,6 +2,7 @@ package cz.cuni.mff.hanaf.mainapp.data;
 
 import jakarta.persistence.*;
 
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -23,6 +24,20 @@ public class User {
 
     @ManyToMany(mappedBy = "adminUsers")
     private Set<Project> adminProjects;
+
+    /**
+     * Checks equality by identity first, then by id if both objects are {@link User} instances.
+     *
+     * @param o the object to compare against
+     * @return {@code true} if the two objects are the same instance or share the same id;
+     *         {@code false} otherwise
+     */
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof User user)) return false;
+        return Objects.equals(id, user.id);
+    }
 
     /**
      * Returns the unique identifier of this user, or {@code null} if not yet persisted.
