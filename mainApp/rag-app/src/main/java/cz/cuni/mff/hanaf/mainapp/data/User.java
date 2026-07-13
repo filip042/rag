@@ -40,6 +40,16 @@ public class User {
     }
 
     /**
+     * Returns a hash code derived from id if set, or the identity hash code otherwise.
+     *
+     * @return the hash code of this user
+     */
+    @Override
+    public int hashCode() {
+        return id != null ? Objects.hashCode(id) : System.identityHashCode(this);
+    }
+
+    /**
      * Returns the unique identifier of this user, or {@code null} if not yet persisted.
      *
      * @return the user id
