@@ -34,8 +34,6 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -60,7 +58,7 @@ public class RagService {
     /**
      * Creates a new {@code RagService}.
      *
-     * @param vectorStore the vector store used for document storage and similarity search
+     * @param synchronizedVectorStore the synchronized vector store used for document storage and similarity search
      * @param chatModel the default chat model used for generating answers
      * @param projectRepository repository for loading and persisting projects
      * @param questionRepository repository for persisting answered questions
@@ -69,8 +67,8 @@ public class RagService {
      * @param documentLoader the loader used to parse and index documents
      * @param queryProperties configuration properties for query handling
      */
-    public RagService(VectorStore vectorStore, ChatModel chatModel, ProjectRepository projectRepository, QuestionRepository questionRepository, LlmMethods llmMethods, @Qualifier("llmExecutor") Executor llmExecutor, DocumentLoader documentLoader, QueryProperties queryProperties) {
-        this.vectorStore = new SynchronizedVectorStore(vectorStore);
+    public RagService(SynchronizedVectorStore synchronizedVectorStore, ChatModel chatModel, ProjectRepository projectRepository, QuestionRepository questionRepository, LlmMethods llmMethods, @Qualifier("llmExecutor") Executor llmExecutor, DocumentLoader documentLoader, QueryProperties queryProperties) {
+        this.vectorStore = synchronizedVectorStore;
         this.chatModel = chatModel;
         this.projectRepository = projectRepository;
         this.questionRepository = questionRepository;

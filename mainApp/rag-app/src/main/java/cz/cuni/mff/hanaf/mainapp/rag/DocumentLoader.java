@@ -38,13 +38,13 @@ public class DocumentLoader {
     /**
      * Creates a new {@code DocumentLoader} with the required dependencies.
      *
-     * @param vectorStore the vector store to index documents into
+     * @param synchronizedVectorStore the synchronizedy vector store to index documents into
      * @param chatModel the chat model used for context enrichment and summarization
      * @param parserStrategies the list of available document parser strategies
      * @param splitterProperties configuration properties for the text splitter
      */
-    public DocumentLoader(VectorStore vectorStore, ChatModel chatModel, List<DocumentParserStrategy> parserStrategies, SplitterProperties splitterProperties, QueryProperties queryProperties) {
-        this.vectorStore = new SynchronizedVectorStore(vectorStore);
+    public DocumentLoader(SynchronizedVectorStore synchronizedVectorStore, ChatModel chatModel, List<DocumentParserStrategy> parserStrategies, SplitterProperties splitterProperties, QueryProperties queryProperties) {
+        this.vectorStore = synchronizedVectorStore;
         this.chatModel = chatModel;
         this.parserStrategies = parserStrategies;
         this.splitterProperties = splitterProperties;
