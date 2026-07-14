@@ -18,7 +18,7 @@ mainApp/
 ├── docker-compose.openai.yml        # overlay: OpenAI config (no container)
 ├── docker-compose.elasticsearch.yml # overlay: Elasticsearch + index init
 ├── Dockerfile
-├── .env.example                     # copy to .env and fill in
+├── .env_template                     # copy to .env and fill in
 ├── pom.xml                          # parent POM, lists all modules
 ├── rag-app/                         # main application module (edit pom.xml here to select modules)
 ├── rag-core/
@@ -44,8 +44,8 @@ cd mainApp
 Neither `.env` nor `application.yaml` is committed to the repository, since both can contain environment-specific values and credentials. You must create them locally before running the application:
 
 ```bash
-cp .env.example .env
-cp rag-app/src/main/resources/application.yaml.example rag-app/src/main/resources/application.yaml
+cp .env_template .env
+cp rag-app/src/main/resources/application.yaml_template rag-app/src/main/resources/application.yaml
 ```
 
 Edit `.env` and fill in:
@@ -90,9 +90,9 @@ docker compose up --build
 
 ## Configuration reference
 
-| File | Purpose | Committed? |
-|---|---|---|
-| `.env` | Model names, API keys, active Compose overlay selection | No (see `.env.example`) |
-| `application.yaml` | Spring configuration; reads most values from the environment | No (see `application.yaml.example`) |
-| `rag-app/pom.xml` | Selects which LLM provider / vector store modules are compiled in | Yes |
-| `docker-compose*.yml` | Infrastructure wiring per module choice | Yes |
+| File | Purpose | Committed?                          |
+|---|---|-------------------------------------|
+| `.env` | Model names, API keys, active Compose overlay selection | No (see `.env_template`)             |
+| `application.yaml` | Spring configuration; reads most values from the environment | No (see `application.yaml_template`) |
+| `rag-app/pom.xml` | Selects which LLM provider / vector store modules are compiled in | Yes                                 |
+| `docker-compose*.yml` | Infrastructure wiring per module choice | Yes                                 |
