@@ -35,7 +35,6 @@ public interface LlmMethods {
                 "query", query,
                 "document", document));
         String result = callWithoutThinking(prompt);
-        System.out.println(result + " done");
         return result != null && result.trim().toLowerCase().contains("yes");
     }
 
