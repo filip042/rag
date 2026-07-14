@@ -47,7 +47,7 @@ class RagEvaluationTests {
     private final RelevancyEvaluator relevancyEvaluator;
     private final FactCheckingEvaluator factCheckingEvaluator;
 
-    private static final Path RESULT_PATH = Path.of("target/temp-eval-results.csv");
+    private static final Path RESULT_PATH = Path.of("target/chunk-size-results.csv");
 
     @Autowired
     RagEvaluationTests(RagService ragService, OllamaApi ollamaApi, OpenAiApi openAiApi, RelevancyEvaluator relevancyEvaluator, FactCheckingEvaluator factCheckingEvaluator) {
@@ -110,7 +110,7 @@ class RagEvaluationTests {
     }
 
     @ParameterizedTest
-    @CsvFileSource(resources = "/indexing-experiments.csv", numLinesToSkip = 1)
+    @CsvFileSource(resources = "/rag-experiments.csv", numLinesToSkip = 1)
     void runExperiment(String experimentId, String provider, String model, String prompt, double temperature, long projectId, int repetitions) throws Exception {
         if (experimentId.startsWith("#")) {
             return;
@@ -140,7 +140,7 @@ class RagEvaluationTests {
                     .build();
         } else if(provider.equals("ollama")) {
             return OllamaChatModel.builder()
-                    .defaultOptions(OllamaChatOptions.builder().model(modelName).temperature(temperature).build())
+                    .defaultOptions(OllamaChatOptions.builder().model(modelName).temperature(temperature).numPredict(4096).build())
                     .ollamaApi(ollamaApi)
                     .build();
         }
