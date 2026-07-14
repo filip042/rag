@@ -1,6 +1,5 @@
 package cz.cuni.mff.hanaf.mainapp.web;
 
-import cz.cuni.mff.hanaf.mainapp.AppProperties;
 import cz.cuni.mff.hanaf.mainapp.data.Project;
 import cz.cuni.mff.hanaf.mainapp.data.ProjectRepository;
 import cz.cuni.mff.hanaf.mainapp.data.User;
