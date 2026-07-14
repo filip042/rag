@@ -3,14 +3,12 @@ package cz.cuni.mff.hanaf.mainapp.web;
 import cz.cuni.mff.hanaf.mainapp.AppProperties;
 import cz.cuni.mff.hanaf.mainapp.data.*;
 import cz.cuni.mff.hanaf.mainapp.rag.QueryProperties;
-import cz.cuni.mff.hanaf.mainapp.rag.dto.DeleteProjectRequest;
+import cz.cuni.mff.hanaf.mainapp.rag.RagService;
 import cz.cuni.mff.hanaf.mainapp.security.AccessGuard;
 import jakarta.servlet.http.HttpSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -30,12 +28,12 @@ public class ThymeLeafController {
 
     private final AppProperties appProperties;
     private final QueryProperties queryProperties;
-    private final RestTemplate restTemplate;
     private final UserRepository userRepository;
     private final ProjectRepository projectRepository;
     private final QuestionRepository questionRepository;
     private final PasswordEncoder passwordEncoder;
     private final AccessGuard accessGuard;
+    private final RagService ragService;
     private static final Logger logger = LoggerFactory.getLogger(ThymeLeafController.class);
 
     /**
@@ -43,22 +41,22 @@ public class ThymeLeafController {
      *
      * @param appProperties the application configuration providing endpoint URLs
      * @param queryProperties configuration properties for query handling
-     * @param restTemplate the REST template used to forward requests to the API
      * @param userRepository repository for loading and persisting users
      * @param projectRepository repository for loading and persisting projects
      * @param questionRepository repository for loading question history
      * @param passwordEncoder the encoder used to hash and verify passwords
-     * @param accessGuard the access guard for verifying permission for accesing specific projects
+     * @param accessGuard the access guard for verifying permission for accessing specific projects
+     * @param ragService the todo
      */
-    public ThymeLeafController(AppProperties appProperties, QueryProperties queryProperties, RestTemplate restTemplate, UserRepository userRepository, ProjectRepository projectRepository, QuestionRepository questionRepository, PasswordEncoder passwordEncoder, AccessGuard accessGuard) {
+    public ThymeLeafController(AppProperties appProperties, QueryProperties queryProperties, UserRepository userRepository, ProjectRepository projectRepository, QuestionRepository questionRepository, PasswordEncoder passwordEncoder, AccessGuard accessGuard, RagService ragService) {
         this.appProperties = appProperties;
         this.queryProperties = queryProperties;
-        this.restTemplate = restTemplate;
         this.userRepository = userRepository;
         this.projectRepository = projectRepository;
         this.questionRepository = questionRepository;
         this.passwordEncoder = passwordEncoder;
         this.accessGuard = accessGuard;
+        this.ragService = ragService;
     }
 
     /**
@@ -402,7 +400,11 @@ public class ThymeLeafController {
         logger.info("Deleting user '{}' (id={}), cascading to {} solely-administered project(s)",
                 managedUser.getUsername(), managedUser.getId(), projectIdsToDelete.size());
 
-        projectIdsToDelete.forEach(projectRepository::deleteById);
+        projectIdsToDelete.forEach(projectId -> {
+            questionRepository.deleteByProjectId(projectId);
+            ragService.deleteProject(projectId);
+            projectRepository.deleteById(projectId);
+        });
 
         projectRepository.findByAccessibleUsers_Id(managedUser.getId()).stream()
                 .filter(project -> !projectIdsToDelete.contains(project.getId()))
@@ -439,9 +441,8 @@ public class ThymeLeafController {
         logger.info("User '{}' deleting project id={} ('{}')",
                 ((User) session.getAttribute("authenticatedUser")).getUsername(), project.getId(), project.getName());
         questionRepository.deleteByProjectId(project.getId());
-        projectRepository.deleteById(project.getId());        String apiUrl = appProperties.getBaseUrl() + appProperties.getApiUrls().getBase() + appProperties.getApiUrls().getDelete();
-        HttpEntity<DeleteProjectRequest> entity = new HttpEntity<>(new DeleteProjectRequest(project.getId()), withSessionCookie(session));
-        restTemplate.postForObject(apiUrl, entity, Void.class);
+        projectRepository.deleteById(project.getId());
+        ragService.deleteProject(project.getId());
         return "redirect:" + url;
     }
 
@@ -462,6 +463,7 @@ public class ThymeLeafController {
         Project realProject = projectRepository.findByIdWithUsers(project.getId())
                 .orElseThrow(() -> new IllegalStateException("Project not found"));
         realProject.removeAccessibleUser(user);
+        realProject.removeAdminUser(user);
         projectRepository.save(realProject);
         return "redirect:" + url;
     }
@@ -582,11 +584,5 @@ public class ThymeLeafController {
             row.put("admin", isAdmin);
             return row;
         }).toList();
-    }
-
-    private HttpHeaders withSessionCookie(HttpSession session) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.add(HttpHeaders.COOKIE, "JSESSIONID=" + session.getId());
-        return headers;
     }
 }
