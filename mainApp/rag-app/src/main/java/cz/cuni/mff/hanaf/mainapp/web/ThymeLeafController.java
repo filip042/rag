@@ -6,6 +6,9 @@ import cz.cuni.mff.hanaf.mainapp.rag.QueryProperties;
 import cz.cuni.mff.hanaf.mainapp.rag.dto.DeleteProjectRequest;
 import cz.cuni.mff.hanaf.mainapp.security.AccessGuard;
 import jakarta.servlet.http.HttpSession;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -33,6 +36,7 @@ public class ThymeLeafController {
     private final QuestionRepository questionRepository;
     private final PasswordEncoder passwordEncoder;
     private final AccessGuard accessGuard;
+    private static final Logger logger = LoggerFactory.getLogger(ThymeLeafController.class);
 
     /**
      * Creates a new {@code ThymeLeafController} with the required dependencies.
@@ -156,6 +160,7 @@ public class ThymeLeafController {
 
         Project project = projectRepository.findById(projectId).orElse(null);
         if (project == null || !accessGuard.hasAccess(user, project)) {
+            logger.info("User '{}' denied access to project id={}", user.getUsername(), projectId);
             return "redirect:" + dashboardUrl;
         }
 
@@ -187,10 +192,12 @@ public class ThymeLeafController {
                 .orElse(null);
 
         if (existingUser != null && passwordMatches(existingUser, password)) {
+            logger.info("User '{}' logged in", username);
             session.setAttribute("authenticatedUser", existingUser);
             String dashboardUrl = appProperties.getFrontendUrls().getBase() + appProperties.getFrontendUrls().getDashboard();
             return "redirect:" + dashboardUrl;
         } else {
+            logger.info("Failed login attempt for username '{}'", username);
             model.addAttribute("error", "Invalid username or password");
             model.addAttribute("attemptedUsername", username);
             return "chooseUser";
@@ -301,10 +308,12 @@ public class ThymeLeafController {
         try {
             user.setPassword(passwordEncoder.encode(user.getPassword()));
             User savedUser = userRepository.save(user);
+            logger.info("Created new user '{}'", savedUser.getUsername());
             session.setAttribute("authenticatedUser", savedUser);
             String dashboardUrl = appProperties.getFrontendUrls().getBase() + appProperties.getFrontendUrls().getDashboard();
             return "redirect:" + dashboardUrl;
-        } catch (Exception e) { // todo
+        } catch (DataAccessException e) {
+            logger.warn("Error creating user '{}'", user.getUsername(), e);
             model.addAttribute("error", "Error creating user");
             return "newUser";
         }
@@ -320,6 +329,10 @@ public class ThymeLeafController {
     @GetMapping("/newProject")
     public String showNewProjectForm(Model model, HttpSession session) {
         User currentUser = (User) session.getAttribute("authenticatedUser");
+        if (currentUser == null) {
+            String logoutUrl = appProperties.getFrontendUrls().getBase() + appProperties.getFrontendUrls().getLogout();
+            return "redirect:" + logoutUrl;
+        }
         model.addAttribute("project", new Project());
         model.addAttribute("currentUsername", currentUser.getUsername());
         return "newProject";
@@ -339,18 +352,25 @@ public class ThymeLeafController {
             HttpSession session,
             Model model
     ) {
-        project.addAdminUser((User)session.getAttribute("authenticatedUser"));
+        User currentUser = (User) session.getAttribute("authenticatedUser");
+        if (currentUser == null) {
+            String logoutUrl = appProperties.getFrontendUrls().getBase() + appProperties.getFrontendUrls().getLogout();
+            return "redirect:" + logoutUrl;
+        }
+        project.addAdminUser(currentUser);
         if (project.getName() == null || project.getName().trim().isEmpty()) {
             model.addAttribute("error", "Name cannot be empty");
             return "newProject";
         }
         try {
             Project savedProject = projectRepository.save(project);
+            logger.info("User '{}' created project '{}' (id={})", currentUser.getUsername(), savedProject.getName(), savedProject.getId());
             session.setAttribute("project", savedProject);
             session.setAttribute("admin", true);
             String url = appProperties.getFrontendUrls().getBase() + appProperties.getFrontendUrls().getChat();
             return "redirect:" + url;
-        } catch (Exception e) { // todo
+        } catch (DataAccessException e) {
+            logger.warn("Error creating project", e);
             model.addAttribute("error", "Error creating project");
             return "newProject";
         }
@@ -378,6 +398,9 @@ public class ThymeLeafController {
                 .filter(project -> project.getAdminUsers().size() == 1)
                 .map(Project::getId)
                 .toList();
+
+        logger.info("Deleting user '{}' (id={}), cascading to {} solely-administered project(s)",
+                managedUser.getUsername(), managedUser.getId(), projectIdsToDelete.size());
 
         projectIdsToDelete.forEach(projectRepository::deleteById);
 
@@ -413,9 +436,10 @@ public class ThymeLeafController {
         if (project == null || !accessGuard.isAdminOfSessionProject(session)) {
             return "redirect:" + url;
         }
+        logger.info("User '{}' deleting project id={} ('{}')",
+                ((User) session.getAttribute("authenticatedUser")).getUsername(), project.getId(), project.getName());
         questionRepository.deleteByProjectId(project.getId());
-        projectRepository.deleteById(project.getId());
-        String apiUrl = appProperties.getBaseUrl() + appProperties.getApiUrls().getBase() + appProperties.getApiUrls().getDelete();
+        projectRepository.deleteById(project.getId());        String apiUrl = appProperties.getBaseUrl() + appProperties.getApiUrls().getBase() + appProperties.getApiUrls().getDelete();
         HttpEntity<DeleteProjectRequest> entity = new HttpEntity<>(new DeleteProjectRequest(project.getId()), withSessionCookie(session));
         restTemplate.postForObject(apiUrl, entity, Void.class);
         return "redirect:" + url;
@@ -438,6 +462,7 @@ public class ThymeLeafController {
         Project realProject = projectRepository.findByIdWithUsers(project.getId())
                 .orElseThrow(() -> new IllegalStateException("Project not found"));
         realProject.removeAccessibleUser(user);
+        projectRepository.save(realProject);
         return "redirect:" + url;
     }
 
@@ -452,6 +477,8 @@ public class ThymeLeafController {
     public String adminSettings(HttpSession session, Model model) {
         Project sessionProject = (Project) session.getAttribute("project");
         if (sessionProject == null || !accessGuard.isAdminOfSessionProject(session)) {
+            logger.info("Non-admin access attempt to admin settings, project id={}",
+                    sessionProject != null ? sessionProject.getId() : null);
             String logoutUrl = appProperties.getFrontendUrls().getBase() + appProperties.getFrontendUrls().getLogout();
             return "redirect:" + logoutUrl;
         }
