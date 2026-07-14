@@ -5,19 +5,14 @@ import cz.cuni.mff.hanaf.mainapp.data.Project;
 import cz.cuni.mff.hanaf.mainapp.data.ProjectRepository;
 import cz.cuni.mff.hanaf.mainapp.data.User;
 import cz.cuni.mff.hanaf.mainapp.data.UserRepository;
+import cz.cuni.mff.hanaf.mainapp.rag.RagService;
 import cz.cuni.mff.hanaf.mainapp.security.AccessGuard;
 import cz.cuni.mff.hanaf.mainapp.web.dto.ArchiveResponse;
 import cz.cuni.mff.hanaf.mainapp.web.dto.UserResponse;
 import cz.cuni.mff.hanaf.mainapp.web.dto.VisibilityResponse;
 import jakarta.servlet.http.HttpSession;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -27,27 +22,24 @@ import org.springframework.web.server.ResponseStatusException;
 @RestController
 @RequestMapping("/admin")
 public class FormResultsController {
-    private final AppProperties appProperties;
-    private final RestTemplate restTemplate;
     private final UserRepository userRepository;
     private final ProjectRepository projectRepository;
     private final AccessGuard accessGuard;
+    private final RagService ragService;
 
     /**
      * Creates a new {@code FormResultsController} with the required dependencies.
      *
-     * @param appProperties the application configuration providing endpoint URLs
-     * @param restTemplate the REST template used to forward file uploads to the API
      * @param userRepository repository for loading users
      * @param projectRepository repository for loading and persisting projects
      * @param accessGuard the access guard for verifying permission for accesing specific projects
+     * @param ragService the service used for RAG-related operations, such as document indexing
      */
-    public FormResultsController(AppProperties appProperties, RestTemplate restTemplate, UserRepository userRepository, ProjectRepository projectRepository, AccessGuard accessGuard) {
-        this.appProperties = appProperties;
-        this.restTemplate = restTemplate;
+    public FormResultsController(UserRepository userRepository, ProjectRepository projectRepository, AccessGuard accessGuard, RagService ragService) {
         this.userRepository = userRepository;
         this.projectRepository = projectRepository;
         this.accessGuard = accessGuard;
+        this.ragService = ragService;
     }
 
     /**
@@ -62,22 +54,12 @@ public class FormResultsController {
      */
     @PostMapping("/load")
     public String loadFiles(@RequestParam("files") MultipartFile[] files, HttpSession session) {
-        String apiUrl = appProperties.getBaseUrl() + appProperties.getApiUrls().getBase() + appProperties.getApiUrls().getAdd();
         Project project = (Project) session.getAttribute("project");
         if (project == null || !accessGuard.isAdminOfSessionProject(session)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
 
-        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-        for (MultipartFile file : files) {
-            body.add("files", file.getResource());
-        }
-        body.add("project", project.getId());
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-        headers.add(HttpHeaders.COOKIE, "JSESSIONID=" + session.getId());
-        restTemplate.postForObject(apiUrl, new HttpEntity<>(body, headers), String.class);
+        ragService.addDocuments(files, project.getId());
 
         return "OK";
     }

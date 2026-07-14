@@ -13,7 +13,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
 import java.util.stream.Stream;
@@ -46,7 +45,7 @@ public class ThymeLeafController {
      * @param questionRepository repository for loading question history
      * @param passwordEncoder the encoder used to hash and verify passwords
      * @param accessGuard the access guard for verifying permission for accessing specific projects
-     * @param ragService the todo
+     * @param ragService the service used for RAG-related operations, such as deleting projects
      */
     public ThymeLeafController(AppProperties appProperties, QueryProperties queryProperties, UserRepository userRepository, ProjectRepository projectRepository, QuestionRepository questionRepository, PasswordEncoder passwordEncoder, AccessGuard accessGuard, RagService ragService) {
         this.appProperties = appProperties;
