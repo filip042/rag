@@ -99,7 +99,7 @@ public class RagController {
      *
      * @param answerRequest an {@link AnswerRequest} record
      * @param session the current HTTP session, expected to contain the authenticated user
-     * @return 200 OK with the full progress map (and removes the task) if the task is done,
+     * @return 200 OK with the full progress map (and removes the task) if the task is done or an error occured,
      *         202 Accepted with the current progress map if still in progress,
      *         or 404 Not Found if no task with the given id exists
      * @throws org.springframework.web.server.ResponseStatusException 401 UNAUTHORIZED if no user is authenticated in
@@ -121,7 +121,7 @@ public class RagController {
         }
 
         String status = (String) progress.get("status");
-        if (status.equals("done")) {
+        if (status.equals("done") || status.equals("error")) {
             taskProgress.remove(answerRequest.taskId());
             return ResponseEntity.ok(progress);
         }

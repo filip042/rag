@@ -50,6 +50,8 @@ async function checkAnswer(taskId) {
                 sourcesDiv.style.display = "block";
             }
             nextQuestionDiv.style.display = "block";
+        } else {
+            throw new Error(data.error || "Unknown error occurred.");
         }
     } catch (err) {
         console.error("Error fetching answer:", err);
@@ -75,7 +77,9 @@ async function fetchAnswer() {
 
         const data = await response.json();
         const taskId = data.taskId;
-        if (!taskId) throw new Error("No taskId returned from backend");
+        if (!taskId) {
+            throw new Error("No taskId returned from backend");
+        }
 
         checkAnswer(taskId);
 

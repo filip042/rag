@@ -117,7 +117,7 @@ public class RagService {
         }
         ChatClient chatClient = ChatClient.builder(chatModel).build();
 
-        return CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.<Void>supplyAsync(() -> {
             SearchRequest request = buildSearchRequest(query, projectId, progress);
             List<Document> relevant = filterRelevantDocuments(request, query, progress);
             VerifyingQuestionAnswerAdvisor qaAdvisor = buildAdvisor(request, relevant);
@@ -133,7 +133,7 @@ public class RagService {
                     .map(ChatResponse::getResult)
                     .map(Generation::getOutput)
                     .map(AbstractMessage::getText)
-                    .orElse(null);
+                    .orElse("");
 
             List<Document> documents = qaAdvisor.getVerifiedDocuments();
 
@@ -151,7 +151,12 @@ public class RagService {
             saveQuestion(query, formattedAnswer, sources, projectId);
 
             return null;
-        }, llmExecutor);
+        }, llmExecutor).exceptionally((ex) -> {
+            logger.error("Error during chat processing", ex);
+            progress.put("status", "error");
+            progress.put("error", ex.getMessage());
+            return null;
+        });
     }
 
     /**
