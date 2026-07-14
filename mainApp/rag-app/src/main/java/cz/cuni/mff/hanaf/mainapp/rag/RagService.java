@@ -375,17 +375,17 @@ public class RagService {
         try {
             documentLoader.load(f, projectId, indexingStartTime, fileId);
             logger.debug("Finished processing: {}", f);
+
+            try {
+                existingFiles.put(fileName, new FileInfo(fileId, computeHash(f)));
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         } catch (Exception e) { // todo
             logger.error("Failed processing {}", f, e);
+        } finally {
+            finishedQueue.add(fileName);
         }
-
-        try {
-            existingFiles.put(fileName, new FileInfo(fileId, computeHash(f)));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-        finishedQueue.add(fileName);
     }
 
     private void onIndexingComplete(Project project, Map<String, FileInfo> existingFiles, Path tempDir) {
