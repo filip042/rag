@@ -120,7 +120,7 @@ public class RagService {
         return CompletableFuture.<Void>supplyAsync(() -> {
             SearchRequest request = buildSearchRequest(query, projectId, progress);
             List<Document> relevant = filterRelevantDocuments(request, query, progress);
-            VerifyingQuestionAnswerAdvisor qaAdvisor = buildAdvisor(request, relevant);
+            VerifyingQuestionAnswerAdvisor qaAdvisor = buildAdvisor(relevant);
 
             ChatClientResponse clientResponse = chatClient.prompt(query)
                     .advisors(qaAdvisor)
@@ -276,7 +276,7 @@ public class RagService {
     private SearchRequest buildSearchRequest(String query, long projectId, Map<String, Object> progress) {
         FilterExpressionBuilder expressionBuilder = new FilterExpressionBuilder();
         Filter.Expression filterExpression = expressionBuilder.eq("project", projectId).build();
-        int size = 5; // todo should probably be constant
+        int size = queryProperties.getSourceNum();
         progress.put("total", size);
         int maxQueryLength = queryProperties.getMaxQueryLength();
         if (query.length() > maxQueryLength) {
@@ -307,7 +307,7 @@ public class RagService {
         return relevant;
     }
 
-    private VerifyingQuestionAnswerAdvisor buildAdvisor(SearchRequest request, List<Document> relevant) {
+    private VerifyingQuestionAnswerAdvisor buildAdvisor(List<Document> relevant) {
         try {
             return VerifyingQuestionAnswerAdvisor.builder()
                     .promptTemplate(new SystemPromptTemplate(askTemplateResource))
@@ -381,7 +381,7 @@ public class RagService {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-        } catch (Exception e) { // todo
+        } catch (RuntimeException e) {
             logger.error("Failed processing {}", f, e);
         } finally {
             finishedQueue.add(fileName);

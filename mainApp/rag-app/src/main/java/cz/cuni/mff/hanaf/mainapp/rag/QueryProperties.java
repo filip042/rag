@@ -9,9 +9,28 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConfigurationProperties(prefix = "app.rag.query")
 public class QueryProperties {
+    private int sourceNum;
     private int maxQueryLength;
     private String searchPrefix;
     private String documentPrefix;
+
+    /**
+     * Returns the number of sources searched for when generating the answer to a query.
+     *
+     * @return the number of sources searched for when generating the answer to a query
+     */
+    public int getSourceNum() {
+        return sourceNum;
+    }
+
+    /**
+     * Sets the number of sources searched for when generating the answer to a query.
+     *
+     * @param sourceNum the number of sources searched for when generating the answer to a query
+     */
+    public void setSourceNum(int sourceNum) {
+        this.sourceNum = sourceNum;
+    }
 
     /**
      * Returns the maximum allowed length for a query.

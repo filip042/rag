@@ -57,6 +57,7 @@ app:
     similarity: cosine
   rag:
     query:
+      source-num: 5
       max-query-length: 160
       search-prefix: "Represent this sentence for searching relevant passages: "
       document-prefix: "search_document: "
