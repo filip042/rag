@@ -1,93 +1,104 @@
-# 2025-Hana
+# RAG Framework
 
+A modular Retrieval-Augmented Generation (RAG) application built with Spring Boot and Spring AI. LLM providers, models, and vector stores are swappable via Maven modules and configuration, without changing application code.
 
+The application itself lives in [`mainApp/`](./mainApp), a multi-module Maven project. This README covers building, configuring, and running it via Docker.
 
-## Getting started
+## Prerequisites
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+- [Docker](https://www.docker.com/) and Docker Compose
+- Java 24 and Maven, **only** if you intend to build outside Docker (not required for the standard setup below)
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
-
-## Add your files
-
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
+## Project structure
 
 ```
-cd existing_repo
-git remote add origin https://gitlab.mff.cuni.cz/teaching/nprg045/hnetynka/2025-hana.git
-git branch -M master
-git push -uf origin master
+mainApp/
+├── docker-compose.yml               # base stack: app + db
+├── docker-compose.ollama.yml        # overlay: Ollama container + config
+├── docker-compose.openai.yml        # overlay: OpenAI config (no container)
+├── docker-compose.elasticsearch.yml # overlay: Elasticsearch + index init
+├── Dockerfile
+├── .env.example                     # copy to .env and fill in
+├── pom.xml                          # parent POM, lists all modules
+├── rag-app/                         # main application module (edit pom.xml here to select modules)
+├── rag-core/
+├── rag-starter-provider-*/          # LLM provider integrations
+├── rag-starter-llm-*/               # specific LLM starters
+├── rag-starter-vectorstore-*/       # vector store integrations
+├── rag-starter-parser-*/            # document parsers
+├── rag-integration-tests/
+└── es-init/
+    └── create-index.sh              # creates the Elasticsearch index/mapping on startup
 ```
 
-## Integrate with your tools
+## Quick start
 
-- [ ] [Set up project integrations](https://gitlab.mff.cuni.cz/teaching/nprg045/hnetynka/2025-hana/-/settings/integrations)
+All commands below are run from the `mainApp/` directory:
 
-## Collaborate with your team
+```bash
+cd mainApp
+```
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
+### 1. Create your configuration files from the templates
 
-## Test and Deploy
+```bash
+cp .env.example .env
+cp rag-app/src/main/resources/application.yaml.example rag-app/src/main/resources/application.yaml
+```
 
-Use the built-in continuous integration in GitLab.
+Neither `.env` nor `application.yaml` is committed to the repository, since both can contain environment-specific values and credentials. You must create them locally before running the application.
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+Edit `.env` and fill in:
+- `OLLAMA_CHAT_MODEL` / `OLLAMA_EMBED_MODEL` — if using the Ollama overlay
+- `OPENAI_API_KEY` — if using the OpenAI overlay
+- `ANTHROPIC_API_KEY` — used for the test judge, independent of the active LLM provider
+- `COMPOSE_FILE` — optionally set this to the overlay combination you want (see below), so you don't need to pass `-f` flags every time. **On Windows, separate paths with `;`; on Linux/macOS, use `:`.**
 
-***
+`application.yaml` should already be wired to read its values from the same environment variables — you shouldn't need to hardcode secrets there.
 
-# Editing this README
+### 2. Choose your module configuration
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+The active LLM provider and vector store are determined by which starter modules `rag-app/pom.xml` depends on. Check (or edit) the `<dependencies>` section of `rag-app/pom.xml` to confirm which are active, e.g.:
 
-## Suggestions for a good README
+```xml
+<dependency>
+    <groupId>cz.cuni.mff.hanaf</groupId>
+    <artifactId>rag-starter-llm-deepseek-ollama</artifactId>
+</dependency>
+<dependency>
+    <groupId>cz.cuni.mff.hanaf</groupId>
+    <artifactId>rag-starter-vectorstore-elasticsearch</artifactId>
+</dependency>
+```
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+Swapping providers means changing these dependencies and rebuilding.
 
-## Name
-Choose a self-explaining name for your project.
+### 3. Start the stack
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+Pick the overlay files matching your chosen modules. For the default Ollama + Elasticsearch setup:
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+```bash
+docker compose -f docker-compose.yml -f docker-compose.ollama.yml -f docker-compose.elasticsearch.yml up --build
+```
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+Or, if you set `COMPOSE_FILE` in `.env`:
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+```bash
+docker compose up --build
+```
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+## Configuration reference
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+| File | Purpose | Committed? |
+|---|---|---|
+| `.env` | Model names, API keys, active Compose overlay selection | No (see `.env.example`) |
+| `application.yaml` | Spring configuration; reads most values from the environment | No (see `application.yaml.example`) |
+| `rag-app/pom.xml` | Selects which LLM provider / vector store modules are compiled in | Yes |
+| `docker-compose*.yml` | Infrastructure wiring per module choice | Yes |
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+## Troubleshooting
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
-
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
-
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
-
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
-
-## License
-For open source projects, say how it is licensed.
-
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+- **`no main manifest attribute, in app.jar`** — the Spring Boot Maven plugin didn't repackage the jar. Check `rag-app/pom.xml` for `spring-boot-maven-plugin` and confirm it isn't set to `<skip>true</skip>` for the build you're running.
+- **`exec ...: no such file or directory` on a shell script** — usually Windows CRLF line endings in a `.sh` file bind-mounted into a Linux container. Convert to LF (a `.gitattributes` entry of `*.sh text eol=lf` prevents this going forward).
+- **`ollama` container stuck `unhealthy`** — check what it actually has with `docker compose exec ollama ollama list`; the healthcheck only confirms the server responds, not that a specific model is present.
+- **`relation "..." does not exist` errors despite the table existing** — often caused by re-running `data.sql` against an already-seeded database; see the note above.
