@@ -41,17 +41,18 @@ cd mainApp
 
 ### 1. Create your configuration files from the templates
 
+Neither `.env` nor `application.yaml` is committed to the repository, since both can contain environment-specific values and credentials. You must create them locally before running the application:
+
 ```bash
 cp .env.example .env
 cp rag-app/src/main/resources/application.yaml.example rag-app/src/main/resources/application.yaml
 ```
 
-Neither `.env` nor `application.yaml` is committed to the repository, since both can contain environment-specific values and credentials. You must create them locally before running the application.
-
 Edit `.env` and fill in:
 - `OLLAMA_CHAT_MODEL` / `OLLAMA_EMBED_MODEL` — if using the Ollama overlay
 - `OPENAI_API_KEY` — if using the OpenAI overlay
 - `ANTHROPIC_API_KEY` — used for the test judge, independent of the active LLM provider
+- `LLM_USERNAME` / `LLM_PASSWORD` - if required by the LLM provider
 - `COMPOSE_FILE` — optionally set this to the overlay combination you want (see below), so you don't need to pass `-f` flags every time. **On Windows, separate paths with `;`; on Linux/macOS, use `:`.**
 
 `application.yaml` should already be wired to read its values from the same environment variables — you shouldn't need to hardcode secrets there.
@@ -95,10 +96,3 @@ docker compose up --build
 | `application.yaml` | Spring configuration; reads most values from the environment | No (see `application.yaml.example`) |
 | `rag-app/pom.xml` | Selects which LLM provider / vector store modules are compiled in | Yes |
 | `docker-compose*.yml` | Infrastructure wiring per module choice | Yes |
-
-## Troubleshooting
-
-- **`no main manifest attribute, in app.jar`** — the Spring Boot Maven plugin didn't repackage the jar. Check `rag-app/pom.xml` for `spring-boot-maven-plugin` and confirm it isn't set to `<skip>true</skip>` for the build you're running.
-- **`exec ...: no such file or directory` on a shell script** — usually Windows CRLF line endings in a `.sh` file bind-mounted into a Linux container. Convert to LF (a `.gitattributes` entry of `*.sh text eol=lf` prevents this going forward).
-- **`ollama` container stuck `unhealthy`** — check what it actually has with `docker compose exec ollama ollama list`; the healthcheck only confirms the server responds, not that a specific model is present.
-- **`relation "..." does not exist` errors despite the table existing** — often caused by re-running `data.sql` against an already-seeded database; see the note above.

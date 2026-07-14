@@ -17,7 +17,7 @@ spring:
         options:
           max-tokens: 1000
     anthropic:
-      api-key: ${ANTHROPIC_API_KEY}
+      api-key: ${ANTHROPIC_API_KEY:}
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/appdb}
     username: ${SPRING_DATASOURCE_USERNAME:appuser}
@@ -39,8 +39,8 @@ app:
     provider: ollama
     base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
     api-key: ${OPENAI_API_KEY:}
-    username: <username>
-    password: <password>
+    username: ${LLM_USERNAME:}
+    password: ${LLM_PASSWORD:}
     chat:
       model: ${OLLAMA_CHAT_MODEL:deepseek-r1:1.5b}
       temperature: 0.2
