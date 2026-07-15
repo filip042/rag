@@ -29,14 +29,13 @@ services:
       - "5432:5432"
     volumes:
       - dbdata:/var/lib/postgresql/data
+      - ./schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./data.sql:/docker-entrypoint-initdb.d/02-data.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U appuser -d appdb"]
+      test: [ "CMD-SHELL", "pg_isready -U appuser -d appdb" ]
       interval: 5s
       retries: 10
       start_period: 30s
-    # Note: schema/data are seeded by Spring Boot itself (schema.sql / data.sql,
-    # sql.init.mode: always) rather than Postgres's docker-entrypoint-initdb.d,
-    # since the app already manages init that way.
 
 volumes:
   dbdata:
