@@ -30,7 +30,7 @@ spring:
     defer-datasource-initialization: true
   sql:
     init:
-      mode: never
+      mode: always
   main:
     allow-bean-definition-overriding: true
 app:
