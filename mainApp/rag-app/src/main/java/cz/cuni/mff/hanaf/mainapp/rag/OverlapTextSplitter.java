@@ -37,6 +37,9 @@ public class OverlapTextSplitter extends TextSplitter {
      * @param overlapTokens the number of tokens from the end of each chunk to repeat at the start of the next
      */
     public OverlapTextSplitter(int chunkSize, int minChunkSizeChars, int minChunkLengthToEmbed, int maxNumChunks, boolean keepSeparator, int overlapTokens) {
+        if (chunkSize < 1 || chunkSize <= overlapTokens) {
+            throw new IllegalArgumentException();
+        }
         EncodingRegistry registry = Encodings.newLazyEncodingRegistry();
         this.encoding = registry.getEncoding(EncodingType.CL100K_BASE);
         this.chunkSize = chunkSize;
@@ -69,48 +72,81 @@ public class OverlapTextSplitter extends TextSplitter {
      * @return the list of chunk strings
      */
     protected List<String> doSplit(String text, int chunkSize) {
-        if (text != null && !text.trim().isEmpty()) {
-            List<Integer> tokens = this.getEncodedTokens(text);
-            List<String> chunks = new ArrayList<>();
-            int num_chunks = 0;
-
-            while(!tokens.isEmpty() && num_chunks < this.maxNumChunks) {
-                List<Integer> chunk = tokens.subList(0, Math.min(chunkSize, tokens.size()));
-                String chunkText = this.decodeTokens(chunk);
-                if (chunkText.trim().isEmpty()) {
-                    tokens = tokens.subList(chunk.size(), tokens.size());
-                } else {
-                    int lastPunctuation = Math.max(chunkText.lastIndexOf(46), Math.max(chunkText.lastIndexOf(63), Math.max(chunkText.lastIndexOf(33), chunkText.lastIndexOf(10))));
-                    if (lastPunctuation != -1 && lastPunctuation > this.minChunkSizeChars) {
-                        chunkText = chunkText.substring(0, lastPunctuation + 1);
-                    }
-
-                    String chunkTextToAppend = this.keepSeparator ? chunkText.trim() : chunkText.replace(System.lineSeparator(), " ").trim();
-                    if (chunkTextToAppend.length() > this.minChunkLengthToEmbed) {
-                        chunks.add(chunkTextToAppend);
-                    }
-
-                    int stepSize = chunk.size() - this.overlapTokens;
-                    if (stepSize <= 0 || stepSize > tokens.size()) {
-                        tokens = new ArrayList<>();
-                        break;
-                    }
-                    tokens = tokens.subList(stepSize, tokens.size());
-                    ++num_chunks;
-                }
-            }
-
-            if (!tokens.isEmpty()) {
-                String remaining_text = this.decodeTokens(tokens).replace(System.lineSeparator(), " ").trim();
-                if (remaining_text.length() > this.minChunkLengthToEmbed) {
-                    chunks.add(remaining_text);
-                }
-            }
-
-            return chunks;
-        } else {
+        if (text == null || text.trim().isEmpty()) {
             return new ArrayList<>();
         }
+
+        List<Integer> tokens = this.getEncodedTokens(text);
+        List<String> chunks = new ArrayList<>();
+        int num_chunks = 0;
+        boolean maxChunksReached = false;
+
+        while (!tokens.isEmpty()) {
+            if (num_chunks >= this.maxNumChunks) {
+                maxChunksReached = true;
+                break;
+            }
+
+            boolean isFinalWindow = tokens.size() <= chunkSize;
+
+            List<Integer> chunk = tokens.subList(0, Math.min(chunkSize, tokens.size()));
+            String chunkText = this.decodeTokens(chunk);
+            if (chunkText.trim().isEmpty()) {
+                tokens = tokens.subList(chunk.size(), tokens.size());
+                continue;
+            }
+
+            int actualChunkSize = chunk.size();
+
+            int lastPunctuation = Math.max(chunkText.lastIndexOf('.'), Math.max(chunkText.lastIndexOf('?'), Math.max(chunkText.lastIndexOf('!'), chunkText.lastIndexOf('\n'))));
+            if (lastPunctuation != -1 && lastPunctuation > this.minChunkSizeChars) {
+                chunkText = chunkText.substring(0, lastPunctuation + 1);
+                actualChunkSize = this.getEncodedTokens(chunkText).size();
+            }
+
+            while (chunkText.indexOf('\uFFFD') != -1 && actualChunkSize > 1) {
+                actualChunkSize--;
+                chunkText = this.decodeTokens(tokens.subList(0, actualChunkSize));
+            }
+
+            String chunkTextToAppend = this.keepSeparator ? chunkText.trim() : chunkText.replace(System.lineSeparator(), " ").trim();
+            if (chunkTextToAppend.length() > this.minChunkLengthToEmbed) {
+                chunks.add(chunkTextToAppend);
+            }
+            ++num_chunks;
+
+            if (isFinalWindow && actualChunkSize >= chunk.size()) {
+                tokens = new ArrayList<>();
+                break;
+            }
+
+            if (isFinalWindow) {
+                tokens = tokens.subList(actualChunkSize, tokens.size());
+                break;
+            }
+
+            int stepSize = actualChunkSize - this.overlapTokens;
+            if (stepSize <= 0 || stepSize > tokens.size()) {
+                tokens = new ArrayList<>();
+                break;
+            }
+            tokens = tokens.subList(stepSize, tokens.size());
+        }
+
+        if (!maxChunksReached && !tokens.isEmpty()) {
+            String remaining_text = this.decodeTokens(tokens);
+            int size = tokens.size();
+            while (remaining_text.indexOf('\uFFFD') != -1 && size > 1) {
+                size--;
+                remaining_text = this.decodeTokens(tokens.subList(0, size));
+            }
+            remaining_text = remaining_text.replace(System.lineSeparator(), " ").trim();
+            if (remaining_text.length() > this.minChunkLengthToEmbed) {
+                chunks.add(remaining_text);
+            }
+        }
+
+        return chunks;
     }
 
     private List<Integer> getEncodedTokens(String text) {
