@@ -33,6 +33,7 @@ services:
       test: ["CMD-SHELL", "pg_isready -U appuser -d appdb"]
       interval: 5s
       retries: 10
+      start_period: 30s
     # Note: schema/data are seeded by Spring Boot itself (schema.sql / data.sql,
     # sql.init.mode: always) rather than Postgres's docker-entrypoint-initdb.d,
     # since the app already manages init that way.

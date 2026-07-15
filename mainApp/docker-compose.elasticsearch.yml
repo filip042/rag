@@ -19,9 +19,15 @@ services:
     volumes:
       - esdata:/usr/share/elasticsearch/data
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:9200/_cluster/health || exit 1"]
+      test:
+        [
+          "CMD-SHELL",
+          "curl -fsS 'http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=60s' >/dev/null"
+        ]
       interval: 10s
-      retries: 10
+      timeout: 70s
+      retries: 12
+      start_period: 90s
 
   es-init:
     image: alpine:3.20
