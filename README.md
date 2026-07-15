@@ -48,7 +48,7 @@ cp .env_template .env
 cp rag-app/src/main/resources/application.yaml_template rag-app/src/main/resources/application.yaml
 ```
 
-Edit `.env` and fill in:
+If you want to modify the default configuration, edit `.env` and fill in:
 - `OLLAMA_CHAT_MODEL` / `OLLAMA_EMBED_MODEL` — if using the Ollama overlay
 - `OPENAI_API_KEY` — if using the OpenAI overlay
 - `ANTHROPIC_API_KEY` — used for the test judge, independent of the active LLM provider
