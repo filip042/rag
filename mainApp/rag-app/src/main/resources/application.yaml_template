@@ -36,7 +36,7 @@ spring:
 app:
   base-url: http://localhost:8080
   llm:
-    provider: ollama
+    provider: ${LLM_PROVIDER:ollama}
     base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
     api-key: ${OPENAI_API_KEY:}
     username: ${LLM_USERNAME:}
@@ -47,7 +47,7 @@ app:
     embedding:
       model: ${OLLAMA_EMBED_MODEL:mxbai-embed-large:latest}
   vectorstore:
-    provider: elasticsearch
+    provider: ${VECTORSTORE_PROVIDER:elasticsearch}
     uris: ${SPRING_ELASTICSEARCH_URIS:http://localhost:9200}
     username:
     password:
