@@ -39,16 +39,39 @@ All commands below are run from the `mainApp/` directory:
 cd mainApp
 ```
 
-### 1. Create your configuration files from the templates
-
-Neither `.env` nor `application.yaml` is committed to the repository, since both can contain environment-specific values and credentials. You must create them locally before running the application:
+Create your configuration files from the templates. Neither `.env` nor `application.yaml` is committed to the repository, since both can contain environment-specific values and credentials — this step is required, but the defaults work as-is, so no editing is needed to get started:
 
 ```bash
 cp .env_template .env
 cp rag-app/src/main/resources/application.yaml_template rag-app/src/main/resources/application.yaml
 ```
 
+Start the stack (default Ollama + Elasticsearch setup):
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.ollama.yml -f docker-compose.elasticsearch.yml up --build
+```
+
+On the first start, Ollama will download the configured models, which are several GB in size — expect this to take a few minutes depending on your connection. The stack is ready once the logs show the application has started.
+
+## Try it out
+
+When the log shows the app has started, open **http://localhost:8080** in a browser.
+
+Log in with the seeded demo account, username `user`, password `user`.
+
+Open the pre-loaded **Book Club** project, which contains indexed Wikipedia articles about classic fantasy literature. Ask in the chat:
+
+> Who wrote The Hobbit?
+
+You should get an answer naming **J. R. R. Tolkien**. If instead you get "There isn't enough information to answer that question", the Elasticsearch index is empty. Check `docker logs mainapp-es-init-1` for seeding errors.
+
+## Configuration reference
+
 If you want to modify the default configuration, edit `.env` and fill in:
+- `LLM_PROVIDER` / `VECTORSTORE_PROVIDER` - which provider is used for LLMs and the vector store. Must correspond to the selected docker-compose files and starter modules.
+  - `LLM_PROVIDER` currently supports `ollama` and `openai`
+  - `VECTORSTORE_PROVIDER` currently supports `elasticsearch`
 - `OLLAMA_CHAT_MODEL` / `OLLAMA_EMBED_MODEL` — if using the Ollama overlay
 - `OPENAI_API_KEY` — if using the OpenAI overlay
 - `ANTHROPIC_API_KEY` — used for the test judge, independent of the active LLM provider
@@ -57,9 +80,9 @@ If you want to modify the default configuration, edit `.env` and fill in:
 
 `application.yaml` should already be wired to read its values from the same environment variables — you shouldn't need to hardcode secrets there.
 
-### 2. Choose your module configuration
+### Swapping LLM providers / vector stores
 
-The active LLM provider and vector store are determined by which starter modules `rag-app/pom.xml` depends on. Check (or edit) the `<dependencies>` section of `rag-app/pom.xml` to confirm which are active, e.g.:
+In adition to the values set in .env, the active LLM provider and vector store are determined by which starter modules `rag-app/pom.xml` depends on. Check (or edit) the `<dependencies>` section of `rag-app/pom.xml` to confirm which are active, e.g.:
 
 ```xml
 <dependency>
@@ -72,11 +95,7 @@ The active LLM provider and vector store are determined by which starter modules
 </dependency>
 ```
 
-Swapping providers means changing these dependencies and rebuilding.
-
-### 3. Start the stack
-
-Pick the overlay files matching your chosen modules. For the default Ollama + Elasticsearch setup:
+Swapping providers means changing these dependencies, the .env values, and rebuilding. Then pick the overlay files matching your chosen modules, e.g.:
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.ollama.yml -f docker-compose.elasticsearch.yml up --build
@@ -88,7 +107,7 @@ Or, if you set `COMPOSE_FILE` in `.env`:
 docker compose up --build
 ```
 
-## Configuration reference
+### Configuration files
 
 | File | Purpose | Committed?                          |
 |---|---|-------------------------------------|
