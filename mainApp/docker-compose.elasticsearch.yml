@@ -36,11 +36,11 @@ services:
         condition: service_healthy
     volumes:
       - ./es-init:/scripts
-    entrypoint: ["/bin/sh", "-c"]
+    entrypoint: [ "/bin/sh", "-c" ]
     command:
       - |
         apk add --no-cache curl jq
-        /scripts/create-index.sh
+        sh /scripts/create-index.sh
 
 volumes:
   esdata:
