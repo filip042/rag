@@ -90,22 +90,29 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const tbody = document.querySelector("table tbody");
             const newRow = document.createElement("tr");
-            newRow.innerHTML = `
-                <td>${data.username}</td>
-                <td>${data.admin ? 'Admin' : 'User'}</td>
-                <td>
-                    ${!data.admin ? `
-                        <form class="ajax-form promote-user" action="/admin/promote" method="post" style="display:inline;">
-                            <input type="hidden" name="userId" value="${data.id}">
-                            <button type="submit">Promote</button>
-                        </form>
-                        <form class="ajax-form remove-user" action="/admin/remove" method="post" style="display:inline;">
-                            <input type="hidden" name="userId" value="${data.id}">
-                            <button type="submit" class="delete" onclick="return confirm('Remove this user from the project?');">Remove</button>
-                        </form>
-                    ` : ''}
-                </td>
-            `;
+
+            const usernameCell = document.createElement("td");
+            usernameCell.textContent = data.username;
+            newRow.appendChild(usernameCell);
+
+            const roleCell = document.createElement("td");
+            roleCell.textContent = data.admin ? "Admin" : "User";
+            newRow.appendChild(roleCell);
+
+            const actionsCell = document.createElement("td");
+            if (!data.admin) {
+                actionsCell.innerHTML = `
+                    <form class="ajax-form promote-user" action="/admin/promote" method="post" style="display:inline;">
+                        <input type="hidden" name="userId" value="${data.id}">
+                        <button type="submit">Promote</button>
+                    </form>
+                    <form class="ajax-form remove-user" action="/admin/remove" method="post" style="display:inline;">
+                        <input type="hidden" name="userId" value="${data.id}">
+                        <button type="submit" class="delete" onclick="return confirm('Remove this user from the project?');">Remove</button>
+                    </form>
+                `;
+            }
+            newRow.appendChild(actionsCell);
             const isPublic = document.querySelector("input[name='isPublic']:checked").value === "true";
             if (isPublic && !data.admin) {
                 newRow.style.display = "none";
