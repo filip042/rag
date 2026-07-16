@@ -101,6 +101,6 @@ logging:
     root: INFO
     cz.cuni.mff.hanaf: DEBUG
     org.springframework.ai.openai.api.OpenAiApi: INFO
-    org.springframework.web.client.RestClient: DEBUG
-    org.hibernate.SQL: DEBUG
+    org.springframework.web.client.RestClient: INFO
+    org.hibernate.SQL: INFO
     org.hibernate.orm.jdbc.bind: INFO
