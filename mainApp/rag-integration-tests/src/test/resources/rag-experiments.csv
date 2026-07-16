@@ -1,94 +1,94 @@
 experiment_id,provider,model,prompt,temperature,workspace,repetitions
-prompt_ask_template_t00,openai,gpt-4o-mini,ask-template,0.0,1,3
-best_deepseek_ask_template_t00,ollama,deepseek-r1:1.5b,ask-template,0.0,1,3
-best_qwen_ask_template_t00,ollama,qwen3:latest,ask-template,0.0,1,3
-prompt_ask_template_t02,openai,gpt-4o-mini,ask-template,0.2,1,3
-best_deepseek_ask_template_t02,ollama,deepseek-r1:1.5b,ask-template,0.2,1,3
-best_qwen_ask_template_t02,ollama,qwen3:latest,ask-template,0.2,1,3
-prompt_ask_template_t04,openai,gpt-4o-mini,ask-template,0.4,1,3
-best_deepseek_ask_template_t04,ollama,deepseek-r1:1.5b,ask-template,0.4,1,3
-best_qwen_ask_template_t04,ollama,qwen3:latest,ask-template,0.4,1,3
-prompt_ask_template_t06,openai,gpt-4o-mini,ask-template,0.6,1,3
-best_deepseek_ask_template_t06,ollama,deepseek-r1:1.5b,ask-template,0.6,1,3
-best_qwen_ask_template_t06,ollama,qwen3:latest,ask-template,0.6,1,3
-prompt_ask_template_t08,openai,gpt-4o-mini,ask-template,0.8,1,3
-best_deepseek_ask_template_t08,ollama,deepseek-r1:1.5b,ask-template,0.8,1,3
-best_qwen_ask_template_t08,ollama,qwen3:latest,ask-template,0.8,1,3
+# prompt_ask_template_t00,openai,gpt-4o-mini,ask-template,0.0,1,3
+# best_deepseek_ask_template_t00,ollama,deepseek-r1:1.5b,ask-template,0.0,1,3
+# best_qwen_ask_template_t00,ollama,qwen3:latest,ask-template,0.0,1,3
+# prompt_ask_template_t02,openai,gpt-4o-mini,ask-template,0.2,1,3
+# best_deepseek_ask_template_t02,ollama,deepseek-r1:1.5b,ask-template,0.2,1,3
+# best_qwen_ask_template_t02,ollama,qwen3:latest,ask-template,0.2,1,3
+# prompt_ask_template_t04,openai,gpt-4o-mini,ask-template,0.4,1,3
+# best_deepseek_ask_template_t04,ollama,deepseek-r1:1.5b,ask-template,0.4,1,3
+# best_qwen_ask_template_t04,ollama,qwen3:latest,ask-template,0.4,1,3
+# prompt_ask_template_t06,openai,gpt-4o-mini,ask-template,0.6,1,3
+# best_deepseek_ask_template_t06,ollama,deepseek-r1:1.5b,ask-template,0.6,1,3
+# best_qwen_ask_template_t06,ollama,qwen3:latest,ask-template,0.6,1,3
+# prompt_ask_template_t08,openai,gpt-4o-mini,ask-template,0.8,1,3
+# best_deepseek_ask_template_t08,ollama,deepseek-r1:1.5b,ask-template,0.8,1,3
+# best_qwen_ask_template_t08,ollama,qwen3:latest,ask-template,0.8,1,3
 
-prompt_adversarial,openai,gpt-4o-mini,adversarial-ask,0.2,1,3
-best_deepseek_adversarial,ollama,deepseek-r1:1.5b,adversarial-ask,0.2,1,3
-best_qwen_adversarial,ollama,qwen3:latest,adversarial-ask,0.2,1,3
-prompt_evidence,openai,gpt-4o-mini,evidence-ask,0.2,1,3
-best_deepseek_evidence,ollama,deepseek-r1:1.5b,evidence-ask,0.2,1,3
-best_qwen_evidence,ollama,qwen3:latest,evidence-ask,0.2,1,3
-prompt_minimal,openai,gpt-4o-mini,minimal-ask,0.2,1,3
-best_deepseek_minimal,ollama,deepseek-r1:1.5b,minimal-ask,0.2,1,3
-best_qwen_minimal,ollama,qwen3:latest,minimal-ask,0.2,1,3
-prompt_chain_of_thought,openai,gpt-4o-mini,chain-of-thought-ask,0.2,1,3
-best_deepseek_chain_of_thought,ollama,deepseek-r1:1.5b,chain-of-thought-ask,0.2,1,3
-best_qwen_chain_of_thought,ollama,qwen3:latest,chain-of-thought-ask,0.2,1,3
-prompt_expert,openai,gpt-4o-mini,expert-ask,0.2,1,3
-best_deepseek_expert,ollama,deepseek-r1:1.5b,expert-ask,0.2,1,6
-best_qwen_expert,ollama,qwen3:latest,expert-ask,0.2,1,3
-prompt_precision,openai,gpt-4o-mini,precision-ask,0.2,1,3
-best_deepseek_precision,ollama,deepseek-r1:1.5b,precision-ask,0.2,1,3
-best_qwen_precision,ollama,qwen3:latest,precision-ask,0.2,1,3
-prompt_structured,openai,gpt-4o-mini,structured-ask,0.2,1,3
-best_deepseek_structured,ollama,deepseek-r1:1.5b,structured-ask,0.2,1,3
-best_qwen_structured,ollama,qwen3:latest,structured-ask,0.2,1,3
-best_deepseek_simple,ollama,deepseek-r1:1.5b,ask-template,0.2,1,3
+# prompt_adversarial,openai,gpt-4o-mini,adversarial-ask,0.2,1,3
+# best_deepseek_adversarial,ollama,deepseek-r1:1.5b,adversarial-ask,0.2,1,3
+# best_qwen_adversarial,ollama,qwen3:latest,adversarial-ask,0.2,1,3
+# prompt_evidence,openai,gpt-4o-mini,evidence-ask,0.2,1,3
+# best_deepseek_evidence,ollama,deepseek-r1:1.5b,evidence-ask,0.2,1,3
+# best_qwen_evidence,ollama,qwen3:latest,evidence-ask,0.2,1,3
+# prompt_minimal,openai,gpt-4o-mini,minimal-ask,0.2,1,3
+# best_deepseek_minimal,ollama,deepseek-r1:1.5b,minimal-ask,0.2,1,3
+# best_qwen_minimal,ollama,qwen3:latest,minimal-ask,0.2,1,3
+# prompt_chain_of_thought,openai,gpt-4o-mini,chain-of-thought-ask,0.2,1,3
+# best_deepseek_chain_of_thought,ollama,deepseek-r1:1.5b,chain-of-thought-ask,0.2,1,3
+# best_qwen_chain_of_thought,ollama,qwen3:latest,chain-of-thought-ask,0.2,1,3
+# prompt_expert,openai,gpt-4o-mini,expert-ask,0.2,1,3
+# best_deepseek_expert,ollama,deepseek-r1:1.5b,expert-ask,0.2,1,6
+# best_qwen_expert,ollama,qwen3:latest,expert-ask,0.2,1,3
+# prompt_precision,openai,gpt-4o-mini,precision-ask,0.2,1,3
+# best_deepseek_precision,ollama,deepseek-r1:1.5b,precision-ask,0.2,1,3
+# best_qwen_precision,ollama,qwen3:latest,precision-ask,0.2,1,3
+# prompt_structured,openai,gpt-4o-mini,structured-ask,0.2,1,3
+# best_deepseek_structured,ollama,deepseek-r1:1.5b,structured-ask,0.2,1,3
+# best_qwen_structured,ollama,qwen3:latest,structured-ask,0.2,1,3
+# best_deepseek_simple,ollama,deepseek-r1:1.5b,ask-template,0.2,1,3
 
-best_qwen_thinking,ollama,qwen3:latest,structured-ask,0.2,1,9
-best_deepseek_thinking,ollama,deepseek-r1:1.5b,ask-template,0.2,1,9
-best_qwen_no_thinking,ollama,qwen3:latest,structured-ask,0.2,1,9
-best_deepseek_no_thinking,ollama,deepseek-r1:1.5b,ask-template,0.2,1,9
+# best_qwen_thinking,ollama,qwen3:latest,structured-ask,0.2,1,9
+# best_deepseek_thinking,ollama,deepseek-r1:1.5b,ask-template,0.2,1,9
+# best_qwen_no_thinking,ollama,qwen3:latest,structured-ask,0.2,1,9
+# best_deepseek_no_thinking,ollama,deepseek-r1:1.5b,ask-template,0.2,1,9
 
-best_gpt_no_repeat,openai,gpt-4o-mini,ask-template,0.2,1,9
-best_qwen_no_repeat,ollama,qwen3:latest,structured-ask,0.2,1,9
-best_deepseek_no_repeat,ollama,deepseek-r1:1.5b,ask-template,0.2,1,9
-best_gpt_one_repeat,openai,gpt-4o-mini,ask-template,0.2,1,9
-best_qwen_one_repeat,ollama,qwen3:latest,structured-ask,0.2,1,9
-best_deepseek_one_repeat,ollama,deepseek-r1:1.5b,ask-template,0.2,1,9
-best_gpt_verbose_repeat,openai,gpt-4o-mini,ask-template,0.2,1,9
-best_qwen_verbose_repeat,ollama,qwen3:latest,structured-ask,0.2,1,9
-best_deepseek_verbose_repeat,ollama,deepseek-r1:1.5b,ask-template,0.2,1,9
-best_gpt_two_repeat,openai,gpt-4o-mini,ask-template,0.2,1,9
-best_qwen_two_repeat,ollama,qwen3:latest,structured-ask,0.2,1,9
-best_deepseek_two_repeat,ollama,deepseek-r1:1.5b,ask-template,0.2,1,9
+# best_gpt_no_repeat,openai,gpt-4o-mini,ask-template,0.2,1,9
+# best_qwen_no_repeat,ollama,qwen3:latest,structured-ask,0.2,1,9
+# best_deepseek_no_repeat,ollama,deepseek-r1:1.5b,ask-template,0.2,1,9
+# best_gpt_one_repeat,openai,gpt-4o-mini,ask-template,0.2,1,9
+# best_qwen_one_repeat,ollama,qwen3:latest,structured-ask,0.2,1,9
+# best_deepseek_one_repeat,ollama,deepseek-r1:1.5b,ask-template,0.2,1,9
+# best_gpt_verbose_repeat,openai,gpt-4o-mini,ask-template,0.2,1,9
+# best_qwen_verbose_repeat,ollama,qwen3:latest,structured-ask,0.2,1,9
+# best_deepseek_verbose_repeat,ollama,deepseek-r1:1.5b,ask-template,0.2,1,9
+# best_gpt_two_repeat,openai,gpt-4o-mini,ask-template,0.2,1,9
+# best_qwen_two_repeat,ollama,qwen3:latest,structured-ask,0.2,1,9
+# best_deepseek_two_repeat,ollama,deepseek-r1:1.5b,ask-template,0.2,1,9
 
-best_gpt_mxbai,openai,gpt-4o-mini,ask-template,0.2,1,3
-best_qwen_mxbai,ollama,qwen3:latest,structured-ask,0.2,1,3
-best_deepseek_mxbai,ollama,deepseek-r1:1.5b,ask-template,0.2,1,3
-best_gpt_nomic,openai,gpt-4o-mini,ask-template,0.2,1,3
-best_qwen_nomic,ollama,qwen3:latest,structured-ask,0.2,1,3
-best_deepseek_nomic,ollama,deepseek-r1:1.5b,ask-template,0.2,1,3
-best_gpt_embedding_small,openai,gpt-4o-mini,ask-template,0.2,1,3
-best_qwen_embedding_small,ollama,qwen3:latest,structured-ask,0.2,1,3
-best_deepseek_embedding_small,ollama,deepseek-r1:1.5b,ask-template,0.2,1,3
+# best_gpt_mxbai,openai,gpt-4o-mini,ask-template,0.2,1,3
+# best_qwen_mxbai,ollama,qwen3:latest,structured-ask,0.2,1,3
+# best_deepseek_mxbai,ollama,deepseek-r1:1.5b,ask-template,0.2,1,3
+# best_gpt_nomic,openai,gpt-4o-mini,ask-template,0.2,1,3
+# best_qwen_nomic,ollama,qwen3:latest,structured-ask,0.2,1,3
+# best_deepseek_nomic,ollama,deepseek-r1:1.5b,ask-template,0.2,1,3
+# best_gpt_embedding_small,openai,gpt-4o-mini,ask-template,0.2,1,3
+# best_qwen_embedding_small,ollama,qwen3:latest,structured-ask,0.2,1,3
+# best_deepseek_embedding_small,ollama,deepseek-r1:1.5b,ask-template,0.2,1,3
 
-best_gpt_summarize_document_embed,openai,gpt-4o-mini,ask-template,0.2,1,3
-best_qwen_summarize_document_embed,ollama,qwen3:latest,structured-ask,0.2,1,3
-best_deepseek_summarize_document_embed,ollama,deepseek-r1:1.5b,ask-template,0.2,1,3
-best_gpt_mxbai,openai,gpt-4o-mini,ask-template,0.2,1,3
-best_qwen_mxbai,ollama,qwen3:latest,structured-ask,0.2,1,3
-best_deepseek_mxbai,ollama,deepseek-r1:1.5b,ask-template,0.2,1,3
+# best_gpt_summarize_document_embed,openai,gpt-4o-mini,ask-template,0.2,1,3
+# best_qwen_summarize_document_embed,ollama,qwen3:latest,structured-ask,0.2,1,3
+# best_deepseek_summarize_document_embed,ollama,deepseek-r1:1.5b,ask-template,0.2,1,3
+# best_gpt_mxbai,openai,gpt-4o-mini,ask-template,0.2,1,3
+# best_qwen_mxbai,ollama,qwen3:latest,structured-ask,0.2,1,3
+# best_deepseek_mxbai,ollama,deepseek-r1:1.5b,ask-template,0.2,1,3
 
 best_gpt_relevance_no_repeat,openai,gpt-4o-mini,ask-template,0.2,1,3
-best_qwen_relevance_no_repeat,ollama,qwen3:latest,structured-ask,0.2,1,3
-best_deepseek_relevance_no_repeat,ollama,deepseek-r1:1.5b,ask-template,0.2,1,3
+# best_qwen_relevance_no_repeat,ollama,qwen3:latest,structured-ask,0.2,1,3
+# best_deepseek_relevance_no_repeat,ollama,deepseek-r1:1.5b,ask-template,0.2,1,3
 best_gpt_relevance_repeat_verbose,openai,gpt-4o-mini,ask-template,0.2,1,3
-best_qwen_relevance_repeat_verbose,ollama,qwen3:latest,structured-ask,0.2,1,3
-best_deepseek_relevance_repeat_verbose,ollama,deepseek-r1:1.5b,ask-template,0.2,1,3
+# best_qwen_relevance_repeat_verbose,ollama,qwen3:latest,structured-ask,0.2,1,3
+# best_deepseek_relevance_repeat_verbose,ollama,deepseek-r1:1.5b,ask-template,0.2,1,3
 best_gpt_relevance_two_repeat,openai,gpt-4o-mini,ask-template,0.2,1,3
-best_qwen_relevance_two_repeat,ollama,qwen3:latest,structured-ask,0.2,1,3
-best_deepseek_relevance_two_repeat,ollama,deepseek-r1:1.5b,ask-template,0.2,1,3
+# best_qwen_relevance_two_repeat,ollama,qwen3:latest,structured-ask,0.2,1,3
+# best_deepseek_relevance_two_repeat,ollama,deepseek-r1:1.5b,ask-template,0.2,1,3
 
-best_gpt_large_chunk,openai,gpt-4o-mini,ask-template,0.2,1,3
-best_qwen_large_chunk,ollama,qwen3:latest,structured-ask,0.2,1,3
-best_deepseek_large_chunk,ollama,deepseek-r1:1.5b,ask-template,0.2,1,3
-best_gpt_medium_chunk,openai,gpt-4o-mini,ask-template,0.2,2,3
-best_qwen_medium_chunk,ollama,qwen3:latest,structured-ask,0.2,2,3
-best_deepseek_medium_chunk,ollama,deepseek-r1:1.5b,ask-template,0.2,2,3
-best_gpt_small_chunk,openai,gpt-4o-mini,ask-template,0.2,3,3
-best_qwen_small_chunk,ollama,qwen3:latest,structured-ask,0.2,3,3
-best_deepseek_small_chunk,ollama,deepseek-r1:1.5b,ask-template,0.2,3,3
+# best_gpt_large_chunk,openai,gpt-4o-mini,ask-template,0.2,1,3
+# best_qwen_large_chunk,ollama,qwen3:latest,structured-ask,0.2,1,3
+# best_deepseek_large_chunk,ollama,deepseek-r1:1.5b,ask-template,0.2,1,3
+# best_gpt_medium_chunk,openai,gpt-4o-mini,ask-template,0.2,2,3
+# best_qwen_medium_chunk,ollama,qwen3:latest,structured-ask,0.2,2,3
+# best_deepseek_medium_chunk,ollama,deepseek-r1:1.5b,ask-template,0.2,2,3
+# best_gpt_small_chunk,openai,gpt-4o-mini,ask-template,0.2,3,3
+# best_qwen_small_chunk,ollama,qwen3:latest,structured-ask,0.2,3,3
+# best_deepseek_small_chunk,ollama,deepseek-r1:1.5b,ask-template,0.2,3,3

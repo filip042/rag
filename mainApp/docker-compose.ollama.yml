@@ -5,8 +5,8 @@ services:
         condition: service_healthy
     environment:
       - OLLAMA_BASE_URL=${OLLAMA_BASE_URL}
-      - LLM_CHAT_MODEL=${OLLAMA_CHAT_MODEL}
-      - LLM_EMBED_MODEL=${OLLAMA_EMBED_MODEL}
+      - LLM_CHAT_MODEL=${LLM_CHAT_MODEL}
+      - LLM_EMBED_MODEL=${LLM_EMBED_MODEL}
 
   ollama:
     image: ollama/ollama:latest

@@ -52,7 +52,12 @@ Start the stack (default Ollama + Elasticsearch setup):
 docker compose -f docker-compose.yml -f docker-compose.ollama.yml -f docker-compose.elasticsearch.yml up --build
 ```
 
-On the first start, Ollama will download the configured models, which are several GB in size — expect this to take a few minutes depending on your connection. The stack is ready once the logs show the application has started.
+The first run on the default configuratoi ncan take up to an hour depending on internet speed, due to requiring the download and setup of Ollama and Elasticsearch. The application is ready once these lines appear in the logs:
+
+```
+app-1            | 2026-07-16T11:36:45.670Z  INFO 1 --- [mainApp] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path '/'
+app-1            | 2026-07-16T11:36:45.705Z  INFO 1 --- [mainApp] [           main] c.c.m.hanaf.mainapp.MainAppApplication   : Started MainAppApplication in 21.684 seconds (process running for 26.052)
+```
 
 ## Try it out
 
