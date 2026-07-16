@@ -4,7 +4,7 @@ services:
       ollama:
         condition: service_healthy
     environment:
-      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL}
+      - OLLAMA_BASE_URL=http://ollama:11434
       - LLM_CHAT_MODEL=${LLM_CHAT_MODEL}
       - LLM_EMBED_MODEL=${LLM_EMBED_MODEL}
 
