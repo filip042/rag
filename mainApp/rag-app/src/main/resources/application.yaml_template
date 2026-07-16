@@ -42,10 +42,10 @@ app:
     username: ${LLM_USERNAME:}
     password: ${LLM_PASSWORD:}
     chat:
-      model: ${OLLAMA_CHAT_MODEL:deepseek-r1:1.5b}
+      model: ${LLM_CHAT_MODEL:deepseek-r1:1.5b}
       temperature: 0.2
     embedding:
-      model: ${OLLAMA_EMBED_MODEL:mxbai-embed-large:latest}
+      model: ${LLM_EMBED_MODEL:mxbai-embed-large:latest}
   vectorstore:
     provider: ${VECTORSTORE_PROVIDER:elasticsearch}
     uris: ${SPRING_ELASTICSEARCH_URIS:http://localhost:9200}
@@ -100,7 +100,7 @@ logging:
   level:
     root: INFO
     cz.cuni.mff.hanaf: DEBUG
-    org.springframework.ai.openai.api.OpenAiApi: TRACE
+    org.springframework.ai.openai.api.OpenAiApi: INFO
     org.springframework.web.client.RestClient: DEBUG
     org.hibernate.SQL: DEBUG
-    org.hibernate.orm.jdbc.bind: TRACE
+    org.hibernate.orm.jdbc.bind: INFO
