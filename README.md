@@ -31,32 +31,32 @@ mainApp/
     └── create-index.sh              # creates the Elasticsearch index/mapping on startup
 ```
 
-## Quick start
-
-All commands below are run from the `mainApp/` directory:
-
-```bash
-cd mainApp
-```
-
-Create your configuration files from the templates. Neither `.env` nor `application.yaml` is committed to the repository, since both can contain environment-specific values and credentials. The default values work as-is, so no editing is required:
-
-```bash
-cp .env_template .env
-cp rag-app/src/main/resources/application.yaml_template rag-app/src/main/resources/application.yaml
-```
-
 Start the stack (default Ollama + Elasticsearch setup):
+
+- **Linux/macOS:**
+```bash
+  ./start.sh
+```
+- **Windows:**
+```bat
+  start.bat
+```
+
+Both scripts start the stack in the background and wait for the healthcheck to report the app as healthy, then print a message in the console once it's ready to use. Any extra arguments you pass are forwarded to `docker compose up` (e.g. `./start.sh --build` to force a rebuild).
+
+The first run on the default configuration can take up to an hour depending on internet speed, due to requiring the download and setup of Ollama and Elasticsearch.
+
+If startup fails, the script will tell you and suggest diagnostic commands:
+
+```bash
+docker compose ps          # which service is not healthy
+docker compose logs app    # why (replace 'app' with the failing service)
+```
+
+Alternatively, you can start the stack manually without waiting for the healthcheck:
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.ollama.yml -f docker-compose.elasticsearch.yml up --build
-```
-
-The first run on the default configuration can take up to an hour depending on internet speed, due to requiring the download and setup of Ollama and Elasticsearch. The application is ready once these lines appear in the logs:
-
-```
-app-1            | 2026-07-16T11:36:45.670Z  INFO 1 --- [mainApp] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path '/'
-app-1            | 2026-07-16T11:36:45.705Z  INFO 1 --- [mainApp] [           main] c.c.m.hanaf.mainapp.MainAppApplication   : Started MainAppApplication in 21.684 seconds (process running for 26.052)
 ```
 
 ## Try it out
