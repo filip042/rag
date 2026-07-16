@@ -25,10 +25,39 @@ services:
       - ./schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
       - ./data.sql:/docker-entrypoint-initdb.d/02-data.sql
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U appuser -d appdb" ]
+      test: ["CMD-SHELL", "pg_isready -U appuser -d appdb"]
       interval: 5s
       retries: 10
       start_period: 30s
 
+  docs:
+    profiles: ["docs"]
+    image: maven:3.9-eclipse-temurin-24
+    working_dir: /app
+    volumes:
+      - .:/app
+      - docsdata:/app/target/reports
+      - maven-repo:/root/.m2
+    command: ["mvn", "javadoc:aggregate", "-B"]
+
+  docs-server:
+    profiles: ["docs"]
+    image: nginx:alpine
+    depends_on:
+      docs:
+        condition: service_completed_successfully
+    volumes:
+      - docsdata:/usr/share/nginx/html/site:ro
+    ports:
+      - "8081:80"
+    command:
+      - /bin/sh
+      - -c
+      - |
+        echo "<meta http-equiv='refresh' content='0; url=/site/apidocs/index.html'>" > /usr/share/nginx/html/index.html
+        nginx -g 'daemon off;'
+
 volumes:
   dbdata:
+  docsdata:
+  maven-repo:
