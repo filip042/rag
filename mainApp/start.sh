@@ -16,6 +16,6 @@ fi
 
 echo ""
 echo "=========================================================="
-echo "  Application is ready -- open http://localhost:8080"
+echo "  Application is ready -- open http://localhost:8080/user/"
 echo "  Stop the stack with: docker compose down"
 echo "=========================================================="

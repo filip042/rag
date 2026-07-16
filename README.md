@@ -13,11 +13,13 @@ The application itself lives in [`mainApp/`](./mainApp), a multi-module Maven pr
 
 ```
 mainApp/
+mainApp/
 ├── docker-compose.yml               # base stack: app + db + docs generation
 ├── docker-compose.ollama.yml        # overlay: Ollama container + config
 ├── docker-compose.openai.yml        # overlay: OpenAI config (no container)
 ├── docker-compose.elasticsearch.yml # overlay: Elasticsearch + index init
 ├── Dockerfile
+├── start.sh / start.bat             # convenience scripts: start stack, wait for healthcheck
 ├── .env_template                     # copy to .env and fill in
 ├── pom.xml                          # parent POM, lists all modules
 ├── rag-app/                         # main application module (edit pom.xml here to select modules)
@@ -29,6 +31,21 @@ mainApp/
 ├── rag-integration-tests/
 └── es-init/
     └── create-index.sh              # creates the Elasticsearch index/mapping on startup
+```
+
+## Quick start
+
+All commands below are run from the `mainApp/` directory:
+
+```bash
+cd mainApp
+```
+
+Create your configuration files from the templates. Neither `.env` nor `application.yaml` is committed to the repository, since both can contain environment-specific values and credentials. The default values work as-is, so no editing is required:
+
+```bash
+cp .env_template .env
+cp rag-app/src/main/resources/application.yaml_template rag-app/src/main/resources/application.yaml
 ```
 
 Start the stack (default Ollama + Elasticsearch setup):
@@ -61,7 +78,7 @@ docker compose -f docker-compose.yml -f docker-compose.ollama.yml -f docker-comp
 
 ## Try it out
 
-When the log shows the app has started, open **http://localhost:8080** in a browser.
+When the log shows the app has started, open **http://localhost:8080/user/** in a browser.
 
 Log in with the seeded account: username `user`, password `user`.
 
@@ -70,6 +87,8 @@ Open the pre-loaded **Book Club** project, which contains indexed Wikipedia arti
 > Who wrote The Hobbit?
 
 You should get an answer naming **J. R. R. Tolkien**. If instead you get "There isn't enough information to answer that question", the Elasticsearch index is empty. Check `docker logs mainapp-es-init-1` for seeding errors.
+
+The seeded account and Book Club project come from `data.sql` and `schema.sql` in `mainApp/`; edit these if you want to change the seed data.
 
 ## Configuration reference
 
@@ -138,3 +157,7 @@ docker compose --profile docs up docs-server
 ```
 
 The generated documentation can then be viewed on **http://localhost:8081**.
+
+## License
+
+See [LICENSE](./LICENSE).

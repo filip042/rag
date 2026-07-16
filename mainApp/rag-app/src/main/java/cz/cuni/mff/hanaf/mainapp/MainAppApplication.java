@@ -42,7 +42,7 @@ public class MainAppApplication {
 	@EventListener(ApplicationReadyEvent.class)
 	public void logReadyBanner() {
 		logger.info("==========================================================");
-		logger.info("  Application is ready -- open {} in a browser", baseUrl);
+		logger.info("  Application is ready -- open {}/user/ in a browser", baseUrl);
 		logger.info("  Stop the stack with: docker compose down");
 		logger.info("==========================================================");
 	}
