@@ -17,6 +17,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -63,6 +64,10 @@ public class RagController {
         return project;
     }
 
+    private Object userKey(User user, HttpSession session) {
+        return user.getId() != null ? user.getId() : session.getId();
+    }
+
     /**
      * Passes the query in the request on to the LLM, which uses context from the given project to answer the question.
      * The caller must be authenticated and have access to the given project.
@@ -87,9 +92,8 @@ public class RagController {
         progress.put("checked_all", false);
         progress.put("answer", "");
         progress.put("sources", new ArrayList<String>());
-        progress.put("userId", user.getId());
-        taskProgress.put(taskId, progress);
-        ragService.ask(askRequest.query(), askRequest.project(), progress);
+        progress.put("userId", userKey(user, session));
+        taskProgress.put(taskId, progress);        ragService.ask(askRequest.query(), askRequest.project(), progress);
         return new AskResponse(taskId);
     }
 
@@ -116,7 +120,7 @@ public class RagController {
         if (progress == null) {
             return ResponseEntity.notFound().build();
         }
-        if (!user.getId().equals(progress.get("userId"))) {
+        if (!Objects.equals(userKey(user, session), progress.get("userId"))) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
 
