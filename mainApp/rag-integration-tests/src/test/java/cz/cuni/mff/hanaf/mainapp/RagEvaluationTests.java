@@ -36,7 +36,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @SpringBootTest
-@ActiveProfiles("openai")
 @Import(TestConfig.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class RagEvaluationTests {

@@ -79,7 +79,7 @@ If you want to modify the default configuration, edit `.env` and fill in:
   - `VECTORSTORE_PROVIDER` currently supports `elasticsearch`
 - `LLM_CHAT_MODEL` / `LLM_EMBED_MODEL` — Which LLM is used
   - `LLM_CHAT_MODEL` currently supports deepseek-r1 and qwen3 family models for Ollama, and GPT-4o models for OpenAI
-  - `LLM_EMBED_MODEL` currently supports anny embedding model supported by the implemented providers, provided the correct values are set in `application.yaml`
+  - `LLM_EMBED_MODEL` currently supports any embedding model supported by the implemented providers, provided the correct values are set in `application.yaml`
 - `OPENAI_API_KEY` — if using the OpenAI overlay
 - `ANTHROPIC_API_KEY` — used for the test judge, independent of the active LLM provider
 - `LLM_USERNAME` / `LLM_PASSWORD` - if required by the LLM provider
@@ -89,7 +89,7 @@ If you want to modify the default configuration, edit `.env` and fill in:
 
 ### Swapping LLM providers / vector stores
 
-In adition to the values set in .env, the LLM provider and vector store are determined by which starter modules `rag-app/pom.xml` depends on. The selected models can be checked in the `<dependencies>` section of `rag-app/pom.xml`, e.g.:
+In addition to the values set in .env, the LLM provider and vector store are determined by which starter modules `rag-app/pom.xml` depends on. The selected models can be checked in the `<dependencies>` section of `rag-app/pom.xml`, e.g.:
 
 ```xml
 <dependency>
