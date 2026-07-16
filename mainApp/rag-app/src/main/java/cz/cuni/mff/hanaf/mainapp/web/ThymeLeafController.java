@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
@@ -526,6 +527,7 @@ public class ThymeLeafController {
      * @param model the model to add the question list and user data to
      * @return the history view name, or a redirect to the logout page if no project is in the session
      */
+    @Transactional(readOnly = true)
     @GetMapping("/history")
     public String showHistory(HttpSession session, Model model) {
         Project project = (Project) session.getAttribute("project");
