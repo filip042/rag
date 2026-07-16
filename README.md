@@ -2,7 +2,7 @@
 
 A modular Retrieval-Augmented Generation (RAG) application built with Spring Boot and Spring AI. LLM providers, models, and vector stores are swappable via Maven modules and configuration, without changing application code.
 
-The application itself lives in [`mainApp/`](./mainApp), a multi-module Maven project. This README covers building, configuring, and running it via Docker.
+The application itself lives in [`mainApp/`](./mainApp), a multi-module Maven project. This README covers building, configuring, and running it with Docker.
 
 ## Prerequisites
 
@@ -39,7 +39,7 @@ All commands below are run from the `mainApp/` directory:
 cd mainApp
 ```
 
-Create your configuration files from the templates. Neither `.env` nor `application.yaml` is committed to the repository, since both can contain environment-specific values and credentials — this step is required, but the defaults work as-is, so no editing is needed to get started:
+Create your configuration files from the templates. Neither `.env` nor `application.yaml` is committed to the repository, since both can contain environment-specific values and credentials. The default values work as-is, so no editing is required:
 
 ```bash
 cp .env_template .env
@@ -52,7 +52,7 @@ Start the stack (default Ollama + Elasticsearch setup):
 docker compose -f docker-compose.yml -f docker-compose.ollama.yml -f docker-compose.elasticsearch.yml up --build
 ```
 
-The first run on the default configuratoi ncan take up to an hour depending on internet speed, due to requiring the download and setup of Ollama and Elasticsearch. The application is ready once these lines appear in the logs:
+The first run on the default configuration can take up to an hour depending on internet speed, due to requiring the download and setup of Ollama and Elasticsearch. The application is ready once these lines appear in the logs:
 
 ```
 app-1            | 2026-07-16T11:36:45.670Z  INFO 1 --- [mainApp] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path '/'
@@ -63,7 +63,7 @@ app-1            | 2026-07-16T11:36:45.705Z  INFO 1 --- [mainApp] [           ma
 
 When the log shows the app has started, open **http://localhost:8080** in a browser.
 
-Log in with the seeded demo account — username `user`, password `user`.
+Log in with the seeded account: username `user`, password `user`.
 
 Open the pre-loaded **Book Club** project, which contains indexed Wikipedia articles about classic fantasy literature. Ask in the chat:
 
@@ -77,17 +77,19 @@ If you want to modify the default configuration, edit `.env` and fill in:
 - `LLM_PROVIDER` / `VECTORSTORE_PROVIDER` - which provider is used for LLMs and the vector store. Must correspond to the selected docker-compose files and starter modules.
   - `LLM_PROVIDER` currently supports `ollama` and `openai`
   - `VECTORSTORE_PROVIDER` currently supports `elasticsearch`
-- `OLLAMA_CHAT_MODEL` / `OLLAMA_EMBED_MODEL` — if using the Ollama overlay
+- `LLM_CHAT_MODEL` / `LLM_EMBED_MODEL` — Which LLM is used
+  - `LLM_CHAT_MODEL` currently supports deepseek-r1 and qwen3 family models for Ollama, and GPT-4o models for OpenAI
+  - `LLM_EMBED_MODEL` currently supports anny embedding model supported by the implemented providers, provided the correct values are set in `application.yaml`
 - `OPENAI_API_KEY` — if using the OpenAI overlay
 - `ANTHROPIC_API_KEY` — used for the test judge, independent of the active LLM provider
 - `LLM_USERNAME` / `LLM_PASSWORD` - if required by the LLM provider
 - `COMPOSE_FILE` — optionally set this to the overlay combination you want (see below), so you don't need to pass `-f` flags every time. **On Windows, separate paths with `;`; on Linux/macOS, use `:`.**
 
-`application.yaml` should already be wired to read its values from the same environment variables — you shouldn't need to hardcode secrets there.
+`application.yaml` is wired to read these values from the `.env` file.
 
 ### Swapping LLM providers / vector stores
 
-In adition to the values set in .env, the active LLM provider and vector store are determined by which starter modules `rag-app/pom.xml` depends on. Check (or edit) the `<dependencies>` section of `rag-app/pom.xml` to confirm which are active, e.g.:
+In adition to the values set in .env, the LLM provider and vector store are determined by which starter modules `rag-app/pom.xml` depends on. The selected models can be checked in the `<dependencies>` section of `rag-app/pom.xml`, e.g.:
 
 ```xml
 <dependency>
@@ -100,13 +102,13 @@ In adition to the values set in .env, the active LLM provider and vector store a
 </dependency>
 ```
 
-Swapping providers means changing these dependencies, the .env values, and rebuilding. Then pick the overlay files matching your chosen modules, e.g.:
+Swapping providers means changing these dependencies, the .env values, and rebuilding. Then pick the overlay files matching the chosen modules, e.g.:
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.ollama.yml -f docker-compose.elasticsearch.yml up --build
 ```
 
-Or, if you set `COMPOSE_FILE` in `.env`:
+Or, if `COMPOSE_FILE` is set in `.env`:
 
 ```bash
 docker compose up --build
@@ -135,4 +137,4 @@ Run the server:
 docker compose --profile docs up docs-server
 ```
 
-Then open **http://localhost:8081**.
+The generated documentation can then be viewed on **http://localhost:8081**.
