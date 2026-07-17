@@ -159,4 +159,4 @@ The generated documentation can then be viewed on **http://localhost:8081**.
 
 ## License
 
-See [LICENSE](./LICENSE).
+See [LICENSE](./mainApp/LICENSE).
