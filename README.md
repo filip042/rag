@@ -13,7 +13,6 @@ The application itself lives in [`mainApp/`](./mainApp), a multi-module Maven pr
 
 ```
 mainApp/
-mainApp/
 ├── docker-compose.yml               # base stack: app + db + docs generation
 ├── docker-compose.ollama.yml        # overlay: Ollama container + config
 ├── docker-compose.openai.yml        # overlay: OpenAI config (no container)
